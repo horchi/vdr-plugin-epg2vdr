@@ -1,0 +1,355 @@
+# VDR plugin language source file.
+# Copyright (C) 2007 Klaus Schmidinger <kls@cadsoft.de>
+# This file is distributed under the same license as the VDR package.
+# Klaus Schmidinger <kls@cadsoft.de>, 2000
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: VDR 1.5.7\n"
+"Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
+"POT-Creation-Date: 2017-02-14 12:24+0100\n"
+"PO-Revision-Date: 2009-08-27 21:40+0200\n"
+"Last-Translator: Klaus Schmidinger <kls@cadsoft.de>\n"
+"Language-Team: <vdr@linuxtv.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Timer"
+msgstr ""
+
+msgid "Search Timer"
+msgstr "Suchtimer"
+
+msgid "Timer journal"
+msgstr "Timerhistorie"
+
+msgid "Program"
+msgstr "Programm"
+
+#, fuzzy
+msgid "Update"
+msgstr "Automatisches Update"
+
+msgid "Reload"
+msgstr "Neu laden"
+
+#, fuzzy
+msgid "Update EPG"
+msgstr "Automatisches Update"
+
+msgid "Reload EPG"
+msgstr "EPG komplett neu einlesen"
+
+msgid "auto"
+msgstr ""
+
+msgid "yes"
+msgstr "ja"
+
+msgid "no"
+msgstr "nein"
+
+#, fuzzy
+msgid "EPG Update"
+msgstr "Automatisches Update"
+
+msgid "Update DVB EPG Database"
+msgstr "DVB/EPG in Datenbank eintragen"
+
+msgid "Load Images"
+msgstr "Bilder laden"
+
+msgid "Prohibit Shutdown On Busy 'epgd'"
+msgstr "Herunterfahren verhindern, wenn EPGD aktiv"
+
+msgid "Schedule Boot For Update"
+msgstr "Booten für geplante Updates"
+
+msgid "Blacklist not configured Channels"
+msgstr "Nicht konfigurierte Kanäle 'blacklisten'"
+
+msgid "Menu"
+msgstr "Menü"
+
+msgid "Show In Main Menu"
+msgstr "Im Hauptmenü anzeigen"
+
+msgid "Replace Program Menu"
+msgstr "Programmübersicht ersetzen"
+
+msgid "Replace Timer Menu"
+msgstr "Timerübersicht ersetzen"
+
+msgid "XChange Key Ok/Blue"
+msgstr "Tausche Taste OK/Blau"
+
+msgid "Show Channels without EPG"
+msgstr "Zeige Kanäle ohne EPG"
+
+msgid "Web"
+msgstr "Netzwerk"
+
+msgid "Share in Web"
+msgstr "Im Netz teilen"
+
+msgid "Create Timer Local"
+msgstr "Erstelle Timer lokal"
+
+msgid "Have Common Recordings Folder (NAS)"
+msgstr "Zentrale Aufnahmeablage (NAS)"
+
+msgid "SVDRP Interface"
+msgstr ""
+
+msgid "User"
+msgstr "Benutzer"
+
+msgid "MySQL"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgid "Port"
+msgstr ""
+
+msgid "Database Name"
+msgstr "Datenbankname"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Technical Stuff"
+msgstr "Technisches"
+
+msgid "Log level"
+msgstr "Protokollierungsstufe"
+
+msgid "EPG2VDR Waiting on epgd"
+msgstr "EPG2VDR wartet auf EPGD"
+
+msgid "Timer not found, maybe deleted from other user"
+msgstr "Timer nicht gefunden, evtl. von anderem Benutzer gelöscht"
+
+msgid "Recorded"
+msgstr "Aufgenommen"
+
+msgid "Created"
+msgstr "Angelegt"
+
+msgid "Failed"
+msgstr "Fehlgeschlagen"
+
+msgid "Deleted"
+msgstr "Gelöscht"
+
+msgid "All"
+msgstr "Alle"
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "Timer journal - Recorded"
+msgstr "Timerhistorie - Aufgenommen"
+
+msgid "Timer journal - Created"
+msgstr "Timerhistorie - Erzeugt"
+
+msgid "Timer journal - Failed"
+msgstr "Timerhistorie - Fehlgeschlagen"
+
+msgid "Timer journal - Delete"
+msgstr "Timerhistorie - Gelöscht"
+
+msgid "Delete timer from journal?"
+msgstr "Eintrag aus Timerhistorie löschen?"
+
+msgid "Search matching Events"
+msgstr ""
+
+msgid "Search matching Recordings"
+msgstr ""
+
+msgid "Searchtimers"
+msgstr ""
+
+msgid "Matching recordings"
+msgstr "Vergleiche Aufnahmen"
+
+msgid "Direct Matches:"
+msgstr "Direkte Übereinstimmungen:"
+
+msgid "All Matches:"
+msgstr "Alle Übereinstimmungen:"
+
+msgid "Event"
+msgstr ""
+
+msgid "Button$Timer"
+msgstr "Timer"
+
+msgid "Button$Record"
+msgstr "Aufnehmen"
+
+msgid "Button$Switch"
+msgstr "Umschalten"
+
+#, c-format
+msgid "Overview - %s"
+msgstr "Übersicht - %s"
+
+#, c-format
+msgid "Overview - %s (%s)"
+msgstr "Übersicht - %s (%s)"
+
+#, c-format
+msgid "Schedule - %s"
+msgstr "Programm - %s"
+
+msgid "Search results"
+msgstr "Suchergebnisse"
+
+msgid "Button$Schedule"
+msgstr "Programm"
+
+msgid "Button$Info"
+msgstr "Information"
+
+msgid "Can't switch channel!"
+msgstr "Umschalten nicht möglich!"
+
+msgid "Edit Search Timer"
+msgstr "Suchtimer bearbeiten"
+
+msgid "Remove all done entries of this event?"
+msgstr "Alle erledigten Einträge dieses Ereignisses entfernen?"
+
+msgid "Search Timers"
+msgstr "Suchtimer"
+
+msgid "Deactivate"
+msgstr "Deaktivieren"
+
+msgid "Activate"
+msgstr "Aktivieren"
+
+msgid "Test"
+msgstr ""
+
+msgid "Delete search timer?"
+msgstr "Suchtimer löschen?"
+
+msgid "Edit Timer"
+msgstr "Timer bearbeiten"
+
+msgid "Active"
+msgstr "Aktiv"
+
+msgid "VDR"
+msgstr ""
+
+msgid "Channel"
+msgstr "Kanal"
+
+msgid "Day"
+msgstr "Tag"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Stop"
+msgstr "Stop"
+
+msgid "VPS"
+msgstr ""
+
+msgid "Priority"
+msgstr "Priorität"
+
+msgid "Lifetime"
+msgstr "Lebensdauer"
+
+msgid "Childlock"
+msgstr "Kindersperre"
+
+msgid "File"
+msgstr "Datei"
+
+msgid "Information"
+msgstr ""
+
+msgid "Button$Folder"
+msgstr "Ordner"
+
+msgid "Button$Single"
+msgstr "Einzeln"
+
+msgid "Button$Repeating"
+msgstr "Wiederholung"
+
+msgid "First day"
+msgstr "Erster Tag"
+
+msgid "*** Invalid Channel ***"
+msgstr "*** ungültiger Kanal ***"
+
+msgid "Timer still recording - really move to other VDR?"
+msgstr "Timer zeichnet auf, dennoch verschieben?"
+
+msgid "Select folder"
+msgstr "Verzeichnis wählen"
+
+msgid "Timers"
+msgstr "Timer"
+
+msgid "Button$On/Off"
+msgstr "An/Aus"
+
+msgid "Button$New"
+msgstr "Neu"
+
+msgid "Button$Delete"
+msgstr "Löschen"
+
+msgid "Delete timer?"
+msgstr "Timer löschen"
+
+msgid "Timer still recording - really delete?"
+msgstr "Timer zeichnet auf, dennoch löschen?"
+
+#, c-format
+msgid "Skipping '%s' request, epgd busy. Trying again later"
+msgstr ""
+
+msgid "reload"
+msgstr "neu laden"
+
+msgid "update"
+msgstr "aktualisieren"
+
+#, c-format
+msgid "EPG '%s' done"
+msgstr "EPG '%s' abgeschlossen"
+
+#~ msgid "Now"
+#~ msgstr "Jetzt"
+
+#~ msgid "Next"
+#~ msgstr "Nächste"
+
+#~ msgid "This event - %s"
+#~ msgstr "Dieses Ereignis - %s"
+
+#~ msgid "This event - all channels"
+#~ msgstr "Dieses Ereignis - alle Kanäle"
+
+#~ msgid "All events - all channels"
+#~ msgstr "Alle Ereignisse - alle Kanäle"
+
+#~ msgid "Button$Now"
+#~ msgstr "Jetzt"
+
+#~ msgid "Button$Next"
+#~ msgstr "Nächste"

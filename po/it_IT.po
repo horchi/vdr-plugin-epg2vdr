@@ -1,0 +1,343 @@
+# VDR plugin language source file.
+# Copyright (C) 2007 Klaus Schmidinger <kls@cadsoft.de>
+# This file is distributed under the same license as the VDR package.
+# Alberto Carraro <bertocar@tin.it>, 2001
+# Antonio Ospite <ospite@studenti.unina.it>, 2003
+# Sean Carlos <seanc@libero.it>, 2005
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: VDR 1.5.7\n"
+"Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
+"POT-Creation-Date: 2017-02-14 12:24+0100\n"
+"PO-Revision-Date: 2009-08-27 21:45+0100\n"
+"Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
+"Language-Team:  <vdr@linuxtv.org>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Italian\n"
+"X-Poedit-Country: ITALY\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+msgid "Timer"
+msgstr ""
+
+msgid "Search Timer"
+msgstr ""
+
+msgid "Timer journal"
+msgstr ""
+
+msgid "Program"
+msgstr ""
+
+#, fuzzy
+msgid "Update"
+msgstr "Aggiorn. automatico"
+
+msgid "Reload"
+msgstr ""
+
+#, fuzzy
+msgid "Update EPG"
+msgstr "Aggiorn. automatico"
+
+msgid "Reload EPG"
+msgstr ""
+
+msgid "auto"
+msgstr ""
+
+msgid "yes"
+msgstr ""
+
+msgid "no"
+msgstr ""
+
+#, fuzzy
+msgid "EPG Update"
+msgstr "Aggiorn. automatico"
+
+msgid "Update DVB EPG Database"
+msgstr ""
+
+msgid "Load Images"
+msgstr ""
+
+msgid "Prohibit Shutdown On Busy 'epgd'"
+msgstr ""
+
+msgid "Schedule Boot For Update"
+msgstr ""
+
+msgid "Blacklist not configured Channels"
+msgstr ""
+
+msgid "Menu"
+msgstr ""
+
+msgid "Show In Main Menu"
+msgstr "Mostra nel menu principale"
+
+msgid "Replace Program Menu"
+msgstr ""
+
+msgid "Replace Timer Menu"
+msgstr ""
+
+msgid "XChange Key Ok/Blue"
+msgstr ""
+
+msgid "Show Channels without EPG"
+msgstr ""
+
+msgid "Web"
+msgstr ""
+
+msgid "Share in Web"
+msgstr ""
+
+msgid "Create Timer Local"
+msgstr ""
+
+msgid "Have Common Recordings Folder (NAS)"
+msgstr ""
+
+msgid "SVDRP Interface"
+msgstr ""
+
+msgid "User"
+msgstr ""
+
+msgid "MySQL"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgid "Port"
+msgstr ""
+
+msgid "Database Name"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Technical Stuff"
+msgstr ""
+
+msgid "Log level"
+msgstr "xxx #AS# "
+
+msgid "EPG2VDR Waiting on epgd"
+msgstr ""
+
+msgid "Timer not found, maybe deleted from other user"
+msgstr ""
+
+msgid "Recorded"
+msgstr ""
+
+msgid "Created"
+msgstr ""
+
+msgid "Failed"
+msgstr ""
+
+msgid "Deleted"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Timer journal - Recorded"
+msgstr ""
+
+msgid "Timer journal - Created"
+msgstr ""
+
+msgid "Timer journal - Failed"
+msgstr ""
+
+msgid "Timer journal - Delete"
+msgstr ""
+
+msgid "Delete timer from journal?"
+msgstr ""
+
+msgid "Search matching Events"
+msgstr ""
+
+msgid "Search matching Recordings"
+msgstr ""
+
+msgid "Searchtimers"
+msgstr ""
+
+msgid "Matching recordings"
+msgstr ""
+
+msgid "Direct Matches:"
+msgstr ""
+
+msgid "All Matches:"
+msgstr ""
+
+msgid "Event"
+msgstr ""
+
+msgid "Button$Timer"
+msgstr ""
+
+msgid "Button$Record"
+msgstr ""
+
+msgid "Button$Switch"
+msgstr ""
+
+#, c-format
+msgid "Overview - %s"
+msgstr ""
+
+#, c-format
+msgid "Overview - %s (%s)"
+msgstr ""
+
+#, c-format
+msgid "Schedule - %s"
+msgstr ""
+
+msgid "Search results"
+msgstr ""
+
+msgid "Button$Schedule"
+msgstr ""
+
+msgid "Button$Info"
+msgstr ""
+
+msgid "Can't switch channel!"
+msgstr ""
+
+msgid "Edit Search Timer"
+msgstr ""
+
+msgid "Remove all done entries of this event?"
+msgstr ""
+
+msgid "Search Timers"
+msgstr ""
+
+msgid "Deactivate"
+msgstr ""
+
+msgid "Activate"
+msgstr ""
+
+msgid "Test"
+msgstr ""
+
+msgid "Delete search timer?"
+msgstr ""
+
+msgid "Edit Timer"
+msgstr ""
+
+msgid "Active"
+msgstr ""
+
+msgid "VDR"
+msgstr ""
+
+msgid "Channel"
+msgstr ""
+
+msgid "Day"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "Stop"
+msgstr ""
+
+msgid "VPS"
+msgstr ""
+
+msgid "Priority"
+msgstr ""
+
+msgid "Lifetime"
+msgstr ""
+
+msgid "Childlock"
+msgstr ""
+
+msgid "File"
+msgstr ""
+
+msgid "Information"
+msgstr ""
+
+msgid "Button$Folder"
+msgstr ""
+
+msgid "Button$Single"
+msgstr ""
+
+msgid "Button$Repeating"
+msgstr ""
+
+msgid "First day"
+msgstr ""
+
+msgid "*** Invalid Channel ***"
+msgstr ""
+
+msgid "Timer still recording - really move to other VDR?"
+msgstr ""
+
+msgid "Select folder"
+msgstr ""
+
+msgid "Timers"
+msgstr ""
+
+msgid "Button$On/Off"
+msgstr ""
+
+msgid "Button$New"
+msgstr ""
+
+msgid "Button$Delete"
+msgstr ""
+
+msgid "Delete timer?"
+msgstr ""
+
+msgid "Timer still recording - really delete?"
+msgstr ""
+
+#, c-format
+msgid "Skipping '%s' request, epgd busy. Trying again later"
+msgstr ""
+
+msgid "reload"
+msgstr ""
+
+msgid "update"
+msgstr ""
+
+#, c-format
+msgid "EPG '%s' done"
+msgstr ""
+
+#, fuzzy
+#~ msgid "Updatetime (hours)"
+#~ msgstr "Tempo aggiorn. (min)"

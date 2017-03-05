@@ -1,0 +1,146 @@
+-----------------------------------------------------------------------------------
+- epg2vdr
+-
+- This is a "plugin" for the Video Disk Recorder (VDR).
+-
+- Written by: C++/SQL         - Jörg Wendel (vdr at jwendel dot de)
+-             SQL/Procedures  - Christian Kaiser
+-             Documetation    - Ingo Prochaska
+-
+- Homepage:          http://projects.vdr-developer.org/projects/plg-epg2vdr
+- Latest version at: http://projects.vdr-developer.org/git/vdr-plugin-epg2vdr.git
+-
+- This software is released under the GPL, version 2 (see COPYING).
+- Additionally, compiling, linking, and/or using the OpenSSL toolkit in
+- conjunction with this software is allowed.
+-----------------------------------------------------------------------------------
+
+
+Requirements:
+-------------
+
+  - VDR 1.7.27+     (since it use the EPG handler interface)
+  - libmysql >= 5.07
+  - libarchive
+  - python libpython libpython-dev python-dev
+  - libjansson4 libjansson-dev
+  - uuid-dev
+
+Ubuntu (16.04):
+  - libarchive13, libarchive-dev
+  - libmysqlclient-dev libmysqlclient18
+  - libjansson4 libjansson-dev
+  - python libpython libpython-dev python-dev
+  - uuid-dev
+
+
+Description:
+------------
+
+This plugin is used to retrieve EPG data into the VDR. The EPG data
+was loaded from a mysql database.
+
+Setup Menu:
+-----------
+
+  Log level
+      Logging level 0-4 { Errors, Infos, ..., Debug, ... }
+
+  Update DVB EPG Database
+      Master/Slave Mode (one client should be master, e.g. 24/7 Server, all others slave)
+        - auto: Normally first VDR will be master - the master transfers the DVB events to the mySQL Server
+        - yes: Master mode on
+        - no: Master mode off
+      Make sure that only one VDR will be master or you run into DB performance issues. Makes just sense, if you have different channels on your clients.
+
+  Show In Main Menu
+      Shows entry in main menu to perform update manually
+
+  MySQL Host
+      IP of mySQL Server
+
+  Port
+      Port of your mySQL Server
+
+  Database Name
+      Database name
+
+  User
+      Database user
+
+  Password
+      Database password
+
+  Blacklist not configured Channels
+      Blacklist (like noepg-plug) all channels which not listst in the channelmap table
+
+  LoadImages
+      Load images from MySQL-Server to local file system
+
+  Prohibit Shutdown On Busy 'epgd'
+      Don't shutdown VDR while epgd is busy
+
+  Schedule Boot For Update
+      Schedule automatic boot for EPG update
+
+
+Get the source from git:
+------------------------
+
+get the source - probably done, when you reading this locally:
+	git clone http://projects.vdr-developer.org/git/vdr-plugin-epg2vdr.git
+
+update the source:
+	cd /to/your/source/epg2vdr
+	git pull
+
+throwing away local changes and update to latest source:
+	cd /to/your/source/epg2vdr
+	git checkout -f master
+	git reset --hard
+	git pull
+
+setup.conf (put the IP of your mySQL server):
+---------------------------------------------
+
+  epg2vdr.UpdateTime = 2
+  epg2vdr.ShowInMainMenu = 1
+  epg2vdr.Blacklist = 1
+  epg2vdr.LogLevel = 1
+  epg2vdr.DbHost = 192.168.xxx.xxx
+  epg2vdr.DbName = epg2vdr
+  epg2vdr.DbUser = epg2vdr
+  epg2vdr.DbPass = epg
+
+
+SVDRP Commands:
+---------------
+
+  The plugin provides SVDRP commands to control the plugin via command line or
+  shell scripts.
+
+  RELOAD      - Drop the whiole EPG and reload all events from the database
+  UPDATE      - Trigger a update to load all new events from database
+
+
+Installation:
+-------------
+
+- Patch the VDR. Patches found in patches/ since vdr 1.7.27.
+  For Versions after 1.7.31 you need only the epghandler-segment-transfer.patch
+  Sinve VDR 2.1.1 no patch is needed!
+
+- Unpack the package into "PLUGINS/src" directory.
+- Call "make plugins" in the VDR root directory.
+- Start vdr with plugin epg2vdr (-Pepg2vdr) the database must running already
+
+Create database and user:
+--------------------------
+
+already done when the epgd was installed!
+
+HINTS:
+------
+- Don't load the epgtableid0 (epgtableid0 disables VDRs new EPG handler interface)
+- Don't load the noepg plugin
+(best you don't load any other epg manipulating plugin or patch if you not shure how they work together ;))

@@ -1,0 +1,56 @@
+--- ../vdr-2.3.2.plain//./epg.c	2015-09-10 12:58:19.000000000 +0200
++++ ./epg.c	2017-02-09 18:40:29.597671711 +0100
+@@ -1527,12 +1527,13 @@
+   Schedule->DropOutdated(SegmentStart, SegmentEnd, TableID, Version);
+ }
+ 
+-void cEpgHandlers::BeginSegmentTransfer(const cChannel *Channel)
++bool cEpgHandlers::BeginSegmentTransfer(const cChannel *Channel)
+ {
+   for (cEpgHandler *eh = First(); eh; eh = Next(eh)) {
+-      if (eh->BeginSegmentTransfer(Channel, false))
+-         return;
++      if (!eh->BeginSegmentTransfer(Channel, false))
++         return false;
+       }
++  return true;
+ }
+ 
+ void cEpgHandlers::EndSegmentTransfer(bool Modified)
+--- ../vdr-2.3.2.plain//./eit.c	2015-08-23 12:43:36.000000000 +0200
++++ ./eit.c	2017-02-09 18:40:29.597671711 +0100
+@@ -67,8 +67,13 @@
+      return;
+      }
+ 
++  if (!EpgHandlers.BeginSegmentTransfer(Channel)) {
++     SchedulesStateKey.Remove(false);
++     ChannelsStateKey.Remove(false);
++     return;
++     }
++
+   bool ChannelsModified = false;
+-  EpgHandlers.BeginSegmentTransfer(Channel);
+   bool handledExternally = EpgHandlers.HandledExternally(Channel);
+   cSchedule *pSchedule = (cSchedule *)Schedules->GetSchedule(Channel, true);
+ 
+--- ../vdr-2.3.2.plain//./epg.h	2015-08-09 13:25:04.000000000 +0200
++++ ./epg.h	2017-02-09 18:40:29.601671655 +0100
+@@ -66,7 +66,7 @@
+ 
+ class cSchedule;
+ 
+-typedef u_int16_t tEventID;
++typedef u_int32_t tEventID;
+ 
+ class cEvent : public cListObject {
+   friend class cSchedule;
+@@ -311,7 +311,7 @@
+   void HandleEvent(cEvent *Event);
+   void SortSchedule(cSchedule *Schedule);
+   void DropOutdated(cSchedule *Schedule, time_t SegmentStart, time_t SegmentEnd, uchar TableID, uchar Version);
+-  void BeginSegmentTransfer(const cChannel *Channel);
++  bool BeginSegmentTransfer(const cChannel *Channel);
+   void EndSegmentTransfer(bool Modified);
+   };
+ 

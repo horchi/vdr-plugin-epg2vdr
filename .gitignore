@@ -1,0 +1,9 @@
+*.so
+.dependencies
+*.o
+*.a
+*~
+*.mo
+*.pot
+lib/demo
+lib/tst

@@ -1,0 +1,52 @@
+--- ../vdr-1.7.29.plain//eit.c  2012-06-04 12:26:10.000000000 +0200
++++ eit.c       2012-07-30 10:19:34.841894485 +0200
+@@ -74,6 +74,9 @@
+       if (!pEvent || handledExternally) {
+          if (OnlyRunningStatus)
+             continue;
++         if (handledExternally)
++            if (!EpgHandlers.IsUpdate(SiEitEvent.getEventId(), StartTime, Tid, getVersionNumber()))
++               continue;
+          // If we don't have that event yet, we create a new one.
+          // Otherwise we copy the information into the existing event anyway, because the data might have changed.
+          pEvent = newEvent = new cEvent(SiEitEvent.getEventId());
+--- ../vdr-1.7.29.plain//epg.c  2012-06-04 12:26:10.000000000 +0200
++++ epg.c       2012-07-30 10:21:51.153899306 +0200
+@@ -1340,6 +1340,15 @@
+   return false;
+ }
+ 
++bool cEpgHandlers::IsUpdate(tEventID EventID, time_t StartTime, uchar TableID, uchar Version)
++{
++  for (cEpgHandler *eh = First(); eh; eh = Next(eh)) {
++      if (eh->IsUpdate(EventID, StartTime, TableID, Version))
++         return true;
++      }
++  return false;
++}
++
+ void cEpgHandlers::SetEventID(cEvent *Event, tEventID EventID)
+ {
+   for (cEpgHandler *eh = First(); eh; eh = Next(eh)) {
+--- ../vdr-1.7.29.plain//epg.h  2012-06-04 12:26:10.000000000 +0200
++++ epg.h       2012-07-30 10:20:15.705895929 +0200
+@@ -250,6 +250,10 @@
+           ///< source. Incoming EIT data is processed as usual, but any new EPG event
+           ///< will not be added to the respective schedule. It's up to the EPG
+           ///< handler to take care of this.
++  virtual bool IsUpdate(tEventID EventID, time_t StartTime, uchar TableID, uchar Version) { return false; }
++          ///<  VDR can't perform the update check (version, tid) for external handled events 
++          ///<  therefore the handle have to take care. Otherwise the parsing of 'non' updates will 
++          ///<  take a lot of resources
+   virtual bool SetEventID(cEvent *Event, tEventID EventID) { return false; }
+   virtual bool SetTitle(cEvent *Event, const char *Title) { return false; }
+   virtual bool SetShortText(cEvent *Event, const char *ShortText) { return false; }
+@@ -277,6 +281,7 @@
+   bool IgnoreChannel(const cChannel *Channel);
+   bool HandleEitEvent(cSchedule *Schedule, const SI::EIT::Event *EitEvent, uchar TableID, uchar Version);
+   bool HandledExternally(const cChannel *Channel);
++  bool IsUpdate(tEventID EventID, time_t StartTime, uchar TableID, uchar Version);
+   void SetEventID(cEvent *Event, tEventID EventID);
+   void SetTitle(cEvent *Event, const char *Title);
+   void SetShortText(cEvent *Event, const char *ShortText);
+

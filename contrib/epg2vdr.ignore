@@ -1,0 +1,25 @@
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Auto check master role
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Change handler state to.*active
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Cleanup finished, removed.*images and.*symlinks
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: DEBUG: mysql_library_end
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: DVB event found -1 -> for
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Finished|Start reading
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Got.*new images from database
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Handle insert|update of event
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Init handler instance for thread
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Load images from database
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Processed tvm|vdr channel
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Remove old symlinks
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Removed file
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: SQL client character now
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Scheduled next auto update in
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Set locale to
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Starting cleanup of images in
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Statement.*insert|select
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Statement.*update|delete
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Store image.*/var/vdr/epgimages/images/.*
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Update EPG, loading changes since
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Update thread started|ended
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: Updated.*channels and.*events.*in.*seconds
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: detected UTF-8
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ vdr: EPG2VDR: duration.*was
