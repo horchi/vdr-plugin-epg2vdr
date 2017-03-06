@@ -465,4 +465,15 @@ struct Mysql_Init_Exit_v1_0
    MysqlInitExitAction action;
 };
 
+//***************************************************************************
+// OSD2EPG Services
+//***************************************************************************
+
+#define OSD2WEB_PORT_SERVICE	"osd2web-WebPortService-v1.0"
+
+struct Osd2Web_Port_v1_0
+{
+   int webPort;
+};
+
 #endif // __EPGSERVICE_H

@@ -270,6 +270,7 @@ Table vdrs
    MAC                  ""  mac                  Ascii       18 Data,
    PID                  ""  pid                  UInt         0 Data filter epgd|httpd|epg2vdr,
    SVDRP                ""  svdrp                UInt         0 Data filter epgd|httpd|epg2vdr,
+   OSD2WEBP             ""  osd2webp             UInt         0 Data,
    TUNERCOUNT           ""  tunercount           UInt         0 Data filter epgd|httpd|epg2vdr,
 
    SHAREINWEB           ""  shareinweb           UInt         1 Data,

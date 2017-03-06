@@ -636,6 +636,11 @@ int cUpdate::initDb()
       vdrDb->setValue("SHAREINWEB", Epg2VdrConfig.shareInWeb);
       vdrDb->setValue("USECOMMONRECFOLDER", Epg2VdrConfig.useCommonRecFolder);
 
+      int osd2WebPort = getOsd2WebPort();
+
+      if (osd2WebPort != na)
+         vdrDb->setValue("OSD2WEBP", osd2WebPort);
+
       // set svdrp port if uninitialized, we can't query ther actual port from VDR :(
 
       if (vdrDb->getIntValue("SVDRP") == 0)
@@ -745,6 +750,32 @@ int cUpdate::checkConnection(int& timeout)
    }
 
    return success;
+}
+
+//***************************************************************************
+// Is Handler Master
+//***************************************************************************
+
+int cUpdate::getOsd2WebPort()
+{
+   Osd2Web_Port_v1_0 req;
+   req.webPort = na;
+
+   cPlugin* osd2webPlugin = cPluginManager::GetPlugin("osd2web");
+   int osd2webPluginUuidService = osd2webPlugin && osd2webPlugin->Service(OSD2WEB_PORT_SERVICE, 0);
+
+   if (!osd2webPluginUuidService)
+      return na;
+
+   if (!osd2webPlugin->Service(OSD2WEB_PORT_SERVICE, &req))
+   {
+      tell(0, "Error: Call of service '%s' failed.", OSD2WEB_PORT_SERVICE);
+      return na;
+   }
+
+   tell(0, "Got webPort '%d' by osd2web", req.webPort);
+
+   return req.webPort;
 }
 
 //***************************************************************************

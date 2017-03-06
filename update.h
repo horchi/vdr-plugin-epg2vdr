@@ -167,6 +167,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       int storePicturesToFs();
       int cleanupPictures();
       int pictureLinkNeeded(const char* linkName);
+      int getOsd2WebPort();
 
       tChannelID toChanID(const char* chanIdStr)
       {
