@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.1.44"
+#define _VERSION     "1.1.45"
 #define VERSION_DATE "06.03.2017"
 
 #define DB_API       4
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-03-06: version 1.1.45 (horchi)
+   - change: Fixed order of push/tag in Makefile
 
 2017-03-06: version 1.1.44 (horchi)
    - change: Improved Makefile (Thx to magicamun)
