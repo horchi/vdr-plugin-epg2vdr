@@ -13,7 +13,7 @@
 #include <arpa/inet.h>
 
 #ifdef USEUUID
-#  include <uuid/uuid.h>
+#  include <uuid.h>
 #endif
 
 #include <stdarg.h>

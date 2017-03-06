@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.42"
-#define VERSION_DATE "01.03.2017"
+#define _VERSION     "1.1.44"
+#define VERSION_DATE "06.03.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-03-06: version 1.1.44 (horchi)
+   - change: Improved Makefile (Thx to magicamun)
 
 2017-03-01: version 1.1.43 (horchi)
    - bugfix: Fixed crash in meues without database connection
