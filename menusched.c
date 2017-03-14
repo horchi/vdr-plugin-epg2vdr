@@ -193,15 +193,44 @@ cMenuEpgScheduleItem::eScheduleSortMode cMenuEpgScheduleItem::sortMode = ssmAllT
 // Object
 //***************************************************************************
 
-cMenuEpgScheduleItem::cMenuEpgScheduleItem(cMenuDb* db, const cEvent* Event, const cChannel* Channel, bool WithDate)
+cMenuEpgScheduleItem::cMenuEpgScheduleItem(cMenuDb* db, const cEvent* Event,
+                                           const cChannel* Channel, bool WithDate)
 {
+   ownEvent = 0;
    menuDb = db;
 
-   event = Event;
+   if (Event)
+   {
+      FILE* inMem = 0;
+      char* bp;
+      size_t size;
+
+      if (inMem = open_memstream(&bp, &size))
+      {
+         Event->Dump(inMem, "", yes);
+         fflush(inMem);
+         fclose(inMem);
+
+         ownEvent = new cEpgEvent(Event->EventID());
+         inMem = fmemopen(bp, strlen(bp), "r");
+         ownEvent->Read(inMem);
+         fclose(inMem);
+
+         ownEvent->setImageCount(1);
+      }
+   }
+
+   event = ownEvent ? ownEvent : Event;
+
    channel = Channel;
    withDate = WithDate;
    timerMatch = tmNone;
    Update(yes);
+}
+
+cMenuEpgScheduleItem::~cMenuEpgScheduleItem()
+{
+   delete ownEvent;
 }
 
 //***************************************************************************

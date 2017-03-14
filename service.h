@@ -22,13 +22,13 @@ class cEpgEvent_Interface_V1 : public cEvent
    public:
 
       cEpgEvent_Interface_V1(tEventID EventID)
-         : cEvent(EventID) {}
+         : cEvent(EventID) { imageCount = 0; }
 
-      // #TODO ... getter
+      int getImageCount() const { return imageCount; }
 
    protected:
 
-      // #TODO ... attributes
+      int imageCount;
 };
 
 //***************************************************************************
@@ -99,7 +99,8 @@ class cEpgEvent : public cEpgEvent_Interface_V1
       cEpgEvent(tEventID EventID);
       virtual ~cEpgEvent() {}
 
-      // #TODO ... setter
+      bool Read(FILE *f);
+      void setImageCount(int count) { imageCount = count; }
 };
 
 //***************************************************************************

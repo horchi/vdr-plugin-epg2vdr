@@ -400,6 +400,7 @@ class cMenuEpgScheduleItem : public cOsdItem
       enum eScheduleSortMode { ssmAllThis, ssmThisThis, ssmThisAll, ssmAllAll }; // "which event(s) on which channel(s)"
 
       cMenuEpgScheduleItem(cMenuDb* db, const cEvent* Event, const cChannel* Channel = 0, bool WithDate = no);
+      ~cMenuEpgScheduleItem();
 
       static void SetSortMode(eScheduleSortMode SortMode)  { sortMode = SortMode; }
       static void IncSortMode()                            { sortMode = eScheduleSortMode((sortMode == ssmAllAll) ? ssmAllThis : sortMode + 1); }
@@ -417,6 +418,7 @@ class cMenuEpgScheduleItem : public cOsdItem
    private:
 
       cMenuDb* menuDb;
+      cEpgEvent* ownEvent;
       static eScheduleSortMode sortMode;
 };
 

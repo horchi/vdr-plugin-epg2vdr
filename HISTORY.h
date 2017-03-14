@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.46"
-#define VERSION_DATE "06.03.2017"
+#define _VERSION     "1.1.47"
+#define VERSION_DATE "14.03.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-03-146: version 1.1.47 (horchi)
+   - added: Started extended event interface for skins
 
 2017-03-06: version 1.1.46 (horchi)
    - added: Added column for future features to vdrs table

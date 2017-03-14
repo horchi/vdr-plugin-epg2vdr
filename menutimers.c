@@ -290,7 +290,8 @@ void cMenuEpgTimerItem::Set()
                             File));
 }
 
-void cMenuEpgTimerItem::SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable)
+void cMenuEpgTimerItem::SetMenuItem(cSkinDisplayMenu* DisplayMenu, int Index,
+                                    bool Current, bool Selectable)
 {
    if (!DisplayMenu->SetItemTimer(timer, Index, Current, Selectable))
       DisplayMenu->SetItem(Text(), Index, Current, Selectable);

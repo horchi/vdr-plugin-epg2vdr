@@ -9,6 +9,7 @@
 #include <vdr/tools.h>
 
 #include "plgconfig.h"
+
 #include "update.h"
 #include "menu.h"
 #include "handler.h"

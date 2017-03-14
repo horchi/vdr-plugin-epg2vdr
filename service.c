@@ -69,3 +69,37 @@ cEpgEvent::cEpgEvent(tEventID EventID)
 {
 
 }
+
+bool cEpgEvent::Read(FILE *f)
+{
+   char *s;
+   int line = 0;
+   cReadLine ReadLine;
+
+   while ((s = ReadLine.Read(f)) != NULL) {
+      line++;
+      char *t = skipspace(s + 1);
+      switch (*s) {
+         case 'E': {
+            unsigned int EventID;
+            time_t StartTime;
+            int Duration;
+            unsigned int TableID = 0;
+            unsigned int Version = 0xFF; // actual value is ignored
+            int n = sscanf(t, "%u %ld %d %X %X", &EventID, &StartTime, &Duration, &TableID, &Version);
+            if (n >= 3 && n <= 5) {
+               SetTableID(TableID);
+               SetStartTime(StartTime);
+               SetDuration(Duration);
+            }
+            break;
+         }
+         default:  if (!Parse(s)) {
+            esyslog("ERROR: EPG data problem in line %d", line);
+            return false;
+         }
+      }
+   }
+
+   return true;
+}
