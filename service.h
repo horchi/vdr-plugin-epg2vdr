@@ -12,23 +12,24 @@
 #include <vdr/epg.h>
 
 #include <list>
+#include <map>
 
 //***************************************************************************
-// Timer - Skin Interface
+// Event - Skin Interface
 //***************************************************************************
 
 class cEpgEvent_Interface_V1 : public cEvent
 {
    public:
 
-      cEpgEvent_Interface_V1(tEventID EventID)
-         : cEvent(EventID) { imageCount = 0; }
+      cEpgEvent_Interface_V1(tEventID EventID) : cEvent(EventID) {}
 
-      int getImageCount() const { return imageCount; }
+      const char* getValue(const char* name)                     { return epg2vdrData[name].c_str(); }
+      const std::map<std::string,std::string>* getValues() const { return &epg2vdrData; }
 
    protected:
 
-      int imageCount;
+      std::map<std::string,std::string> epg2vdrData;
 };
 
 //***************************************************************************
@@ -75,7 +76,7 @@ class cEpgTimer_Interface_V1 : public cTimer
 };
 
 //***************************************************************************
-// Timer - Service Interface
+// Service Interface
 //***************************************************************************
 
 struct cEpgTimer_Service_V1
@@ -89,6 +90,10 @@ struct cEpgTimer_Service_V1
 #ifdef EPG2VDR
 
 //***************************************************************************
+// Internal
+//***************************************************************************
+
+//***************************************************************************
 // Class cEpgEvent
 //***************************************************************************
 
@@ -100,7 +105,9 @@ class cEpgEvent : public cEpgEvent_Interface_V1
       virtual ~cEpgEvent() {}
 
       bool Read(FILE *f);
-      void setImageCount(int count) { imageCount = count; }
+
+      void setValue(const char* name, const char* value) { epg2vdrData[name] = value; }
+      void setValue(const char* name, long value)        { epg2vdrData[name] = std::to_string(value); }
 };
 
 //***************************************************************************

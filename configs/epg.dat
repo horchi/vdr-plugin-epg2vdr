@@ -437,7 +437,7 @@ Table useevents
    PRODUCER                ""                                               sub_producer                  Text    1000 Data,
    OTHER                   ""                                               sub_other                     Text    2000 Data,
    DIRECTOR                ""                                               sub_director                  Text    1000 Data,
-   COMMENTATOR            ""                                                sub_commentator               Ascii    200 Data,
+   COMMENTATOR             ""                                               sub_commentator               Ascii    200 Data,
    SCREENPLAY              ""                                               sub_screenplay                Ascii    500 Data,
    CAMERA                  ""                                               sub_camera                    Text    1000 Data,
    MUSIC                   ""                                               sub_music                     Ascii    250 Data,

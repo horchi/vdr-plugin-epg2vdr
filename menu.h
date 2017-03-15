@@ -58,6 +58,7 @@ class cMenuDb : public cParameters
    friend class cMenuEpgMatchRecordings;
    friend class cEpgMenuSearchResult;
    friend class cMenuSetupEPG2VDR;
+   friend class cMenuEpgScheduleItem;
 
    public:
 
@@ -116,6 +117,7 @@ class cMenuDb : public cParameters
       cDbTable* useeventsDb;
 
       cDbStatement* selectTimers;
+      cDbStatement* selectEventById;
       cDbStatement* selectMaxUpdSp;
       cDbStatement* selectTimerById;
       cDbStatement* selectActiveVdrs;
@@ -410,7 +412,7 @@ class cMenuEpgScheduleItem : public cOsdItem
       virtual bool Update(bool Force = false);
       virtual void SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable);
 
-      const cEvent* event;
+      cEpgEvent* event;
       const cChannel* channel;
       bool withDate;
       int timerMatch;
@@ -418,7 +420,7 @@ class cMenuEpgScheduleItem : public cOsdItem
    private:
 
       cMenuDb* menuDb;
-      cEpgEvent* ownEvent;
+      int eventReady;
       static eScheduleSortMode sortMode;
 };
 

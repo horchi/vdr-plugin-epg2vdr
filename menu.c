@@ -34,6 +34,7 @@ cMenuDb::cMenuDb()
    useeventsDb = 0;
 
    selectTimers = 0;
+   selectEventById = 0;
    selectMaxUpdSp = 0;
    selectTimerById = 0;
    selectActiveVdrs = 0;
@@ -164,6 +165,25 @@ int cMenuDb::initDb()
                        timerDb->getField("STARTTIME")->getDbName());
 
    status += selectTimers->prepare();
+
+   // select event by useid
+
+   selectEventById = new cDbStatement(useeventsDb);
+
+   // select * from eventsview
+   //      where useid = ?
+   //        and updflg in (.....)
+
+   selectEventById->build("select ");
+   selectEventById->bindAllOut();
+   selectEventById->build(" from %s where ", useeventsDb->TableName());
+   selectEventById->bind("USEID", cDBS::bndIn | cDBS::bndSet);
+   selectEventById->build(" and %s in (%s)",
+                          useeventsDb->getField("UPDFLG")->getDbName(),
+                          Us::getNeeded());
+
+   status += selectEventById->prepare();
+
 
    // select
    //    t.*,
@@ -403,6 +423,7 @@ int cMenuDb::exitDb()
       cParameters::exitDb();
 
       delete timerDb;                  timerDb = 0;
+      delete selectEventById;          selectEventById = 0;
       delete vdrDb;                    vdrDb = 0;
       delete timerDoneDb;              timerDoneDb = 0;
       delete userDb;                   userDb = 0;
