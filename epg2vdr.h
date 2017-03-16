@@ -32,9 +32,9 @@ static const char* MAINMENUENTRY = tr("EPG and Timer Service");
 // cPluginEPG2VDR
 //***************************************************************************
 
-cOsdMenu* newWathsOn();
+// cOsdMenu* newWathsOn();
 
-class cPluginEPG2VDR : public cPlugin 
+class cPluginEPG2VDR : public cPlugin
 {
    public:
 
@@ -51,7 +51,7 @@ class cPluginEPG2VDR : public cPlugin
       virtual bool Initialize(void);
       virtual bool Start(void);
       virtual cString Active(void);
-      virtual const char* MainMenuEntry(void) 
+      virtual const char* MainMenuEntry(void)
       { return Epg2VdrConfig.mainmenuVisible ? MAINMENUENTRY : 0; }
       virtual cOsdObject* MainMenuAction(void);
       virtual cMenuSetupPage* SetupMenu(void);
@@ -59,20 +59,23 @@ class cPluginEPG2VDR : public cPlugin
       virtual void Stop();
       virtual void DisplayMessage(const char* s);
       virtual time_t WakeupTime(void);
-   
+
    protected:
-   
+
       int initDb();
       int exitDb();
 
       int timerService(cEpgTimer_Service_V1* ts);
-         
+      int eventService(cEpgEvent_Service_V1* es);
+
    private:
-   
+
       cDbConnection* connection;
       cDbTable* timerDb;
       cDbTable* vdrDb;
+      cDbTable* useeventsDb;
       cDbStatement* selectTimers;
+      cDbStatement* selectEventById;
       cMutex mutexTimerService;
 };
 

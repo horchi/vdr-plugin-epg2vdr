@@ -316,62 +316,7 @@ void cMenuEpgScheduleItem::SetMenuItem(cSkinDisplayMenu* DisplayMenu,
       menuDb->useeventsDb->clear();
       menuDb->useeventsDb->setValue("USEID", (int)event->EventID());
 
-      if (menuDb->selectEventById->find())
-      {
-           const char* fields[] =
-           {
-              "imagecount",          //    int
-              "numrating",           //    int
-              "year",                //    ascii     10
-              "category",            //    ascii     50
-              "country",             //    ascii     50
-              "audio",               //    ascii     50
-
-              "txtrating",           //    ascii    100
-              "genre",               //    ascii    100
-              "flags",               //    ascii    100
-              "commentator",         //    ascii    200
-              "tipp",                //    ascii    250
-              "rating",              //    ascii    250
-              "moderator",           //    ascii    250
-              "music",               //    ascii    250
-              "screenplay",          //    ascii    500
-              "shortreview",         //    ascii    500
-
-              "guest",               //    text    1000
-              "producer",            //    text    1000
-              "camera",              //    text    1000
-              "director",            //    text    1000
-              "topic",               //    ascii   1000
-
-              "other",               //    text    2000
-              "shortdescription",    //    mtext   3000
-              "actor",               //    mtext   5000
-              "longdescription",     //    mtext  25000
-              "cntlongdescription",  //    MText  25000
-
-              0
-           };
-
-           for (int i = 0; fields[i]; i++)
-           {
-              cDbValue* value = menuDb->useeventsDb->getValue(fields[i]);
-
-              if (!value || value->isEmpty())
-                 continue;
-
-              if (value->getField()->hasFormat(cDBS::ffAscii) || value->getField()->hasFormat(cDBS::ffText) || value->getField()->hasFormat(cDBS::ffMText))
-                 event->setValue(fields[i], value->getStrValue());
-              else
-                 event->setValue(fields[i], value->getIntValue());
-           }
-      }
-      else
-      {
-         tell(0, "Info: Event (%d) not found", event->EventID());
-      }
-
-      menuDb->selectEventById->freeResult();
+      enrichEvent(event, menuDb->useeventsDb, menuDb->selectEventById);
       eventReady = yes;
    }
 

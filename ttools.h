@@ -37,6 +37,9 @@ int updateRowByTimer(cDbRow* timerDb, const cTimer* t);
 cEpgTimer* newTimerObjectFromRow(cDbRow* timerRow, cDbRow* vdrRow);
 int updateTimerObjectFromRow(cTimer* timer, cDbRow* timerRow, const cEvent* event);
 
+int enrichEvent(cEpgEvent* event, cDbTable* table, cDbStatement* select);
+cEpgEvent* createEventCopy(const cEvent* event);
+
 //***************************************************************************
 
 #endif // _TTOOLS_H_

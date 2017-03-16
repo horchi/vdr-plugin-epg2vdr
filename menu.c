@@ -167,12 +167,11 @@ int cMenuDb::initDb()
    status += selectTimers->prepare();
 
    // select event by useid
-
-   selectEventById = new cDbStatement(useeventsDb);
-
    // select * from eventsview
    //      where useid = ?
    //        and updflg in (.....)
+
+   selectEventById = new cDbStatement(useeventsDb);
 
    selectEventById->build("select ");
    selectEventById->bindAllOut();

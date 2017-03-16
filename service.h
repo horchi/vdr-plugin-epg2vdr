@@ -47,18 +47,18 @@ class cEpgTimer_Interface_V1 : public cTimer
          : cTimer(Instant, Pause, (cChannel*)Channel) {}
 #endif
 
-      long TimerId()                { return timerid; }
-      long EventId()                { return eventid; }
-      const char* VdrName()         { return vdrName ? vdrName : ""; }
-      const char* VdrUuid()         { return vdrUuid ? vdrUuid : ""; }
-      int isVdrRunning()            { return vdrRunning; }
-      int isLocal()                 { return local; }
-      int isRemote()                { return !isLocal(); }
+      long TimerId()               const { return timerid; }
+      long EventId()               const { return eventid; }
+      const char* VdrName()        const { return vdrName ? vdrName : ""; }
+      const char* VdrUuid()        const { return vdrUuid ? vdrUuid : ""; }
+      int isVdrRunning()           const { return vdrRunning; }
+      int isLocal()                const { return local; }
+      int isRemote()               const { return !isLocal(); }
 
-      char State()                  { return state; }
-      int  hasState(char s)   const { return state == s; }
-      const char* StateInfo()       { return stateInfo ? stateInfo : ""; }
-      char Action()                 { return action; }
+      char State()                 const { return state; }
+      int  hasState(char s)        const { return state == s; }
+      const char* StateInfo()      const { return stateInfo ? stateInfo : ""; }
+      char Action()                const { return action; }
 
    protected:
 
@@ -76,7 +76,7 @@ class cEpgTimer_Interface_V1 : public cTimer
 };
 
 //***************************************************************************
-// Service Interface
+// Timer Service Interfaces
 //***************************************************************************
 
 struct cEpgTimer_Service_V1
@@ -87,10 +87,24 @@ struct cEpgTimer_Service_V1
 #define EPG2VDR_TIMER_UPDATED "Epg2Vdr_Timer_Updated-v1.0"
 #define EPG2VDR_TIMER_SERVICE "Epg2Vdr_Timer_Service-v1.0"
 
+//***************************************************************************
+// Event Service Interfaces
+//***************************************************************************
+
+struct cEpgEvent_Service_V1
+{
+   const cEvent* in;
+   cEpgEvent_Interface_V1* out;
+};
+
+#define EPG2VDR_EVENT_SERVICE "Epg2Vdr_Event_Service-v1.0"
+
 #ifdef EPG2VDR
 
 //***************************************************************************
-// Internal
+//***************************************************************************
+//***************************************************************************
+// Internal Stuff
 //***************************************************************************
 
 //***************************************************************************

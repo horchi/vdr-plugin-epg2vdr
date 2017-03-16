@@ -415,6 +415,9 @@ cPluginEPG2VDR::cPluginEPG2VDR()
    connection = 0;
    timerDb = 0;
    vdrDb = 0;
+   useeventsDb = 0;
+   selectTimers = 0;
+   selectEventById = 0;
 }
 
 cPluginEPG2VDR::~cPluginEPG2VDR()
@@ -436,6 +439,9 @@ int cPluginEPG2VDR::initDb()
 
    vdrDb = new cDbTable(connection, "vdrs");
    if (vdrDb->open() != success) return fail;
+
+   useeventsDb = new cDbTable(connection, "useevents");
+   if (useeventsDb->open() != success) return fail;
 
    // ----------
    // select
@@ -466,6 +472,23 @@ int cPluginEPG2VDR::initDb()
 
    status += selectTimers->prepare();
 
+   // select event by useid
+   // select * from eventsview
+   //      where useid = ?
+   //        and updflg in (.....)
+
+   selectEventById = new cDbStatement(useeventsDb);
+
+   selectEventById->build("select ");
+   selectEventById->bindAllOut();
+   selectEventById->build(" from %s where ", useeventsDb->TableName());
+   selectEventById->bind("USEID", cDBS::bndIn | cDBS::bndSet);
+   selectEventById->build(" and %s in (%s)",
+                          useeventsDb->getField("UPDFLG")->getDbName(),
+                          Us::getNeeded());
+
+   status += selectEventById->prepare();
+
    return status;
 }
 
@@ -473,8 +496,13 @@ int cPluginEPG2VDR::exitDb()
 {
    if (connection)
    {
+      delete selectEventById;      selectEventById = 0;
+      delete selectTimers;         selectTimers = 0;
+
+      delete useeventsDb;          useeventsDb = 0;
       delete timerDb;              timerDb = 0;
       delete vdrDb;                vdrDb = 0;
+
       delete connection;           connection = 0;
    }
 
@@ -831,6 +859,14 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
          return timerService(ts);
    }
 
+   else if (strcmp(id, EPG2VDR_EVENT_SERVICE) == 0)
+   {
+      cEpgEvent_Service_V1* es = (cEpgEvent_Service_V1*)data;
+
+      if (es)
+         return eventService(es);
+   }
+
    return false;
 }
 
@@ -869,6 +905,35 @@ int cPluginEPG2VDR::timerService(cEpgTimer_Service_V1* ts)
    exitDb();
 
    return true;
+}
+
+//***************************************************************************
+// Event Service
+//***************************************************************************
+
+int cPluginEPG2VDR::eventService(cEpgEvent_Service_V1* es)
+{
+   int status = false;
+
+   es->out = 0;
+
+   if (!es->in)
+      return false;
+
+   if ((status = initDb()) == success)
+   {
+      es->out = createEventCopy(es->in);
+
+      useeventsDb->clear();
+      useeventsDb->setValue("USEID", (int)es->in->EventID());
+
+      enrichEvent((cEpgEvent*)es->out, useeventsDb, selectEventById);
+      status = true;
+   }
+
+   exitDb();
+
+   return status;
 }
 
 //***************************************************************************
