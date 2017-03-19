@@ -66,7 +66,7 @@ eOSState cEpgCommandMenu::ProcessKey(eKeys key)
       case osUser1:
       {
          if (item)
-            return AddSubMenu(new cMenuEpgWhatsOn(item->event));
+            return AddSubMenu(new cMenuEpgWhatsOn(item->epgEvent));
 
          break;
       }
@@ -74,7 +74,7 @@ eOSState cEpgCommandMenu::ProcessKey(eKeys key)
       case osUser2:
       {
          if (item)
-            return AddSubMenu(new cMenuEpgMatchRecordings(menuDb, item->event));
+            return AddSubMenu(new cMenuEpgMatchRecordings(menuDb, item->epgEvent));
 
          break;
       }
@@ -196,9 +196,10 @@ cMenuEpgScheduleItem::eScheduleSortMode cMenuEpgScheduleItem::sortMode = ssmAllT
 cMenuEpgScheduleItem::cMenuEpgScheduleItem(cMenuDb* db, const cEvent* Event,
                                            const cChannel* Channel, bool WithDate)
 {
-   event = 0;
+   epgEvent = 0;
    eventReady = no;
    menuDb = db;
+   vdrEvent = Event;
 
    if (Event)
    {
@@ -212,9 +213,9 @@ cMenuEpgScheduleItem::cMenuEpgScheduleItem(cMenuDb* db, const cEvent* Event,
          fflush(inMem);
          fclose(inMem);
 
-         event = new cEpgEvent(Event->EventID());
+         epgEvent = new cEpgEvent(Event->EventID());
          inMem = fmemopen(bp, strlen(bp), "r");
-         event->Read(inMem);
+         epgEvent->Read(inMem);
          fclose(inMem);
       }
    }
@@ -227,7 +228,7 @@ cMenuEpgScheduleItem::cMenuEpgScheduleItem(cMenuDb* db, const cEvent* Event,
 
 cMenuEpgScheduleItem::~cMenuEpgScheduleItem()
 {
-   delete event;
+   delete epgEvent;
 }
 
 //***************************************************************************
@@ -236,14 +237,14 @@ cMenuEpgScheduleItem::~cMenuEpgScheduleItem()
 
 int cMenuEpgScheduleItem::Compare(const cListObject &ListObject) const
 {
-   cMenuEpgScheduleItem *p = (cMenuEpgScheduleItem *)&ListObject;
+   cMenuEpgScheduleItem* p = (cMenuEpgScheduleItem*)&ListObject;
    int r = -1;
 
    if (sortMode != ssmAllThis)
-      r = strcoll(event->Title(), p->event->Title());
+      r = strcoll(vdrEvent->Title(), p->vdrEvent->Title());
 
    if (sortMode == ssmAllThis || r == 0)
-      r = event->StartTime() - p->event->StartTime();
+      r = vdrEvent->StartTime() - p->vdrEvent->StartTime();
 
    return r;
 }
@@ -261,39 +262,39 @@ bool cMenuEpgScheduleItem::Update(bool Force)
    int oldTimerMatch = timerMatch;
    int remote = no;
 
-   if (event)
-      menuDb->lookupTimer(event, timerMatch, remote); // -> loads timerDb, vdrDb and set ther timerMatch
+   if (epgEvent)
+      menuDb->lookupTimer(epgEvent, timerMatch, remote); // -> loads timerDb, vdrDb and set ther timerMatch
 
    if (Force || timerMatch != oldTimerMatch)
    {
-      if (timerMatch && event)
-         tell(0, "Timer match for '%s'", event->Title());
+      if (timerMatch && epgEvent)
+         tell(0, "Timer match for '%s'", epgEvent->Title());
 
       cString buffer;
       char t = !remote ? TimerMatchChars[timerMatch] : TimerMatchCharsRemote[timerMatch];
-      char v = !event ? ' ' : event->Vps() && (event->Vps() - event->StartTime()) ? 'V' : ' ';
-      char r = !event ? ' ' : event->SeenWithin(30) && event->IsRunning() ? '*' : ' ';
+      char v = !epgEvent ? ' ' : epgEvent->Vps() && (epgEvent->Vps() - epgEvent->StartTime()) ? 'V' : ' ';
+      char r = !epgEvent ? ' ' : epgEvent->SeenWithin(30) && epgEvent->IsRunning() ? '*' : ' ';
       const char* csn = channel ? channel->ShortName(true) : 0;
-      cString eds = !event ? "" : event->GetDateString();
+      cString eds = !epgEvent ? "" : epgEvent->GetDateString();
 
       if (channel && withDate)
          buffer = cString::sprintf("%d\t%.*s\t%.*s\t%s\t%c%c%c\t%s", channel->Number(),
                                    Utf8SymChars(csn, 999), csn, Utf8SymChars(eds, 6),
                                    *eds,
-                                   !event ? "" : *event->GetTimeString(),
+                                   !epgEvent ? "" : *epgEvent->GetTimeString(),
                                    t, v, r,
-                                   !event ? "" : event->Title());
+                                   !epgEvent ? "" : epgEvent->Title());
       else if (channel)
          buffer = cString::sprintf("%d\t%.*s\t%s\t%c%c%c\t%s", channel->Number(),
                                    Utf8SymChars(csn, 999), csn,
-                                   !event ? "" : *event->GetTimeString(),
+                                   !epgEvent ? "" : *epgEvent->GetTimeString(),
                                    t, v, r,
-                                   !event ? "" : event->Title());
+                                   !epgEvent ? "" : epgEvent->Title());
       else
          buffer = cString::sprintf("%.*s\t%s\t%c%c%c\t%s", Utf8SymChars(eds, 6), *eds,
-                                   !event ? "" : *event->GetTimeString(),
-                                   t, v, r, !event ? "" :
-                                   !event ? "" : event->Title());
+                                   !epgEvent ? "" : *epgEvent->GetTimeString(),
+                                   t, v, r, !epgEvent ? "" :
+                                   !epgEvent ? "" : epgEvent->Title());
 
       SetText(buffer);
       result = true;
@@ -309,18 +310,18 @@ bool cMenuEpgScheduleItem::Update(bool Force)
 void cMenuEpgScheduleItem::SetMenuItem(cSkinDisplayMenu* DisplayMenu,
                                        int Index, bool Current, bool Selectable)
 {
-   if (event && !eventReady)
+   if (epgEvent && !eventReady)
    {
       // lookup and enrich event with data of events table
 
       menuDb->useeventsDb->clear();
-      menuDb->useeventsDb->setValue("USEID", (int)event->EventID());
+      menuDb->useeventsDb->setValue("USEID", (int)epgEvent->EventID());
 
-      enrichEvent(event, menuDb->useeventsDb, menuDb->selectEventById);
+      enrichEvent(epgEvent, menuDb->useeventsDb, menuDb->selectEventById);
       eventReady = yes;
    }
 
-   if (!DisplayMenu->SetItemEvent(event, Index, Current, Selectable, channel,
+   if (!DisplayMenu->SetItemEvent(epgEvent, Index, Current, Selectable, channel,
                                   withDate, (eTimerMatch)timerMatch))
    {
       DisplayMenu->SetItem(Text(), Index, Current, Selectable);
@@ -682,7 +683,7 @@ int cMenuEpgWhatsOn::LoadAt()
 
    if (item)
    {
-      scheduleEvent = item->event;
+      scheduleEvent = item->epgEvent;
 
       if (item->channel)
          currentChannel = item->channel->Number();
@@ -921,7 +922,7 @@ void cMenuEpgWhatsOn::Display()
       int ni = 0;
 
       for (cOsdItem *item = First(); item; item = Next(item))
-         cStatus::MsgOsdEventItem(((cMenuEpgScheduleItem*)item)->event, item->Text(), ni++, Count());
+         cStatus::MsgOsdEventItem(((cMenuEpgScheduleItem*)item)->epgEvent, item->Text(), ni++, Count());
    }
 #endif
 }
@@ -1036,7 +1037,7 @@ eOSState cMenuEpgWhatsOn::Record()
    if (!item)
       return osContinue;
 
-   if (timerid = menuDb->lookupTimer(item->event, timerMatch, remote)) // -> loads timerDb and vdrDb
+   if (timerid = menuDb->lookupTimer(item->epgEvent, timerMatch, remote)) // -> loads timerDb and vdrDb
    {
       menuDb->timerDb->clear();
       menuDb->timerDb->setValue("ID", timerid);
@@ -1055,7 +1056,7 @@ eOSState cMenuEpgWhatsOn::Record()
 
    // neuen Timer anlegen
 
-   cDbRow* timerRow = newTimerRowFromEvent(item->event);
+   cDbRow* timerRow = newTimerRowFromEvent(item->vdrEvent);
    char timerDefaultVDRuuid[150+TB] = "";
 
    menuDb->getParameter(menuDb->user.c_str(), "timerDefaultVDRuuid", timerDefaultVDRuuid);
@@ -1125,7 +1126,7 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
                cMenuEpgScheduleItem* item = (cMenuEpgScheduleItem*)Get(Current());
 
                if (item)
-                  return AddSubMenu(new cMenuEpgWhatsOn(item->event));
+                  return AddSubMenu(new cMenuEpgWhatsOn(item->epgEvent));
             }
 
             break;
@@ -1138,7 +1139,7 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
                cMenuEpgScheduleItem* item = (cMenuEpgScheduleItem*)Get(Current());
 
                if (item)
-                  return AddSubMenu(new cMenuEpgMatchRecordings(menuDb, item->event));
+                  return AddSubMenu(new cMenuEpgMatchRecordings(menuDb, item->epgEvent));
             }
 
             break;
@@ -1166,7 +1167,7 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
 
                if (mi)
                {
-                  scheduleEvent = mi->event;
+                  scheduleEvent = mi->epgEvent;
                   currentChannel = mi->channel->Number();
                   LoadSchedule();
                }
@@ -1210,7 +1211,7 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
 
                if (item)
                {
-                  const cEvent* event = item->event;
+                  const cEvent* event = item->epgEvent;
 
                   if (Count() && event)
                      return AddSubMenu(new cMenuEpgEvent(menuDb, event, schedules,

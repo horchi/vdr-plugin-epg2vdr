@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.48"
-#define VERSION_DATE "16.03.2017"
+#define _VERSION     "1.1.49"
+#define VERSION_DATE "19.03.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-03-19: version 1.1.49 (horchi)
+   - bugfix: Fixed possible crash in extended skins interface
 
 2017-03-16: version 1.1.48 (horchi)
    - added: Further improvement of extended skins interface

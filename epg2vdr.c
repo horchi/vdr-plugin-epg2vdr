@@ -858,22 +858,29 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
       return true;
    }
 
+   // Services with direct db access
+
    cMutexLock lock(&mutexServiceWithDb);
 
-   if (strcmp(id, EPG2VDR_TIMER_SERVICE) == 0)
+   if (initDb() == success)
    {
-      cEpgTimer_Service_V1* ts = (cEpgTimer_Service_V1*)data;
+      if (strcmp(id, EPG2VDR_TIMER_SERVICE) == 0)
+      {
+         cEpgTimer_Service_V1* ts = (cEpgTimer_Service_V1*)data;
 
-      if (ts)
-         return timerService(ts);
-   }
+         if (ts)
+            return timerService(ts);
+      }
 
-   else if (strcmp(id, EPG2VDR_EVENT_SERVICE) == 0)
-   {
-      cEpgEvent_Service_V1* es = (cEpgEvent_Service_V1*)data;
+      else if (strcmp(id, EPG2VDR_EVENT_SERVICE) == 0)
+      {
+         cEpgEvent_Service_V1* es = (cEpgEvent_Service_V1*)data;
 
-      if (es)
-         return eventService(es);
+         if (es)
+            return eventService(es);
+      }
+
+      exitDb();
    }
 
    return false;
@@ -888,30 +895,25 @@ int cPluginEPG2VDR::timerService(cEpgTimer_Service_V1* ts)
    cMutexLock lock(&mutexTimerService);
    uint64_t start = cTimeMs::Now();
 
-   if (initDb() == success)
+   timerDb->clear();
+   vdrDb->clear();
+
+   ts->epgTimers.clear();
+
+   for (int f = selectTimers->find(); f && connection->check() == success; f = selectTimers->fetch())
    {
-      timerDb->clear();
-      vdrDb->clear();
+      cEpgTimer* epgTimer = newTimerObjectFromRow(timerDb->getRow(), vdrDb->getRow());
 
-      ts->epgTimers.clear();
-
-      for (int f = selectTimers->find(); f && connection->check() == success; f = selectTimers->fetch())
-      {
-         cEpgTimer* epgTimer = newTimerObjectFromRow(timerDb->getRow(), vdrDb->getRow());
-
-         if (Epg2VdrConfig.shareInWeb || epgTimer->isLocal())
-            ts->epgTimers.push_back(epgTimer);
-         else
-            delete epgTimer;
-      }
-
-      tell(1, "Answer '%s' call with %lu timers, duration was (%s)",
-           EPG2VDR_TIMER_SERVICE,
-           ts->epgTimers.size(),
-           ms2Dur(cTimeMs::Now()-start).c_str());
+      if (Epg2VdrConfig.shareInWeb || epgTimer->isLocal())
+         ts->epgTimers.push_back(epgTimer);
+      else
+         delete epgTimer;
    }
 
-   exitDb();
+   tell(1, "Answer '%s' call with %lu timers, duration was (%s)",
+        EPG2VDR_TIMER_SERVICE,
+        ts->epgTimers.size(),
+        ms2Dur(cTimeMs::Now()-start).c_str());
 
    return true;
 }
@@ -929,18 +931,13 @@ int cPluginEPG2VDR::eventService(cEpgEvent_Service_V1* es)
    if (!es->in)
       return false;
 
-   if ((status = initDb()) == success)
-   {
-      es->out = createEventCopy(es->in);
+   es->out = createEventCopy(es->in);
 
-      useeventsDb->clear();
-      useeventsDb->setValue("USEID", (int)es->in->EventID());
+   useeventsDb->clear();
+   useeventsDb->setValue("USEID", (int)es->in->EventID());
 
-      enrichEvent((cEpgEvent*)es->out, useeventsDb, selectEventById);
-      status = true;
-   }
-
-   exitDb();
+   enrichEvent((cEpgEvent*)es->out, useeventsDb, selectEventById);
+   status = true;
 
    return status;
 }

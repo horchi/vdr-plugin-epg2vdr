@@ -412,7 +412,8 @@ class cMenuEpgScheduleItem : public cOsdItem
       virtual bool Update(bool Force = false);
       virtual void SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable);
 
-      cEpgEvent* event;
+      cEpgEvent* epgEvent;
+      const cEvent* vdrEvent;
       const cChannel* channel;
       bool withDate;
       int timerMatch;
