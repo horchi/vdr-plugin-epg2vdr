@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.1.49"
+#define _VERSION     "1.1.50"
 #define VERSION_DATE "19.03.2017"
 
 #define DB_API       4
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-03-19: version 1.1.50 (horchi)
+   - bugfix: Fixed AMC address lookup
 
 2017-03-19: version 1.1.49 (horchi)
    - bugfix: Fixed possible crash in extended skins interface
