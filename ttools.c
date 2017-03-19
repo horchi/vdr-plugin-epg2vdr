@@ -642,7 +642,8 @@ int enrichEvent(cEpgEvent* event, cDbTable* table, cDbStatement* select)
       }
 
       std::string source = table->getStrValue("CNTSOURCE") + std::string("/") + table->getStrValue("SUBSOURCE");
-      source = regex_replace(source, regex("vdr"), "dvb");
+      source = strReplace("vdr", "dvb", source);
+      // source = regex_replace(source, regex("vdr"), "dvb");
       event->setValue("source", source.c_str());
    }
    else
