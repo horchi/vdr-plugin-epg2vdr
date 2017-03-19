@@ -802,7 +802,7 @@ cString cPluginEPG2VDR::SVDRPCommand(const char* cmd, const char* Option, int &R
 
 bool cPluginEPG2VDR::Service(const char* id, void* data)
 {
-   if (!data || !pluginInitialized)
+   if (!data)
       return fail;
 
    tell(4, "Service called with '%s', %d/%d", id,
@@ -832,7 +832,13 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
       return true;
    }
 
-   else if (strcmp(id, "MainMenuHooksPatch-v1.0::osSchedule") == 0 && Epg2VdrConfig.replaceScheduleMenu)
+   if (!pluginInitialized)
+   {
+      tell(2, "Service called but plugin not redy, retry later");
+      return fail;
+   }
+
+   if (strcmp(id, "MainMenuHooksPatch-v1.0::osSchedule") == 0 && Epg2VdrConfig.replaceScheduleMenu)
    {
       cOsdMenu** menu = (cOsdMenu**)data;
 
