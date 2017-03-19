@@ -411,6 +411,7 @@ void cMenuSetupEPG2VDR::Store()
 
 cPluginEPG2VDR::cPluginEPG2VDR()
 {
+   pluginInitialized = no;
    oUpdate = 0;
    connection = 0;
    timerDb = 0;
@@ -801,7 +802,7 @@ cString cPluginEPG2VDR::SVDRPCommand(const char* cmd, const char* Option, int &R
 
 bool cPluginEPG2VDR::Service(const char* id, void* data)
 {
-   if (!data)
+   if (!data || !pluginInitialized)
       return fail;
 
    tell(4, "Service called with '%s', %d/%d", id,
@@ -959,7 +960,10 @@ bool cPluginEPG2VDR::Start()
    oUpdate = new cUpdate(this);
 
    if (oUpdate->init() == success)
+   {
       oUpdate->Start();                 // start plugin thread
+      pluginInitialized = yes;
+   }
    else
       tell(0, "Initialization failed, start of plugin aborted!");
 
@@ -1050,6 +1054,7 @@ void cPluginEPG2VDR::Stop()
 
    req.action = mieaExit;
    Service(MYSQL_INIT_EXIT, &req);
+   pluginInitialized = no;
 }
 
 //***************************************************************************

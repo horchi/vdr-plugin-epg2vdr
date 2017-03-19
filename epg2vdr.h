@@ -70,6 +70,7 @@ class cPluginEPG2VDR : public cPlugin
 
    private:
 
+      int pluginInitialized;
       cDbConnection* connection;
       cDbTable* timerDb;
       cDbTable* vdrDb;
