@@ -737,15 +737,18 @@ int cDbTable::init(int allowAlter)
 
    // check/create table ...
 
-   if (exist() && allowAlter)
-      validateStructure(allowAlter);
+   if (allowAlter)
+   {
+      if (exist())
+         validateStructure(allowAlter);
 
-   if (createTable() != success)
-      return fail;
+      if (!exist() && createTable() != success)
+         return fail;
 
-   // check/create indices
+      // check/create indices
 
-   createIndices();
+      createIndices();
+   }
 
    // ------------------------------
    // prepare BASIC statements

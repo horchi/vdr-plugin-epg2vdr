@@ -595,8 +595,9 @@ int enrichEvent(cEpgEvent* event, cDbTable* table, cDbStatement* select)
          "imagecount",          //    int
          "numrating",           //    int
 
-         "channelid",           //    ascii     50
+//         "source"               //    ascii     25
          "year",                //    ascii     10
+         "channelid",           //    ascii     50
          "category",            //    ascii     50
          "country",             //    ascii     50
          "audio",               //    ascii     50
