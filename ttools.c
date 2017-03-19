@@ -6,6 +6,7 @@
  */
 
 #include <string>
+#include <regex>
 
 #include "update.h"
 #include "ttools.h"
@@ -595,7 +596,6 @@ int enrichEvent(cEpgEvent* event, cDbTable* table, cDbStatement* select)
          "imagecount",          //    int
          "numrating",           //    int
 
-//         "source"               //    ascii     25
          "year",                //    ascii     10
          "channelid",           //    ascii     50
          "category",            //    ascii     50
@@ -640,6 +640,10 @@ int enrichEvent(cEpgEvent* event, cDbTable* table, cDbStatement* select)
          else
             event->setValue(fields[i], value->getIntValue());
       }
+
+      std::string source = table->getStrValue("CNTSOURCE") + std::string("/") + table->getStrValue("SUBSOURCE");
+      source = regex_replace(source, regex("vdr"), "dvb");
+      event->setValue("source", source.c_str());
    }
    else
    {
