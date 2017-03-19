@@ -32,8 +32,6 @@ static const char* MAINMENUENTRY = tr("EPG and Timer Service");
 // cPluginEPG2VDR
 //***************************************************************************
 
-// cOsdMenu* newWathsOn();
-
 class cPluginEPG2VDR : public cPlugin
 {
    public:
@@ -78,6 +76,7 @@ class cPluginEPG2VDR : public cPlugin
       cDbStatement* selectTimers;
       cDbStatement* selectEventById;
       cMutex mutexTimerService;
+      cMutex mutexServiceWithDb;
 };
 
 //***************************************************************************

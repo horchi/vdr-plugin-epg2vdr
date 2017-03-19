@@ -834,7 +834,7 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
 
    if (!pluginInitialized)
    {
-      tell(2, "Service called but plugin not redy, retry later");
+      tell(2, "Service called but plugin not ready, retry later");
       return fail;
    }
 
@@ -858,7 +858,9 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
       return true;
    }
 
-   else if (strcmp(id, EPG2VDR_TIMER_SERVICE) == 0)
+   cMutexLock lock(&mutexServiceWithDb);
+
+   if (strcmp(id, EPG2VDR_TIMER_SERVICE) == 0)
    {
       cEpgTimer_Service_V1* ts = (cEpgTimer_Service_V1*)data;
 
