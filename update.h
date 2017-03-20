@@ -11,8 +11,6 @@
 #include <mysql/mysql.h>
 #include <queue>
 
-#define __STL_CONFIG_H
-
 #include <vdr/status.h>
 
 #include "lib/common.h"

@@ -666,7 +666,7 @@ cEpgEvent* createEventCopy(const cEvent* event)
    char* bp;
    size_t size;
 
-   if (inMem = open_memstream(&bp, &size))
+   if ((inMem = open_memstream(&bp, &size)))
    {
       event->Dump(inMem, "", yes);
       fflush(inMem);

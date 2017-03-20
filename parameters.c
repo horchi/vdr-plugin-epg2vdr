@@ -87,7 +87,7 @@ cParameters::Parameter* cParameters::getDefinition(const char* owner, const char
 
    if (owner[0] == '@')
       owner = "@";
-   
+
    if (strcmp(owner, "epgd") == 0 && strstr(name, ".md5"))
       name = "md5";
 
@@ -161,12 +161,12 @@ int cParameters::getParameter(const char* owner, const char* name, char* value)
 
    if (strcasecmp(owner, "uuid") == 0)
       owner = Epg2VdrConfig.uuid;
-       
+
    parametersDb->clear();
    parametersDb->setValue("OWNER", owner);
    parametersDb->setValue("NAME", name);
 
-   if (found = parametersDb->find())
+   if ((found = parametersDb->find()))
    {
       if (value)
          sprintf(value, "%s", parametersDb->getStrValue("Value"));
@@ -193,7 +193,7 @@ int cParameters::getParameter(const char* owner, const char* name, long int& val
    int found;
 
    found = getParameter(owner, name, txt);
-   
+
    if (!isEmpty(txt))
       value = atol(txt);
    else
@@ -203,7 +203,7 @@ int cParameters::getParameter(const char* owner, const char* name, long int& val
 }
 
 //***************************************************************************
-// Set String Parameter 
+// Set String Parameter
 //***************************************************************************
 
 int cParameters::setParameter(const char* owner, const char* name, const char* value)
@@ -227,7 +227,7 @@ int cParameters::setParameter(const char* owner, const char* name, const char* v
    {
       if (rep(value, definition->regexp) != success)
       {
-         tell(0, "Ignoring '%s' for parameter '%s/%s' don't match expression '%s'", 
+         tell(0, "Ignoring '%s' for parameter '%s/%s' don't match expression '%s'",
               value, owner, name, definition->regexp);
 
          return fail;
@@ -250,4 +250,3 @@ int cParameters::setParameter(const char* owner, const char* name, long int valu
 
    return setParameter(owner, name, txt);
 }
-

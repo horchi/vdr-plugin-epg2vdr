@@ -14,7 +14,7 @@
 #include "menu.h"
 #include "handler.h"
 
-#if defined (APIVERSNUM) && (APIVERSNUM < 20200)
+#if defined (APIVERSNUM) || (APIVERSNUM < 20200)
 #  error VDR API versions < 2.2.0 are not supported !
 #endif
 

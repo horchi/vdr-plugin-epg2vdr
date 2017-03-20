@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.50"
-#define VERSION_DATE "19.03.2017"
+#define _VERSION     "1.1.51"
+#define VERSION_DATE "20.03.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,11 @@
 
 /*
  * ------------------------------------
+
+2017-03-20: version 1.1.51 (horchi)
+   - change: Removed compiler warnings when using clang
+   - added:  Added clang++ to Make.config (as optional compiler)
+   - change: Fixed APIVERSION check for VDR < 2.2.0 (thx to nobanzai)
 
 2017-03-19: version 1.1.50 (horchi)
    - bugfix: Fixed AMC address lookup

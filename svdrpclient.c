@@ -479,7 +479,7 @@ int cSvdrpClient::connect()
    {
       // map hostname to ip
 
-      if (hostInfo = ::gethostbyname(ip))
+      if ((hostInfo = ::gethostbyname(ip)))
          memcpy((char*)&remoteAddr, hostInfo->h_addr, hostInfo->h_length);
 
       else if ((remoteAddr = inet_addr(ip)) == INADDR_NONE)
@@ -515,7 +515,7 @@ int cSvdrpClient::connect()
    {
       if (errno != EINPROGRESS)
       {
-         tell(0, "SVDRPCL: connect to %s:%hu failed: %s", ip, port, strerror(errno));
+         tell(0, "SVDRPCL: connect to %s:%d failed: %s", ip, port, strerror(errno));
          return -1;
       }
 
@@ -554,7 +554,7 @@ int cSvdrpClient::connect()
 
       if (result != 0)
       {
-         tell(0, "SVDRPCL: Error connecting to %s:%hu: %s", ip, port, strerror(errno));
+         tell(0, "SVDRPCL: Error connecting to %s:%d: %s", ip, port, strerror(errno));
          ::close(sock);
 
          return -1;
@@ -597,7 +597,7 @@ int cSvdrpClient::open()
    if (greeting.First() && greeting.First()->Text())
       msg = greeting.First()->Text();
 
-   tell(2, "SVDRPCL: connected to %s:%hu '%s'", ip, port, msg);
+   tell(2, "SVDRPCL: connected to %s:%d '%s'", ip, port, msg);
 
    return 0;
 }

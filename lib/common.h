@@ -45,7 +45,6 @@ class MemoryStruct;
   inline long min(long a, long b) { return a < b ? a : b; }
   inline long max(long a, long b) { return a > b ? a : b; }
 #else
-#  define __STL_CONFIG_H
 #  include <vdr/tools.h>
 #endif
 
@@ -133,7 +132,7 @@ int gunzip(MemoryStruct* zippedData, MemoryStruct* unzippedData);
 // MemoryStruct
 //***************************************************************************
 
-struct MemoryStruct
+class MemoryStruct
 {
    public:
 

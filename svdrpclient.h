@@ -17,12 +17,11 @@
 #include "lib/common.h"
 
 #ifdef VDR_PLUGIN
-#  define __STL_CONFIG_H
 #  include <vdr/tools.h>
 #else
 
 //***************************************************************************
-// 
+//
 //***************************************************************************
 
 class cListObject {
@@ -109,7 +108,7 @@ public:
 // Line
 //***************************************************************************
 
-class cLine : public cListObject 
+class cLine : public cListObject
 {
    public:
 
@@ -128,7 +127,7 @@ class cLine : public cListObject
 // SVDRP Client
 //***************************************************************************
 
-class cSvdrpClient 
+class cSvdrpClient
 {
    private:
 

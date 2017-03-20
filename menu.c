@@ -511,7 +511,7 @@ int cMenuDb::initUserTimes()
    {
       char* time;
 
-      if (time = strchr(p, '='))
+      if ((time = strchr(p, '=')))
          *time++ = 0;
 
       if (!isEmpty(time))

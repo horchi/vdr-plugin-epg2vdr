@@ -359,7 +359,7 @@ class cMenuEpgSearchTimers : public cOsdMenu
    private:
 
       cMenuDb* menuDb;
-      int helpKeys;
+      // int helpKeys;
 };
 
 //***************************************************************************
@@ -452,7 +452,7 @@ class cMenuEpgWhatsOn : public cOsdMenu
       int helpKeys;
       time_t helpKeyTime;
       int helpKeyTimeMode;
-      int timerState;
+      // int timerState;
       eOSState Record();
       eOSState Switch();
       bool Update();

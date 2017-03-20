@@ -5,8 +5,6 @@
  *
  */
 
-#define __STL_CONFIG_H
-
 #include <string>
 
 #include <vdr/menuitems.h>
@@ -207,7 +205,7 @@ cMenuEpgScheduleItem::cMenuEpgScheduleItem(cMenuDb* db, const cEvent* Event,
       char* bp;
       size_t size;
 
-      if (inMem = open_memstream(&bp, &size))
+      if ((inMem = open_memstream(&bp, &size)))
       {
          Event->Dump(inMem, "", yes);
          fflush(inMem);
@@ -436,7 +434,7 @@ int cMenuEpgEvent::setEvent(const cEvent* Event, int timerMatch)
          {
             const cEvent* e;
 
-            if (e = getNextPrevEvent(event, -1))
+            if ((e = getNextPrevEvent(event, -1)))
             {
                if (dispSchedule)
                   prevTime = l2pTime(e->StartTime(), "%H:%M");
@@ -444,7 +442,7 @@ int cMenuEpgEvent::setEvent(const cEvent* Event, int timerMatch)
                   prevChannel = channels->GetByChannelID(e->ChannelID(), true);
             }
 
-            if (e = getNextPrevEvent(event, +1))
+            if ((e = getNextPrevEvent(event, +1)))
             {
                if (dispSchedule)
                   nextTime = l2pTime(e->StartTime(), "%H:%M");
@@ -1037,7 +1035,7 @@ eOSState cMenuEpgWhatsOn::Record()
    if (!item)
       return osContinue;
 
-   if (timerid = menuDb->lookupTimer(item->epgEvent, timerMatch, remote)) // -> loads timerDb and vdrDb
+   if ((timerid = menuDb->lookupTimer(item->epgEvent, timerMatch, remote))) // -> loads timerDb and vdrDb
    {
       menuDb->timerDb->clear();
       menuDb->timerDb->setValue("ID", timerid);

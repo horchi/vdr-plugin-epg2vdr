@@ -480,7 +480,7 @@ class cEpgHandlerInstance
             return true;
          }
 
-         uchar currentTableId = ::max(uchar(evtMemList[evtKey].tableid), uchar(0x4E));
+         uchar currentTableId = std::max(uchar(evtMemList[evtKey].tableid), uchar(0x4E));
 
          // skip bigger ids as current
 
@@ -596,7 +596,7 @@ class cEpgHandlerInstance
             eventsDb->getValue("DELFLG")->setNull();
          }
 
-         if (!insert && abs(event->StartTime() - eventsDb->getIntValue("StartTime")) > 6*tmeSecondsPerHour)
+         if (!insert && std::abs(event->StartTime() - eventsDb->getIntValue("StartTime")) > 6*tmeSecondsPerHour)
          {
             tell(3, "Handler: Info: Start time of %d/%s - '%s' moved %ld hours from %s to %s - '%s'",
                  event->EventID(), (const char*)channelId.ToString(),
@@ -892,7 +892,7 @@ class cEpgHandlerInstance
       cDbStatement* selectMergeSp;
       cDbStatement* selectEventByStarttime;
 
-      cUpdate* update;
+      // cUpdate* update;
 };
 
 //***************************************************************************

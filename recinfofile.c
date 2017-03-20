@@ -37,7 +37,7 @@ const char* cEventDetails::fields[] =
    "SCRSERIESID",
    "SCRSERIESEPISODE",
    "SCRMOVIEID",
-                    
+
    // just in recordinglist, not in events or useevents row
 
    "CHANNELNAME",
@@ -57,7 +57,7 @@ void cEventDetails::setValue(const char* name, const char* value)
    std::map<std::string,std::string>::iterator it;
 
    it = values.find(name);
-   
+
    if (it == values.end() || it->first != value)
    {
       changes++;
@@ -162,24 +162,24 @@ int cEventDetails::storeToFs(const char* path)
    FILE* f;
    char* fileName = 0;
    std::map<std::string,std::string>::iterator it;
-   
+
    asprintf(&fileName, "%s/info.epg2vdr", path);
-   
+
    if (!(f = fopen(fileName, "w")))
    {
       tell(0, "Error opening file '%s' failed, %s", fileName, strerror(errno));
       free(fileName);
-      
+
       return fail;
    }
-   
+
    tell(0, "Storing event details to '%s'", fileName);
-   
-   // store fields 
-   
+
+   // store fields
+
    for (it = values.begin(); it != values.end(); it++)
       fprintf(f, "%s: %s\n", it->first.c_str(), it->second.c_str());
-   
+
    free(fileName);
    fclose(f);
 
@@ -211,32 +211,32 @@ int cEventDetails::loadFromFs(const char* path)
    {
       tell(0, "Error opening file '%s' failed, %s", fileName, strerror(errno));
       free(fileName);
-      
+
       return fail;
    }
-   
+
    tell(3, "Loading event details from '%s'", fileName);
-   
-   // load fields 
-   
+
+   // load fields
+
    char* p;
    char* s;
    cReadLine readLine;
 
-   while (s = readLine.Read(f))
+   while ((s = readLine.Read(f)))
    {
       if (!(p = strchr(s, ':')))
       {
          tell(0, " ");
          continue;
       }
-      
+
       *(p++) = 0;
       p = skipspace(rTrim(p));
 
       if (!isEmpty(p))
          values[s] = p;
-   }   
+   }
 
    free(fileName);
    fclose(f);
