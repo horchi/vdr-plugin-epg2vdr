@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.51"
-#define VERSION_DATE "20.03.2017"
+#define _VERSION     "1.1.52"
+#define VERSION_DATE "2103.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-03-21 version 1.1.52(horchi)
+   - bugfix: crash in EPG menu
 
 2017-03-20: version 1.1.51 (horchi)
    - change: Removed compiler warnings when using clang

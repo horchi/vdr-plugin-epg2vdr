@@ -1209,7 +1209,7 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
 
                if (item)
                {
-                  const cEvent* event = item->epgEvent;
+                  const cEvent* event = item->vdrEvent;
 
                   if (Count() && event)
                      return AddSubMenu(new cMenuEpgEvent(menuDb, event, schedules,
