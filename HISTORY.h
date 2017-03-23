@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.52"
-#define VERSION_DATE "2103.2017"
+#define _VERSION     "1.1.54"
+#define VERSION_DATE "23.03.2017"
 
 #define DB_API       4
 
@@ -19,7 +19,12 @@
 /*
  * ------------------------------------
 
-2017-03-21 version 1.1.52(horchi)
+2017-03-22 version 1.1.53 (horchi)
+   - change: Removed old patches for vdr < 2.2.0
+   - added: Patch to extend cEvent with aux field like cTimer
+   - change: Moved user defines from Makefile to Make.config
+
+2017-03-21 version 1.1.52 (horchi)
    - bugfix: crash in EPG menu
 
 2017-03-20: version 1.1.51 (horchi)

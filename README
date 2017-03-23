@@ -25,6 +25,7 @@ Requirements:
   - python libpython libpython-dev python-dev
   - libjansson4 libjansson-dev
   - uuid-dev
+  - libtinyxml2-dev
 
 Ubuntu (16.04):
   - libarchive13, libarchive-dev
@@ -32,7 +33,7 @@ Ubuntu (16.04):
   - libjansson4 libjansson-dev
   - python libpython libpython-dev python-dev
   - uuid-dev
-
+  - libtinyxml2-dev
 
 Description:
 ------------

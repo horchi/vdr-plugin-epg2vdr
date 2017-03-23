@@ -410,10 +410,9 @@ class cMenuEpgScheduleItem : public cOsdItem
 
       virtual int Compare(const cListObject &ListObject) const;
       virtual bool Update(bool Force = false);
-      virtual void SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable);
+      virtual void SetMenuItem(cSkinDisplayMenu* DisplayMenu, int Index, bool Current, bool Selectable);
 
-      cEpgEvent* epgEvent;
-      const cEvent* vdrEvent;
+      const cEvent* event;
       const cChannel* channel;
       bool withDate;
       int timerMatch;
@@ -421,7 +420,6 @@ class cMenuEpgScheduleItem : public cOsdItem
    private:
 
       cMenuDb* menuDb;
-      int eventReady;
       static eScheduleSortMode sortMode;
 };
 

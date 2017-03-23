@@ -1,0 +1,79 @@
+--- ../vdr-2.3.2.plain//epg.c	2015-09-10 12:58:19.000000000 +0200
++++ epg.c	2017-03-22 11:44:51.917258845 +0100
+@@ -124,6 +124,7 @@
+   shortText = NULL;
+   description = NULL;
+   components = NULL;
++  aux = NULL;
+   memset(contents, 0, sizeof(contents));
+   parentalRating = 0;
+   startTime = 0;
+@@ -137,6 +138,7 @@
+   free(title);
+   free(shortText);
+   free(description);
++  free(aux);
+   delete components;
+ }
+
+@@ -237,6 +239,12 @@
+   seen = time(NULL);
+ }
+
++void cEvent::SetAux(const char *Aux)
++{
++  free(aux);
++  aux = Aux ? strdup(Aux) : NULL;
++}
++
+ cString cEvent::ToDescr(void) const
+ {
+   char vpsbuf[64] = "";
+@@ -469,6 +477,11 @@
+         }
+      if (vps)
+         fprintf(f, "%sV %ld\n", Prefix, vps);
++     if (!isempty(aux)) {
++        strreplace(aux, '\n', '|');
++        fprintf(f, "%s@ %s\n", Prefix, aux);
++        strreplace(aux, '|', '\n');
++        }
+      if (!InfoOnly)
+         fprintf(f, "%se\n", Prefix);
+      }
+@@ -507,6 +520,9 @@
+               break;
+     case 'V': SetVps(atoi(t));
+               break;
++    case '@': strreplace(t, '|', '\n');
++              SetAux(t);
++              break;
+     default:  esyslog("ERROR: unexpected tag while reading EPG data: %s", s);
+               return false;
+     }
+--- ../vdr-2.3.2.plain//epg.h	2015-08-09 13:25:04.000000000 +0200
++++ epg.h	2017-03-22 11:33:19.319728545 +0100
+@@ -89,6 +89,7 @@
+   int duration;            // Duration of this event in seconds
+   time_t vps;              // Video Programming Service timestamp (VPS, aka "Programme Identification Label", PIL)
+   time_t seen;             // When this event was last seen in the data stream
++  char *aux;
+ public:
+   cEvent(tEventID EventID);
+   ~cEvent();
+@@ -111,6 +112,7 @@
+   time_t Vps(void) const { return vps; }
+   time_t Seen(void) const { return seen; }
+   bool SeenWithin(int Seconds) const { return time(NULL) - seen < Seconds; }
++  const char *Aux(void) const { return aux; }
+   void IncNumTimers(void) const;
+   void DecNumTimers(void) const;
+   bool HasTimer(void) const { return numTimers > 0; }
+@@ -135,6 +137,7 @@
+   void SetDuration(int Duration);
+   void SetVps(time_t Vps);
+   void SetSeen(void);
++  void SetAux(const char *Aux);
+   cString ToDescr(void) const;
+   void Dump(FILE *f, const char *Prefix = "", bool InfoOnly = false) const;
+   bool Parse(char *s);

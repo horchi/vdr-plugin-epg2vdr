@@ -12,7 +12,7 @@ HLIB      = -L. -lhorchi
 DEMO = demo
 TEST = tst
 
-LIBOBJS = common.o config.o db.o epgservice.o dbdict.o json.o
+LIBOBJS = common.o config.o db.o epgservice.o dbdict.o json.o xml.o
 
 ifdef USEJPEG
    LIBOBJS += imgtools.o
@@ -29,6 +29,7 @@ BASELIBS = -lrt
 BASELIBS += $(shell mysql_config --libs_r)
 BASELIBS += $(shell pkg-config --libs uuid)
 BASELIBS += $(shell pkg-config --libs zlib)
+BASELIBS += $(shell pkg-config --libs tinyxml2)
 
 ifdef USECURL
    BASELIBS += -lcurl
@@ -105,7 +106,8 @@ db.o         		:  db.c          		 $(HEADER) db.h
 epgservice.o 		:  epgservice.c  		 $(HEADER) epgservice.h
 dbdict.o     		:  dbdict.c      		 $(HEADER) dbdict.h
 json.o       		:  json.c        		 $(HEADER) json.h
-python.o        :  python.c          $(HEADER) python.h
+xml.o       		:  xml.c        		 $(HEADER) xml.h
+python.o          :  python.c           $(HEADER) python.h
 searchtimer.o     :  searchtimer.c      $(HEADER) searchtimer.h
 
 demo.o       		:  demo.c        		 $(HEADER)

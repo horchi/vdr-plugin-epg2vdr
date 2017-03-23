@@ -65,7 +65,7 @@ class cRunningRecording : public cListObject
 };
 
 //***************************************************************************
-// Event Details
+// Event Details (Recording Info Files)
 //***************************************************************************
 
 class cEventDetails
@@ -269,10 +269,14 @@ class cUpdate : public cThread, public cStatus, public cParameters
       cDbValue imageSize;
       cDbValue masterId;
 
-      cDbValue* dvbDescription;
+      cDbValue* viewDescription;
+      cDbValue* viewMergeSource;
+      cDbValue* viewLongDescription;
 
       std::queue<std::string> pendingNewRecordings; // recordings to store details
       std::vector<TimerId> deletedTimers;
+
+      static const char* auxFields[];
 };
 
 //***************************************************************************

@@ -872,14 +872,6 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
             return timerService(ts);
       }
 
-      else if (strcmp(id, EPG2VDR_EVENT_SERVICE) == 0)
-      {
-         cEpgEvent_Service_V1* es = (cEpgEvent_Service_V1*)data;
-
-         if (es)
-            return eventService(es);
-      }
-
       exitDb();
    }
 
@@ -916,30 +908,6 @@ int cPluginEPG2VDR::timerService(cEpgTimer_Service_V1* ts)
         ms2Dur(cTimeMs::Now()-start).c_str());
 
    return true;
-}
-
-//***************************************************************************
-// Event Service
-//***************************************************************************
-
-int cPluginEPG2VDR::eventService(cEpgEvent_Service_V1* es)
-{
-   int status = false;
-
-   es->out = 0;
-
-   if (!es->in)
-      return false;
-
-   es->out = createEventCopy(es->in);
-
-   useeventsDb->clear();
-   useeventsDb->setValue("USEID", (int)es->in->EventID());
-
-   enrichEvent((cEpgEvent*)es->out, useeventsDb, selectEventById);
-   status = true;
-
-   return status;
 }
 
 //***************************************************************************

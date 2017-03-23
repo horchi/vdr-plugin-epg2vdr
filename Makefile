@@ -8,10 +8,6 @@ HISTFILE  = "HISTORY.h"
 
 include Make.config
 
-# enable graphtftng and/or pin plugin support if autodetection below don't work
-#WITH_GTFT = 1
-#WITH_PIN  = 1
-
 ### The version number of this plugin (taken from the main source file):
 
 VERSION = $(shell grep 'define _VERSION ' $(HISTFILE) | awk '{ print $$3 }' | sed -e 's/[";]//g')
@@ -71,8 +67,10 @@ OBJS = $(PLUGIN).o \
        menu.o menusched.o menutimers.o menudone.o menusearchtimer.o
 
 LIBS  = $(HLIB)
-LIBS += -lrt -larchive -lcrypto -luuid
-LIBS += $(shell mysql_config --libs_r) $(shell python-config --libs) $(shell pkg-config --cflags --libs jansson)
+LIBS += -lrt -larchive -lcrypto
+LIBS += $(shell pkg-config --libs uuid)
+LIBS += $(shell pkg-config --libs tinyxml2)
+LIBS += $(shell mysql_config --libs_r) $(shell python-config --libs) $(shell pkg-config --libs jansson)
 
 EPG2VDR_DATA_DIR = "/var/cache/vdr"
 
@@ -82,6 +80,10 @@ endif
 
 ifdef WITH_PIN
 	DEFINES += -DWITH_PIN
+endif
+
+ifdef WITH_AUX_PATCH
+	DEFINES += -DWITH_AUX_PATCH
 endif
 
 ifdef EPG2VDR_DATA_DIR

@@ -1,0 +1,79 @@
+--- ../vdr-2.2.0.plain/epg.c	2013-12-28 12:33:08.000000000 +0100
++++ epg.c	2017-03-22 16:21:34.266665706 +0100
+@@ -122,6 +122,7 @@
+   shortText = NULL;
+   description = NULL;
+   components = NULL;
++  aux = NULL;
+   memset(contents, 0, sizeof(contents));
+   parentalRating = 0;
+   startTime = 0;
+@@ -135,6 +136,7 @@
+   free(title);
+   free(shortText);
+   free(description);
++  free(aux);
+   delete components;
+ }
+ 
+@@ -235,6 +237,12 @@
+   seen = time(NULL);
+ }
+ 
++void cEvent::SetAux(const char *Aux)
++{
++  free(aux);
++  aux = Aux ? strdup(Aux) : NULL;
++}
++
+ cString cEvent::ToDescr(void) const
+ {
+   char vpsbuf[64] = "";
+@@ -458,6 +466,11 @@
+         }
+      if (vps)
+         fprintf(f, "%sV %ld\n", Prefix, vps);
++     if (!isempty(aux)) {
++        strreplace(aux, '\n', '|');
++        fprintf(f, "%s@ %s\n", Prefix, aux);
++        strreplace(aux, '|', '\n');
++        }
+      if (!InfoOnly)
+         fprintf(f, "%se\n", Prefix);
+      }
+@@ -496,6 +509,9 @@
+               break;
+     case 'V': SetVps(atoi(t));
+               break;
++    case '@': strreplace(t, '|', '\n');
++              SetAux(t);
++              break;
+     default:  esyslog("ERROR: unexpected tag while reading EPG data: %s", s);
+               return false;
+     }
+--- ../vdr-2.2.0.plain/epg.h	2013-08-23 12:50:05.000000000 +0200
++++ epg.h	2017-03-22 16:23:28.096287585 +0100
+@@ -87,6 +87,7 @@
+   int duration;            // Duration of this event in seconds
+   time_t vps;              // Video Programming Service timestamp (VPS, aka "Programme Identification Label", PIL)
+   time_t seen;             // When this event was last seen in the data stream
++  char *aux;
+ public:
+   cEvent(tEventID EventID);
+   ~cEvent();
+@@ -109,6 +110,7 @@
+   time_t Vps(void) const { return vps; }
+   time_t Seen(void) const { return seen; }
+   bool SeenWithin(int Seconds) const { return time(NULL) - seen < Seconds; }
++  const char *Aux(void) const { return aux; }
+   bool HasTimer(void) const;
+   bool IsRunning(bool OrAboutToStart = false) const;
+   static const char *ContentToString(uchar Content);
+@@ -131,6 +133,7 @@
+   void SetDuration(int Duration);
+   void SetVps(time_t Vps);
+   void SetSeen(void);
++  void SetAux(const char *Aux);
+   cString ToDescr(void) const;
+   void Dump(FILE *f, const char *Prefix = "", bool InfoOnly = false) const;
+   bool Parse(char *s);

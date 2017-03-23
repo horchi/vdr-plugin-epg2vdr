@@ -10,9 +10,64 @@
 #include <vdr/videodir.h>
 #include <vdr/tools.h>
 
+#include "lib/xml.h"
 #include "epg2vdr.h"
 #include "update.h"
 #include "handler.h"
+
+//***************************************************************************
+// Events AUX Fields - stored as XML in cEvent:aux
+//***************************************************************************
+
+const char* cUpdate::auxFields[] =
+{
+// field name                type    max size
+
+   "imagecount",          // int
+   "scrseriesid",         // int
+   "scrseriesepisode",    // int
+   "scrmovieid",          // int
+   "numrating",           // int
+
+   "year",                // ascii     10
+   "category",            // ascii     50
+   "country",             // ascii     50
+   "audio",               // ascii     50
+
+   "txtrating",           // ascii    100
+   "genre",               // ascii    100
+   "flags",               // ascii    100
+   "commentator",         // ascii    200
+   "tipp",                // ascii    250
+   "rating",              // ascii    250
+   "moderator",           // ascii    250
+   "music",               // ascii    250
+   "screenplay",          // ascii    500
+   "shortreview",         // ascii    500
+
+   "guest",               // text    1000
+   "producer",            // text    1000
+   "camera",              // text    1000
+   "director",            // text    1000
+   "topic",               // ascii   1000
+
+   "other",               // text    2000
+   "shortdescription",    // mtext   3000
+   "actor",               // mtext   5000
+
+   "episodename",         // ascii    100
+   "episodeshortname",    // ascii    100
+   "episodepartname",     // ascii    300
+   "episodeextracol1",    // ascii    250
+   "episodeextracol2",    // ascii    250
+   "episodeextracol3",    // ascii    250
+   "episodeseason",       // int
+   "episodepart",         // int
+   "episodeparts",        // int
+   "episodenumber",       // int
+
+   0
+};
 
 //***************************************************************************
 // ctor
@@ -84,7 +139,9 @@ cUpdate::cUpdate(cPluginEPG2VDR* aPlugin)
    selectMaxUpdSp = 0;
    selectPendingTimerActions = 0;
 
-   dvbDescription = 0;
+   viewDescription = 0;
+   viewMergeSource = 0;
+   viewLongDescription = 0;
 
    //
 
@@ -271,7 +328,9 @@ int cUpdate::initDb()
    // -------------------------------------------
    // init db values
 
-   dvbDescription = new cDbValue("description", cDBS::ffText, 50000);
+   viewDescription = new cDbValue("description", cDBS::ffText, 50000);
+   viewMergeSource = new cDbValue("mergesource", cDBS::ffAscii, 25);
+   viewLongDescription = new cDbValue("longdescription", cDBS::ffText, 50000);
 
    // -------------------------------------------
    // init statements
@@ -403,7 +462,9 @@ int cUpdate::initDb()
    selectUpdEvents->bind("PARENTALRATING", cDBS::bndOut, ", ");
    selectUpdEvents->bind("VPS",  cDBS::bndOut, ", ");
    selectUpdEvents->bind("CONTENTS",  cDBS::bndOut, ", ");
-   selectUpdEvents->bind(dvbDescription, cDBS::bndOut, ", ");
+   selectUpdEvents->bind(viewDescription, cDBS::bndOut, ", ");
+   selectUpdEvents->bind(viewMergeSource, cDBS::bndOut, ", ");
+   selectUpdEvents->bind(viewLongDescription, cDBS::bndOut, ", ");
    selectUpdEvents->build(" from eventsview where ");
    selectUpdEvents->bind("CHANNELID", cDBS::bndIn | cDBS::bndSet);
    selectUpdEvents->bindCmp(0, "UPDSP", 0, ">", " and ");
@@ -704,7 +765,9 @@ int cUpdate::exitDb()
    delete recordingDirDb;         recordingDirDb = 0;
    delete recordingListDb;        recordingListDb = 0;
 
-   delete dvbDescription;         dvbDescription = 0;
+   delete viewDescription;        viewDescription = 0;
+   delete viewMergeSource;        viewMergeSource = 0;
+   delete viewLongDescription;    viewLongDescription = 0;
 
    delete connection; connection = 0;
 
@@ -1538,9 +1601,10 @@ cEvent* cUpdate::createEventFromRow(const cDbRow* row)
    e->SetDuration(row->getIntValue("DURATION"));
    e->SetParentalRating(row->getIntValue("PARENTALRATING"));
    e->SetVps(row->getIntValue("VPS"));
-   e->SetDescription(dvbDescription->getStrValue());
+   e->SetDescription(viewDescription->getStrValue());
    e->SetComponents(0);
 
+   // ------------
    // contents
 
    uchar contents[MaxEventContents] = { 0 };
@@ -1556,6 +1620,7 @@ cEvent* cUpdate::createEventFromRow(const cDbRow* row)
 
    e->SetContents(contents);
 
+   // ------------
    // components
 
    if (row->hasValue("SOURCE", "vdr"))
@@ -1582,6 +1647,47 @@ cEvent* cUpdate::createEventFromRow(const cDbRow* row)
       else
          delete components;
    }
+
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20303)) || (WITH_AUX_PATCH)
+
+   // ------------
+   // aux
+
+   useeventsDb->clear();
+   useeventsDb->setValue("USEID", row->getIntValue("USEID"));
+
+   if (selectEventById->find())
+   {
+      cXml xml;
+
+      xml.create("epg2vdr");
+
+      for (int i = 0; auxFields[i]; i++)
+      {
+         cDbValue* value = useeventsDb->getValue(auxFields[i]);
+
+         if (!value || value->isEmpty())
+            continue;
+
+         if (value->getField()->hasFormat(cDBS::ffAscii) || value->getField()->hasFormat(cDBS::ffText) || value->getField()->hasFormat(cDBS::ffMText))
+            xml.appendElement(auxFields[i], value->getStrValue());
+         else
+            xml.appendElement(auxFields[i], value->getIntValue());
+      }
+
+      // finally add some fields of the view
+
+      xml.appendElement("source", viewMergeSource->getStrValue());
+      xml.appendElement("longdescription", viewLongDescription->getStrValue());
+
+      // set to events aux field
+
+      e->SetAux(xml.toText());
+   }
+
+   selectEventById->freeResult();
+
+#endif // WITH_AUX_PATCH
 
    return e;
 }

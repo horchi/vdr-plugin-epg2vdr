@@ -17,6 +17,7 @@
 #include "db.h"
 #include "epgservice.h"
 #include "dbdict.h"
+#include "xml.h"
 //#include "wol.h"
 
 cDbConnection* connection = 0;
@@ -642,6 +643,17 @@ int main(int argc, char** argv)
 {
    cEpgConfig::logstdout = yes;
    cEpgConfig::loglevel = 2;
+
+
+   cXml xml;
+
+   xml.set("<epg2vdr><imagecount>3</imagecount><scrseriesid>255974</scrseriesid><year>2017</year><category>Serie</category><country>D</country><genre>Thiller</genre><director>Franzi Hörisch</director><actor>Cheryl Shepard (Sydney), Mickey Hardt (Mathis), David C. Bunners (Holger), Constantin Lücke (Patrick), Gerry Hungbauer (Thomas), Brigitte Antonius (Johanna), Hermann Toelcke (Gunter), Anja Franke (Merle), Claus Dieter Clausnitzer (Hannes), Maria Fuchs (Carla), Joachim Kretzer (Torben), Madeleine Lierck-Wien (Erika), Jelena Mitschke (Britta), Hakim-Michael Meziani (Ben)</actor><source>DVB/TVSP</source><longdescription>Killer ...Verbundenheit mit der Familie seines Vaters.</longdescription></epg2vdr>");
+
+   for (XMLElement* e = xml.getFirst(); e; e = xml.getNext(e))
+      printf("%s [%s]\n", e->Name(), e->GetText());
+
+   printf("[%s]\n", xml.toText());
+   return 0;
 
    tell(0, "'%s' - '%s'", getIpOf("enp3s0"), getMacOf("enp3s0"));
 

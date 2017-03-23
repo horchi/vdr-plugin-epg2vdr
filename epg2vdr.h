@@ -64,7 +64,6 @@ class cPluginEPG2VDR : public cPlugin
       int exitDb();
 
       int timerService(cEpgTimer_Service_V1* ts);
-      int eventService(cEpgEvent_Service_V1* es);
 
    private:
 
