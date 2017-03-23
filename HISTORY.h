@@ -19,6 +19,9 @@
 /*
  * ------------------------------------
 
+2017-03-23 version 1.1.54 (horchi)
+   - added: New event plugin interface
+
 2017-03-22 version 1.1.53 (horchi)
    - change: Removed old patches for vdr < 2.2.0
    - added: Patch to extend cEvent with aux field like cTimer
