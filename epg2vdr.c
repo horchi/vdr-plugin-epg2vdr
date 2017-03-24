@@ -281,6 +281,7 @@ void cMenuSetupEPG2VDR::Setup()
    Add(new cMenuEditBoolItem(tr("Prohibit Shutdown On Busy 'epgd'"), &data.activeOnEpgd));
    Add(new cMenuEditBoolItem(tr("Schedule Boot For Update"), &data.scheduleBoot));
    Add(new cMenuEditBoolItem(tr("Blacklist not configured Channels"), &data.blacklist));
+   Add(new cMenuEditBoolItem(tr("Store extended EPD Data to AUX (e.g. for Skins)"), &data.extendedEpgData2Aux));
 
    Add(new cOsdItem(cString::sprintf("--------------------- %s ---------------------------------", tr("Menu"))));
    cList<cOsdItem>::Last()->SetSelectable(false);
@@ -858,21 +859,24 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
       return true;
    }
 
-   // Services with direct db access
-
-   cMutexLock lock(&mutexServiceWithDb);
-
-   if (initDb() == success)
+   if (strcmp(id, EPG2VDR_TIMER_SERVICE) == 0) // || .....
    {
-      if (strcmp(id, EPG2VDR_TIMER_SERVICE) == 0)
+      // Services with direct db access
+
+      cMutexLock lock(&mutexServiceWithDb);
+
+      if (initDb() == success)
       {
-         cEpgTimer_Service_V1* ts = (cEpgTimer_Service_V1*)data;
+         if (strcmp(id, EPG2VDR_TIMER_SERVICE) == 0)
+         {
+            cEpgTimer_Service_V1* ts = (cEpgTimer_Service_V1*)data;
 
-         if (ts)
-            return timerService(ts);
+            if (ts)
+               return timerService(ts);
+         }
+
+         exitDb();
       }
-
-      exitDb();
    }
 
    return false;

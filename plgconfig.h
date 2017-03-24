@@ -18,7 +18,7 @@
 struct cEpg2VdrConfig : public cEpgConfig
 {
    public:
-      
+
       cEpg2VdrConfig();
 
       int mainmenuVisible;
@@ -31,12 +31,13 @@ struct cEpg2VdrConfig : public cEpgConfig
       int createTimerLocal;
       int useCommonRecFolder;   // NAS
       int xchgOkBlue;
-   
+
       int replaceScheduleMenu;
       int replaceTimerMenu;
       int userIndex;
       char user[100+TB];
       int showEmptyChannels;
+      int extendedEpgData2Aux;
 };
 
 extern cEpg2VdrConfig Epg2VdrConfig;

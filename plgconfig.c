@@ -13,7 +13,7 @@ cEpg2VdrConfig Epg2VdrConfig;
 // cEpg2VdrConfig
 //***************************************************************************
 
-cEpg2VdrConfig::cEpg2VdrConfig() 
+cEpg2VdrConfig::cEpg2VdrConfig()
    : cEpgConfig()
 {
    mainmenuVisible = yes;
@@ -27,10 +27,11 @@ cEpg2VdrConfig::cEpg2VdrConfig()
    createTimerLocal = no;
    useCommonRecFolder = yes;
    xchgOkBlue = no;
-   
+
    replaceScheduleMenu = no;
    replaceTimerMenu = no;
    userIndex = 0;
    *user = 0;
    showEmptyChannels = no;
+   extendedEpgData2Aux = no;
 }

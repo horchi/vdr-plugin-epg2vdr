@@ -1653,39 +1653,42 @@ cEvent* cUpdate::createEventFromRow(const cDbRow* row)
    // ------------
    // aux
 
-   useeventsDb->clear();
-   useeventsDb->setValue("USEID", row->getIntValue("USEID"));
-
-   if (selectEventById->find())
+   if (Epg2VdrConfig.extendedEpgData2Aux)
    {
-      cXml xml;
+      useeventsDb->clear();
+      useeventsDb->setValue("USEID", row->getIntValue("USEID"));
 
-      xml.create("epg2vdr");
-
-      for (int i = 0; auxFields[i]; i++)
+      if (selectEventById->find())
       {
-         cDbValue* value = useeventsDb->getValue(auxFields[i]);
+         cXml xml;
 
-         if (!value || value->isEmpty())
-            continue;
+         xml.create("epg2vdr");
 
-         if (value->getField()->hasFormat(cDBS::ffAscii) || value->getField()->hasFormat(cDBS::ffText) || value->getField()->hasFormat(cDBS::ffMText))
-            xml.appendElement(auxFields[i], value->getStrValue());
-         else
-            xml.appendElement(auxFields[i], value->getIntValue());
+         for (int i = 0; auxFields[i]; i++)
+         {
+            cDbValue* value = useeventsDb->getValue(auxFields[i]);
+
+            if (!value || value->isEmpty())
+               continue;
+
+            if (value->getField()->hasFormat(cDBS::ffAscii) || value->getField()->hasFormat(cDBS::ffText) || value->getField()->hasFormat(cDBS::ffMText))
+               xml.appendElement(auxFields[i], value->getStrValue());
+            else
+               xml.appendElement(auxFields[i], value->getIntValue());
+         }
+
+         // finally add some fields of the view
+
+         xml.appendElement("source", viewMergeSource->getStrValue());
+         xml.appendElement("longdescription", viewLongDescription->getStrValue());
+
+         // set to events aux field
+
+         e->SetAux(xml.toText());
       }
 
-      // finally add some fields of the view
-
-      xml.appendElement("source", viewMergeSource->getStrValue());
-      xml.appendElement("longdescription", viewLongDescription->getStrValue());
-
-      // set to events aux field
-
-      e->SetAux(xml.toText());
+      selectEventById->freeResult();
    }
-
-   selectEventById->freeResult();
 
 #endif // WITH_AUX_PATCH
 

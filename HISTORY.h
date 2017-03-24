@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.1.55"
+#define _VERSION     "1.1.56"
 #define VERSION_DATE "24.03.2017"
 
 #define DB_API       4
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-03-24 version 1.1.56 (horchi)
+   - bugfix: Fixed problem with service interface (frequent db reconnects)
 
 2017-03-24 version 1.1.55 (horchi)
    - change: Fixed default make option
