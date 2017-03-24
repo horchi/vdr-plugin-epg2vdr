@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.54"
-#define VERSION_DATE "23.03.2017"
+#define _VERSION     "1.1.55"
+#define VERSION_DATE "24.03.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-03-24 version 1.1.55 (horchi)
+   - change: Fixed default make option
 
 2017-03-23 version 1.1.54 (horchi)
    - added: New event plugin interface
