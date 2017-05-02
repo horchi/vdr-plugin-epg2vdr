@@ -1432,6 +1432,17 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
       cTimers* timers = &Timers;
 #endif
 
+      // get channles lock
+
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+      cStateKey channelsKey;
+      tell(3, "-> Try to get channels lock");
+      cChannels* channels = cChannels::GetChannelsWrite(channelsKey, 10);
+      tell(3, "channels LOCK (refreshEpg)");
+#else
+      cChannels* channels = &Channels;
+#endif
+
       // get schedules lock
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
@@ -1444,12 +1455,13 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
       tell(3, "LOCK (refreshEpg)");
 #endif
 
-      if (!schedules || !timers)
+      if (!schedules || !timers || !channels)
       {
-         tell(3, "Info: Can't get write lock on '%s'", !schedules ? "schedules" : "timers");
+         tell(3, "Info: Can't get write lock on '%s'", !schedules ? "schedules" : !channels ? "channels" : "timers");
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
          if (schedules) schedulesKey.Remove();
+         if (channels)  channelsKey.Remove();
          if (timers)    timersKey.Remove();
 #else
          delete schedulesLock;
@@ -1470,10 +1482,13 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
 
       tries = 0;
 
-      // get schedule (channel)
+      // get schedule of channel
 
-      if (!(s = (cSchedule*)schedules->GetSchedule(channelId)))
-         s = schedules->AddSchedule(channelId);
+      cChannel* channel = channels->GetByChannelID(channelId, true);
+      s = (cSchedule*)schedules->GetSchedule(channel, true);
+
+      // if (!(s = (cSchedule*)schedules->GetSchedule(channelId)))
+      //    s = schedules->AddSchedule(channelId);
 
       // -----------------------------------------
       // iterate over all events of this channel
@@ -1545,6 +1560,8 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
       schedulesKey.Remove();
       tell(3, "-> Released schedules lock");
+      channelsKey.Remove();
+      tell(3, "-> Released channels lock");
       timersKey.Remove();
       tell(3, "-> Released timers lock");
 #else
