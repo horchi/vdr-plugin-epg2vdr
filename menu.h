@@ -110,6 +110,7 @@ class cMenuDb : public cParameters
 
       cDbTable* timerDb;
       cDbTable* vdrDb;
+      cDbTable* mapDb;
       cDbTable* timerDoneDb;
       cDbTable* userDb;
       cDbTable* searchtimerDb;
@@ -129,7 +130,8 @@ class cMenuDb : public cParameters
       cDbStatement* selectDoneTimerByStateTitleOrder;
       cDbStatement* selectDoneTimerByStateTimeOrder;
       cDbStatement* selectRecordingForEvent;
-      cDbStatement*  selectRecordingForEventByLv;
+      cDbStatement* selectRecordingForEventByLv;
+      cDbStatement* selectChannelFromMap;
 
       cSearchTimer* search;
 

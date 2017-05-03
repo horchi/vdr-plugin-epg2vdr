@@ -27,6 +27,7 @@ cMenuDb::cMenuDb()
 
    timerDb = 0;
    vdrDb = 0;
+   mapDb = 0;
    timerDoneDb = 0;
    userDb = 0;
    searchtimerDb = 0;
@@ -47,6 +48,7 @@ cMenuDb::cMenuDb()
    selectDoneTimerByStateTimeOrder = 0;
    selectRecordingForEvent = 0;
    selectRecordingForEventByLv = 0;
+   selectChannelFromMap = 0;
 
    webLoginEnabled = no;
    user = "@";
@@ -85,6 +87,9 @@ int cMenuDb::initDb()
 
    vdrDb = new cDbTable(connection, "vdrs");
    if (vdrDb->open() != success) return fail;
+
+   mapDb = new cDbTable(connection, "channelmap");
+   if (mapDb->open() != success) return fail;
 
    timerDoneDb = new cDbTable(connection, "timersdone");
    if (timerDoneDb->open() != success) return fail;
@@ -362,6 +367,20 @@ int cMenuDb::initDb()
 
    status += selectRecordingForEventByLv->prepare();
 
+   // ----------
+   // select channelname
+   //   from channelmap
+   //   where channelid = ?
+
+   selectChannelFromMap = new cDbStatement(mapDb);
+
+   selectChannelFromMap->build("select ");
+   selectChannelFromMap->bind("CHANNELNAME", cDBS::bndOut);
+   selectChannelFromMap->build(" from %s where ", mapDb->TableName());
+   selectChannelFromMap->bind("CHANNELID", cDBS::bndIn | cDBS::bndSet);
+
+   status += selectChannelFromMap->prepare();
+
    // search timer stuff
 
    if (!status)
@@ -424,6 +443,7 @@ int cMenuDb::exitDb()
       delete timerDb;                  timerDb = 0;
       delete selectEventById;          selectEventById = 0;
       delete vdrDb;                    vdrDb = 0;
+      delete mapDb;                    mapDb = 0;
       delete timerDoneDb;              timerDoneDb = 0;
       delete userDb;                   userDb = 0;
       delete searchtimerDb;            searchtimerDb = 0;
@@ -443,6 +463,7 @@ int cMenuDb::exitDb()
       delete selectDoneTimerByStateTimeOrder;  selectDoneTimerByStateTimeOrder = 0;
       delete selectRecordingForEvent;          selectRecordingForEvent = 0;
       delete selectRecordingForEventByLv;      selectRecordingForEventByLv = 0;
+      delete selectChannelFromMap;             selectChannelFromMap = 0;
 
       delete connection;           connection = 0;
 
@@ -686,17 +707,89 @@ int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid)
 
 int cMenuDb::createTimer(cDbRow* timerRow, const char* destUuid)
 {
+   long int manualTimer2Done;
+
+   getParameter("epgd", "manualTimer2Done", manualTimer2Done);
+
    // Timer 'C'reate request ...
 
    timerDb->clear();
    timerDb->copyValues(timerRow, cDBS::ftData);
 
    timerDb->setValue("VDRUUID", destUuid);
-   timerDb->setValue("ACTION", "C");                //  taCreate
+   timerDb->setCharValue("ACTION", taCreate);
    timerDb->setValue("SOURCE", Epg2VdrConfig.uuid);
    timerDb->setValue("NAMINGMODE", tnmAuto);
 
+   if (manualTimer2Done)
+   {
+      useeventsDb->clear();
+      useeventsDb->setValue("USEID", timerRow->getIntValue("EVENTID"));
+
+      if (selectEventById->find())
+      {
+         timerDoneDb->clear();
+         timerDoneDb->setCharValue("STATE", tdsTimerRequested);
+         timerDoneDb->setValue("SOURCE", Epg2VdrConfig.uuid);
+
+         timerDoneDb->setValue("CHANNELID", useeventsDb->getStrValue("CHANNELID"));
+         timerDoneDb->setValue("STARTTIME", useeventsDb->getIntValue("STARTTIME"));
+         timerDoneDb->setValue("DURATION", useeventsDb->getIntValue("DURATION"));
+         timerDoneDb->setValue("TITLE", useeventsDb->getStrValue("TITLE"));
+         timerDoneDb->setValue("COMPTITLE", useeventsDb->getStrValue("COMPTITLE"));
+
+         if (!useeventsDb->getValue("SHORTTEXT")->isEmpty())
+            timerDoneDb->setValue("SHORTTEXT", useeventsDb->getStrValue("SHORTTEXT"));
+         if (!useeventsDb->getValue("COMPSHORTTEXT")->isEmpty())
+            timerDoneDb->setValue("COMPSHORTTEXT", useeventsDb->getStrValue("COMPSHORTTEXT"));
+
+         if (!useeventsDb->getValue("LONGDESCRIPTION")->isEmpty())
+            timerDoneDb->setValue("LONGDESCRIPTION", useeventsDb->getStrValue("LONGDESCRIPTION"));
+         if (!useeventsDb->getValue("COMPLONGDESCRIPTION")->isEmpty())
+            timerDoneDb->setValue("COMPLONGDESCRIPTION", useeventsDb->getStrValue("COMPLONGDESCRIPTION"));
+
+         if (!useeventsDb->getValue("EPISODECOMPNAME")->isEmpty())
+            timerDoneDb->setValue("EPISODECOMPNAME", useeventsDb->getStrValue("EPISODECOMPNAME"));
+         if (!useeventsDb->getValue("EPISODECOMPSHORTNAME")->isEmpty())
+            timerDoneDb->setValue("EPISODECOMPSHORTNAME", useeventsDb->getStrValue("EPISODECOMPSHORTNAME"));
+
+         if (!useeventsDb->getValue("EPISODECOMPPARTNAME")->isEmpty())
+            timerDoneDb->setValue("EPISODECOMPPARTNAME", useeventsDb->getStrValue("EPISODECOMPPARTNAME"));
+         if (!useeventsDb->getValue("EPISODELANG")->isEmpty())
+            timerDoneDb->setValue("EPISODELANG", useeventsDb->getStrValue("EPISODELANG"));
+         if (!useeventsDb->getValue("EPISODESEASON")->isEmpty())
+            timerDoneDb->setValue("EPISODESEASON", useeventsDb->getIntValue("EPISODESEASON"));
+         if (!useeventsDb->getValue("EPISODEPART")->isEmpty())
+            timerDoneDb->setValue("EPISODEPART", useeventsDb->getIntValue("EPISODEPART"));
+
+         // lookup channelname
+
+         const char* channelname = "";
+
+         mapDb->clear();
+         mapDb->setValue("CHANNELID", useeventsDb->getStrValue("CHANNELID"));
+
+         if (selectChannelFromMap->find())
+         {
+            channelname = mapDb->getStrValue("CHANNELNAME");
+
+            if (isEmpty(channelname))
+               channelname = useeventsDb->getStrValue("CHANNELID");
+
+            timerDoneDb->setValue("CHANNELNAME", channelname);
+         }
+
+         selectChannelFromMap->freeResult();
+      }
+
+      selectEventById->freeResult();
+
+      timerDoneDb->insert();
+      timerDb->setValue("DONEID", timerDoneDb->getLastInsertId());
+   }
+
    timerDb->insert();
+
    triggerVdrs("TIMERJOB", destUuid);
 
    tell(0, "Created 'create' request for event '%ld' at vdr '%s'",

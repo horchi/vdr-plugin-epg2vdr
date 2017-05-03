@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.1.57"
+#define _VERSION     "1.1.58"
 #define VERSION_DATE "02.05.2017"
 
 #define DB_API       4
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-05-03 version 1.1.58 (horchi)
+   - change: Fill timersdone table even for timers created on OSD
 
 2017-05-02 version 1.1.57 (horchi)
    - bugfix: Fixed possible problem with epg for new channels since vdr 2.3.x
