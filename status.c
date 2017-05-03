@@ -182,7 +182,7 @@ void cUpdate::Recording(const cDevice* Device, const char* Name, const char* Fil
       {
          const cTimer* pendingTimer = 0;
          int complete;
-         int recFraction = 100;
+         double recFraction = 100.0;
          long timerLengthSecs = rr->timer->StopTime() - rr->timer->StartTime();
          bool vpsUsed = rr->timer->HasFlags(tfVps) && rr->timer->Event() && rr->timer->Event()->Vps();
 
@@ -230,10 +230,10 @@ void cUpdate::Recording(const cDevice* Device, const char* Name, const char* Fil
 
          if (complete)
             tell(1, "Info: Finished: '%s'; recorded %d%%; VPS %s",
-                 rr->timer->File(), recFraction, vpsUsed ? "Yes": "No");
+                 rr->timer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
          else
             tell(1, "Info: Finished: '%s' (not complete! - recorded only %d%%); VPS %s",
-                 rr->timer->File(), recFraction, vpsUsed ? "Yes": "No");
+                 rr->timer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
 
          if (complete)
             rr->lastBreak = 0;         // reset break
@@ -245,7 +245,7 @@ void cUpdate::Recording(const cDevice* Device, const char* Name, const char* Fil
             char* infoTxt;
 
             asprintf(&infoTxt, "Recording '%s' finished - %s complete (%d%%)",
-                     rr->timer->File(), complete ? "" : "NOT", recFraction);
+                     rr->timer->File(), complete ? "" : "NOT", (int)round(recFraction));
 
             tell(1, "Info: %s", infoTxt);
 
