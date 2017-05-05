@@ -1359,6 +1359,38 @@ void clearEpg()
 }
 
 //***************************************************************************
+// Get Schedule Of
+//***************************************************************************
+
+cSchedule* getScheduleOf(tChannelID channelId, const cSchedules* schedules)
+{
+   cChannel* channel = 0;
+   cSchedule* s = 0;
+
+   // get channels lock
+
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+   cStateKey channelsKey;
+   cChannels* channels = cChannels::GetChannelsWrite(channelsKey, 10);
+#else
+   cChannels* channels = &Channels;
+#endif
+
+   // get channel and schedule of channel
+
+   if (channel = channels->GetByChannelID(channelId, true))
+      s = (cSchedule*)schedules->GetSchedule(channel, true);
+   else
+      tell(0, "Error: Channel with ID '%s' don't exist on this VDR", (const char*)channelId.ToString());
+
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+   channelsKey.Remove();
+#endif
+
+   return s;
+}
+
+//***************************************************************************
 // Refresh Epg
 //***************************************************************************
 
@@ -1432,17 +1464,6 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
       cTimers* timers = &Timers;
 #endif
 
-      // get channles lock
-
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-      cStateKey channelsKey;
-      tell(3, "-> Try to get channels lock");
-      cChannels* channels = cChannels::GetChannelsWrite(channelsKey, 10);
-      tell(3, "channels LOCK (refreshEpg)");
-#else
-      cChannels* channels = &Channels;
-#endif
-
       // get schedules lock
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
@@ -1455,13 +1476,12 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
       tell(3, "LOCK (refreshEpg)");
 #endif
 
-      if (!schedules || !timers || !channels)
+      if (!schedules || !timers)
       {
-         tell(3, "Info: Can't get write lock on '%s'", !schedules ? "schedules" : !channels ? "channels" : "timers");
+         tell(3, "Info: Can't get write lock on '%s'", !schedules ? "schedules" : "timers");
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
          if (schedules) schedulesKey.Remove();
-         if (channels)  channelsKey.Remove();
          if (timers)    timersKey.Remove();
 #else
          delete schedulesLock;
@@ -1482,99 +1502,94 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
 
       tries = 0;
 
-      // get schedule of channel
+      // lookup schedules object
 
-      cChannel* channel = channels->GetByChannelID(channelId, true);
-      s = (cSchedule*)schedules->GetSchedule(channel, true);
-
-      // if (!(s = (cSchedule*)schedules->GetSchedule(channelId)))
-      //    s = schedules->AddSchedule(channelId);
-
-      // -----------------------------------------
-      // iterate over all events of this channel
-
-      for (int found = selectUpdEvents->find(); found && dbConnected(); found = selectUpdEvents->fetch())
+      if (s = getScheduleOf(channelId, schedules))
       {
-         cTimer* timer = 0;
-         char updFlg = toupper(eventsDb->getStrValue("UPDFLG")[0]);
+         // -----------------------------------------
+         // iterate over all events of this schedule
 
-         updFlg = updFlg == 0 ? 'P' : updFlg;               // fix missing flag
-
-         // ignore unneded event rows ..
-
-         if (!Us::isNeeded(updFlg))
-            continue;
-
-         // get event / timer
-
-         if ((event = s->GetEvent(eventsDb->getIntValue("USEID"))))
+         for (int found = selectUpdEvents->find(); found && dbConnected(); found = selectUpdEvents->fetch())
          {
-            if (Us::isRemove(updFlg))
-               tell(2, "Remove event %uld of channel '%s' due to updflg %c",
-                    event->EventID(), (const char*)event->ChannelID().ToString(), updFlg);
+            cTimer* timer = 0;
+            char updFlg = toupper(eventsDb->getStrValue("UPDFLG")[0]);
 
-            if (event->HasTimer())
+            updFlg = updFlg == 0 ? 'P' : updFlg;               // fix missing flag
+
+            // ignore unneded event rows ..
+
+            if (!Us::isNeeded(updFlg))
+               continue;
+
+            // get event / timer
+
+            if ((event = s->GetEvent(eventsDb->getIntValue("USEID"))))
             {
-               for (timer = timers->First(); timer; timer = timers->Next(timer))
-                  if (timer->Event() == event)
-                     break;
+               if (Us::isRemove(updFlg))
+                  tell(2, "Remove event %uld of channel '%s' due to updflg %c",
+                       event->EventID(), (const char*)event->ChannelID().ToString(), updFlg);
+
+               if (event->HasTimer())
+               {
+                  for (timer = timers->First(); timer; timer = timers->Next(timer))
+                     if (timer->Event() == event)
+                        break;
+               }
+
+               if (timer)
+                  timer->SetEvent(0);
+
+               s->DelEvent((cEvent*)event);
             }
 
-            if (timer)
-               timer->SetEvent(0);
+            if (!Us::isRemove(updFlg))
+               event = s->AddEvent(createEventFromRow(eventsDb->getRow()));
+            else if (event)
+            {
+               event = 0;
+               dels++;
+            }
 
-            s->DelEvent((cEvent*)event);
+            if (timer && event)
+            {
+               timer->SetEvent(event);
+               timer->Matches(event);
+               timerChanges++;
+            }
+            else if (timer)
+            {
+               tell(0, "Info: Timer '%s', has no event anymore", *timer->ToDescr());
+            }
+
+            count++;
          }
 
-         if (!Us::isRemove(updFlg))
-            event = s->AddEvent(createEventFromRow(eventsDb->getRow()));
-         else if (event)
-         {
-            event = 0;
-            dels++;
-         }
+         selectUpdEvents->freeResult();
 
-         if (timer && event)
-         {
-            timer->SetEvent(event);
-            timer->Matches(event);
-            timerChanges++;
-         }
-         else if (timer)
-         {
-            tell(0, "Info: Timer '%s', has no event anymore", *timer->ToDescr());
-         }
+         // Kanal fertig machen ..
 
-         count++;
+         s->Sort();
+         s->SetModified();
+
+         tell(2, "Processed channel '%s' - '%s' with %d updates",
+              eventsDb->getStrValue("CHANNELID"),
+              mapDb->getStrValue("CHANNELNAME"),
+              count);
+
+         total += count;
       }
-
-      selectUpdEvents->freeResult();
-
-      // Kanal fertig machen ..
-
-      s->Sort();
-      s->SetModified();
 
       // schedules lock freigeben
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
       schedulesKey.Remove();
       tell(3, "-> Released schedules lock");
-      channelsKey.Remove();
-      tell(3, "-> Released channels lock");
       timersKey.Remove();
       tell(3, "-> Released timers lock");
 #else
       tell(3, "LOCK free (refreshEpg)");
       delete schedulesLock;
 #endif
-
-      tell(2, "Processed channel '%s' - '%s' with %d updates",
-           eventsDb->getStrValue("ChannelId"),
-           mapDb->getStrValue("ChannelName"),
-           count);
-
-      total += count;
    }
 
    select->freeResult();
@@ -1591,12 +1606,12 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
    }
 
    if (lastEventsUpdateAt)
-      tell(2, "Updated changes since '%s'; %d channels, "
+      tell(1, "Updated changes since '%s'; %d channels, "
            "%d events (%d deletions) in %s",
            forChannelId ? "-" : l2pTime(lastEventsUpdateAt).c_str(),
            channels, total, dels, ms2Dur(cTimeMs::Now()-start).c_str());
    else
-      tell(2, "Updated all %d channels, %d events (%d deletions) in %s",
+      tell(1, "Updated all %d channels, %d events (%d deletions) in %s",
            channels, total, dels, ms2Dur(cTimeMs::Now()-start).c_str());
 
    return dbConnected(yes) ? success : fail;

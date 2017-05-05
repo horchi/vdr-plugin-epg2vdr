@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.58"
-#define VERSION_DATE "02.05.2017"
+#define _VERSION     "1.1.59"
+#define VERSION_DATE "05.05.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-05-05 version 1.1.59 (horchi)
+   - bugfix: Fixed crash on missing cahnnels
 
 2017-05-03 version 1.1.58 (horchi)
    - change: Fill timersdone table even for timers created on OSD
