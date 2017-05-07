@@ -1362,19 +1362,23 @@ void clearEpg()
 // Get Schedule Of
 //***************************************************************************
 
-cSchedule* getScheduleOf(tChannelID channelId, const cSchedules* schedules)
+int getScheduleOf(tChannelID channelId, const cSchedules* schedules, cSchedule*& s)
 {
    cChannel* channel = 0;
-   cSchedule* s = 0;
+
+   s = 0;
 
    // get channels lock
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
    cStateKey channelsKey;
-   cChannels* channels = cChannels::GetChannelsWrite(channelsKey, 10);
+   cChannels* channels = cChannels::GetChannelsWrite(channelsKey, 500);
 #else
    cChannels* channels = &Channels;
 #endif
+
+   if (!channels)
+      return fail;
 
    // get channel and schedule of channel
 
@@ -1387,7 +1391,7 @@ cSchedule* getScheduleOf(tChannelID channelId, const cSchedules* schedules)
    channelsKey.Remove();
 #endif
 
-   return s;
+   return success;
 }
 
 //***************************************************************************
@@ -1476,7 +1480,7 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
       tell(3, "LOCK (refreshEpg)");
 #endif
 
-      if (!schedules || !timers)
+      if (!schedules || !timers || getScheduleOf(channelId, schedules, s) != success)
       {
          tell(3, "Info: Can't get write lock on '%s'", !schedules ? "schedules" : "timers");
 
@@ -1504,7 +1508,7 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
 
       // lookup schedules object
 
-      if (s = getScheduleOf(channelId, schedules))
+      if (s)
       {
          // -----------------------------------------
          // iterate over all events of this schedule
