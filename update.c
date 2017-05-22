@@ -1684,7 +1684,7 @@ cEvent* cUpdate::createEventFromRow(const cDbRow* row)
          delete components;
    }
 
-#if (defined (APIVERSNUM) && (APIVERSNUM >= 20303)) || (WITH_AUX_PATCH)
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20304)) || (WITH_AUX_PATCH)
 
    // ------------
    // aux

@@ -372,6 +372,7 @@ void cMenuSetupEPG2VDR::Store()
    SetupStore("UseCommonRecFolder", Epg2VdrConfig.useCommonRecFolder);
    SetupStore("ReplaceScheduleMenu", Epg2VdrConfig.replaceScheduleMenu);
    SetupStore("ReplaceTimerMenu", Epg2VdrConfig.replaceTimerMenu);
+   SetupStore("ExtendedEpgData2Aux", Epg2VdrConfig.extendedEpgData2Aux);
 
    if (userCount && Epg2VdrConfig.userIndex >= 0)
    {
@@ -1016,6 +1017,7 @@ bool cPluginEPG2VDR::SetupParse(const char *Name, const char *Value)
    else if (!strcasecmp(Name, "ReplaceScheduleMenu"))  Epg2VdrConfig.replaceScheduleMenu = atoi(Value);
    else if (!strcasecmp(Name, "ReplaceTimerMenu"))     Epg2VdrConfig.replaceTimerMenu = atoi(Value);
    else if (!strcasecmp(Name, "User"))                 sstrcpy(Epg2VdrConfig.user, Value, sizeof(Epg2VdrConfig.user));
+   else if (!strcasecmp(Name, "ExtendedEpgData2Aux"))  Epg2VdrConfig.extendedEpgData2Aux = atoi(Value);
 
    else
       return false;

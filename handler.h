@@ -399,7 +399,7 @@ class cEpgHandlerInstance
 
          channelId = Channel->GetChannelID();
 
-         return false;
+         return true;
       }
 
       //***************************************************************************
@@ -970,9 +970,7 @@ class cEpg2VdrEpgHandler : public cEpgHandler
          if (!handlerMutex.tryLock())
             return false;
 
-         getHandler()->BeginSegmentTransfer(Channel, dummy);
-
-         return true;
+         return getHandler()->BeginSegmentTransfer(Channel, dummy);
       }
 
       virtual bool EndSegmentTransfer(bool Modified, bool dummy)

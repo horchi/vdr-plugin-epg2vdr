@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.60"
-#define VERSION_DATE "07.05.2017"
+#define _VERSION     "1.1.61"
+#define VERSION_DATE "22.05.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-05-22 version 1.1.61 (horchi)
+   - bugfix: Fixed aux handling
 
 2017-05-07 version 1.1.60 (horchi)
    - bugfix: Fixed possible crash on channel lock
