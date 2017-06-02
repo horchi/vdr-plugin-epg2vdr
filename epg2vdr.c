@@ -851,7 +851,7 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
       return true;
    }
 
-   else if (strcmp(id, "MainMenuHooksPatch-v1.0::osTimers") == 0 && Epg2VdrConfig.replaceTimerMenu)
+   else if (strcmp(id, "MainMenuHooksPatch-v1.0::osTimers") == 0 && Epg2VdrConfig.replaceTimerMenu && Epg2VdrConfig.shareInWeb)
    {
       cOsdMenu** menu = (cOsdMenu**)data;
 
