@@ -1409,6 +1409,9 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
    uint64_t start = cTimeMs::Now();
    cDbStatement* select = 0;
 
+   if (Epg2VdrConfig.loglevel >= 5)
+      connection->showStat("before refresh");
+
    // lookback ...
 
    getParameter("uuid", "lastEventsUpdateAt", lastEventsUpdateAt);
@@ -1617,6 +1620,11 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
    else
       tell(1, "Updated all %d channels, %d events (%d deletions) in %s",
            channels, total, dels, ms2Dur(cTimeMs::Now()-start).c_str());
+
+   // print sql statistic for statement debugging
+
+   if (Epg2VdrConfig.loglevel >= 5)
+      connection->showStat("refresh");
 
    return dbConnected(yes) ? success : fail;
 }

@@ -469,9 +469,10 @@ int cPluginEPG2VDR::initDb()
                        timerDb->TableName(), vdrDb->TableName(),
                        timerDb->getField("STATE")->getDbName(),
                        timerDb->getField("STATE")->getDbName());
-   selectTimers->build(" and t.%s = v.%s",
+   selectTimers->build(" and t.%s = v.%s order by t.%s",
                        timerDb->getField("VDRUUID")->getDbName(),
-                       vdrDb->getField("UUID")->getDbName());
+                       vdrDb->getField("UUID")->getDbName(),
+                       timerDb->getField("_STARTTIME")->getDbName());
 
    status += selectTimers->prepare();
 
