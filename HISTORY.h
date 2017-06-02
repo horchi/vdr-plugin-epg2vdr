@@ -20,7 +20,7 @@
  * ------------------------------------
 
 2017-06-02 version 1.1.62 (horchi)
-   - change: Minod change
+   - change: Minor sorting change
 
 2017-05-22 version 1.1.61 (horchi)
    - bugfix: Fixed aux handling
