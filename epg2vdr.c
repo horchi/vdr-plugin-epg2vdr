@@ -281,7 +281,9 @@ void cMenuSetupEPG2VDR::Setup()
    Add(new cMenuEditBoolItem(tr("Prohibit Shutdown On Busy 'epgd'"), &data.activeOnEpgd));
    Add(new cMenuEditBoolItem(tr("Schedule Boot For Update"), &data.scheduleBoot));
    Add(new cMenuEditBoolItem(tr("Blacklist not configured Channels"), &data.blacklist));
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20304)) || (WITH_AUX_PATCH)
    Add(new cMenuEditBoolItem(tr("Store extended EPD Data to AUX (e.g. for Skins)"), &data.extendedEpgData2Aux));
+#endif
 
    Add(new cOsdItem(cString::sprintf("--------------------- %s ---------------------------------", tr("Menu"))));
    cList<cOsdItem>::Last()->SetSelectable(false);
@@ -465,8 +467,9 @@ int cPluginEPG2VDR::initDb()
    selectTimers->bind(vdrDb, "UUID", cDBS::bndOut, ", ");
    selectTimers->bind(vdrDb, "STATE", cDBS::bndOut, ", ");
    selectTimers->clrBindPrefix();
-   selectTimers->build(" from %s t, %s v where (t.%s in ('P','R') or t.%s is null)",
+   selectTimers->build(" from %s t, %s v where t.%s and (t.%s in ('P','R') or t.%s is null)",
                        timerDb->TableName(), vdrDb->TableName(),
+                       timerDb->getField("ACTIVE")->getDbName(),
                        timerDb->getField("STATE")->getDbName(),
                        timerDb->getField("STATE")->getDbName());
    selectTimers->build(" and t.%s = v.%s order by t.%s",

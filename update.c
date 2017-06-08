@@ -53,6 +53,7 @@ const char* cUpdate::auxFields[] =
 
    "other",               // text    2000
    "shortdescription",    // mtext   3000
+   "shorttext",           // ascii    300
    "actor",               // mtext   5000
 
    "episodename",         // ascii    100

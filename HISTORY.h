@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.62"
-#define VERSION_DATE "02.06.2017"
+#define _VERSION     "1.1.63"
+#define VERSION_DATE "08.06.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,10 @@
 
 /*
  * ------------------------------------
+
+2017-06-08 version 1.1.63 (horchi)
+   - change: Improved aux field
+   - change: Suppress inactive timers on service interface
 
 2017-06-02 version 1.1.62 (horchi)
    - change: Minor sorting change

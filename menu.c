@@ -656,7 +656,7 @@ int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid)
    {
       // request 'D'elete of 'old' timer
 
-      timerDb->setValue("ACTION", "D");         // = taDelete
+      timerDb->setCharValue("ACTION", taDelete);
       timerDb->setValue("SOURCE", Epg2VdrConfig.uuid);
       timerDb->update();
 
@@ -665,7 +665,7 @@ int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid)
       timerDb->copyValues(timerRow, cDBS::ftData);     // takeover all data (can be modified by user)
       timerDb->setValue("ID", 0);                      // don't care on insert!
       timerDb->setValue("VDRUUID", destUuid);
-      timerDb->setValue("ACTION", "C");                // = taCreate
+      timerDb->setCharValue("ACTION", taCreate);
       timerDb->setValue("SOURCE", Epg2VdrConfig.uuid);
       timerDb->insert();
 
@@ -818,7 +818,7 @@ int cMenuDb::deleteTimer(long timerid)
 
    selectTimerById->freeResult();
 
-   timerDb->setValue("ACTION", "D");         // = taDelete
+   timerDb->setCharValue("ACTION", taDelete);
    timerDb->setValue("SOURCE", Epg2VdrConfig.uuid);
    timerDb->update();
 
