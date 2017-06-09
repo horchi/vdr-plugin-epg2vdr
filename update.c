@@ -1359,41 +1359,41 @@ void clearEpg()
 #endif
 }
 
-//***************************************************************************
-// Get Schedule Of
-//***************************************************************************
+// //***************************************************************************
+// // Get Schedule Of
+// //***************************************************************************
 
-int getScheduleOf(tChannelID channelId, const cSchedules* schedules, cSchedule*& s)
-{
-   cChannel* channel = 0;
+// int getScheduleOf(tChannelID channelId, const cSchedules* schedules, cSchedule*& s)
+// {
+//    cChannel* channel = 0;
 
-   s = 0;
+//    s = 0;
 
-   // get channels lock
+//    // get channels lock
 
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   cStateKey channelsKey;
-   cChannels* channels = cChannels::GetChannelsWrite(channelsKey, 500);
-#else
-   cChannels* channels = &Channels;
-#endif
+// #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+//    cStateKey channelsKey;
+//    cChannels* channels = cChannels::GetChannelsWrite(channelsKey, 500);
+// #else
+//    cChannels* channels = &Channels;
+// #endif
 
-   if (!channels)
-      return fail;
+//    if (!channels)
+//       return fail;
 
-   // get channel and schedule of channel
+//    // get channel and schedule of channel
 
-   if (channel = channels->GetByChannelID(channelId, true))
-      s = (cSchedule*)schedules->GetSchedule(channel, true);
-   else
-      tell(0, "Error: Channel with ID '%s' don't exist on this VDR", (const char*)channelId.ToString());
+//    if (channel = channels->GetByChannelID(channelId, true))
+//       s = (cSchedule*)schedules->GetSchedule(channel, true);
+//    else
+//       tell(0, "Error: Channel with ID '%s' don't exist on this VDR", (const char*)channelId.ToString());
 
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   channelsKey.Remove();
-#endif
+// #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+//    channelsKey.Remove();
+// #endif
 
-   return success;
-}
+//    return success;
+// }
 
 //***************************************************************************
 // Refresh Epg
@@ -1454,6 +1454,7 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
    {
       int count = 0;
       cSchedule* s = 0;
+      cChannel* channel = 0;
       tChannelID channelId = tChannelID::FromString(mapDb->getStrValue("ChannelId"));
 
       channels++;
@@ -1462,7 +1463,7 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
       eventsDb->setValue("UPDSP", forChannelId ? 0 : lastEventsUpdateAt);
       eventsDb->setValue("CHANNELID", mapDb->getStrValue("CHANNELID"));
 
-      // get timers lock
+      // #1 get timers lock
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
       cStateKey timersKey;
@@ -1472,7 +1473,16 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
       cTimers* timers = &Timers;
 #endif
 
-      // get schedules lock
+      // #2 get channels lock
+
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+      cStateKey channelsKey;
+      cChannels* channels = cChannels::GetChannelsWrite(channelsKey, 500);
+#else
+      cChannels* channels = &Channels;
+#endif
+
+      // #3 get schedules lock
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
       cStateKey schedulesKey;
@@ -1484,13 +1494,21 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
       tell(3, "LOCK (refreshEpg)");
 #endif
 
-      if (!schedules || !timers || getScheduleOf(channelId, schedules, s) != success)
+      // get channel and schedule of channel
+
+      if (channel = channels->GetByChannelID(channelId, true))
+         s = (cSchedule*)schedules->GetSchedule(channel, true);
+      else
+         tell(0, "Error: Channel with ID '%s' don't exist on this VDR", (const char*)channelId.ToString());
+
+      if (!schedules || !channels || !timers || !s)
       {
-         tell(3, "Info: Can't get write lock on '%s'", !schedules ? "schedules" : "timers");
+         tell(3, "Info: Can't get write lock on '%s'", !schedules ? "schedules" : !timers ? "timers" : "channels");
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
          if (schedules) schedulesKey.Remove();
          if (timers)    timersKey.Remove();
+         if (channels) channelsKey.Remove();
 #else
          delete schedulesLock;
 #endif
@@ -1592,6 +1610,8 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
       schedulesKey.Remove();
       tell(3, "-> Released schedules lock");
+      channelsKey.Remove();
+      tell(3, "-> Released channels lock");
       timersKey.Remove();
       tell(3, "-> Released timers lock");
 #else
