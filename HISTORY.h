@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.1.64"
+#define _VERSION     "1.1.65"
 #define VERSION_DATE "09.06.2017"
 
 #define DB_API       4
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-06-09: version 1.1.65 (horchi)
+   - Bugfix: Fixed another lock sequence
 
 2017-06-09: version 1.1.64 (horchi)
    - Bugfix: Fixed lock sequence

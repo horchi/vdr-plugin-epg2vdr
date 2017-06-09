@@ -75,6 +75,15 @@ int cUpdate::performTimerJobs()
    cTimers* timers = &Timers;
 #endif
 
+   // get channels lock
+
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+   cChannelsLock channelsLock(false);
+   const cChannels* channels = channelsLock.Channels();
+#else
+   cChannels* channels = &Channels;
+#endif
+
    // get schedules lock
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
@@ -185,12 +194,6 @@ int cUpdate::performTimerJobs()
 
          if (!(s = (cSchedule*)schedules->GetSchedule(channelId)))
          {
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-            cChannelsLock channelsLock(false);
-            const cChannels* channels = channelsLock.Channels();
-#else
-            cChannels* channels = &Channels;
-#endif
             const cChannel* channel = channels->GetByChannelID(channelId);
 
             tell(0, "Error: Time (%d), missing channel '%s' (%s) or channel not found, ignoring request",
@@ -214,25 +217,17 @@ int cUpdate::performTimerJobs()
 
          if (eventid > 0 && !(event = s->GetEvent(eventid)))
          {
-            {
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-               cChannelsLock channelsLock(false);
-               const cChannels* channels = channelsLock.Channels();
-#else
-               cChannels* channels = &Channels;
-#endif
-               const cChannel* channel = channels->GetByChannelID(channelId);
+            const cChannel* channel = channels->GetByChannelID(channelId);
 
-               tell(0, "Error: Timer (%d), missing event '%ld' on channel '%s' (%s), ignoring request",
-                    timerid, eventid, channel->Name(), timerDb->getStrValue("CHANNELID"));
+            tell(0, "Error: Timer (%d), missing event '%ld' on channel '%s' (%s), ignoring request",
+                 timerid, eventid, channel->Name(), timerDb->getStrValue("CHANNELID"));
 
-               timerDb->getValue("INFO")->sPrintf("Error: Timer (%d), missing event '%ld' on channel '%s' (%s), ignoring request",
-                                                  timerid, eventid, channel->Name(), timerDb->getStrValue("CHANNELID"));
-               timerDb->setCharValue("ACTION", taFailed);
-               timerDb->setCharValue("STATE", tsError);
-               timerDb->update();
-               updateTimerDone(timerid, doneid, tdsTimerCreateFailed);
-            }
+            timerDb->getValue("INFO")->sPrintf("Error: Timer (%d), missing event '%ld' on channel '%s' (%s), ignoring request",
+                                               timerid, eventid, channel->Name(), timerDb->getStrValue("CHANNELID"));
+            timerDb->setCharValue("ACTION", taFailed);
+            timerDb->setCharValue("STATE", tsError);
+            timerDb->update();
+            updateTimerDone(timerid, doneid, tdsTimerCreateFailed);
 
             // force reload of events
 
@@ -271,17 +266,8 @@ int cUpdate::performTimerJobs()
             }
             else
             {
-#if APIVERSNUM >= 20301
-               LOCK_CHANNELS_READ;
-               const cChannels* channels = Channels;
                const cChannel* channel = channels->GetByChannelID(channelId);
-#else
-               cChannels* channels = &Channels;
-               cChannel* channel = channels->GetByChannelID(channelId);
-#endif
-               // timer without a event
-
-               timer = new cTimer(no, no, channel);
+               timer = new cTimer(no, no, channel);  // timer without a event
             }
 
             // reset error message in 'reason'
