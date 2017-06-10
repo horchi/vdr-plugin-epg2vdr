@@ -266,7 +266,11 @@ int cUpdate::performTimerJobs()
             }
             else
             {
+#if APIVERSNUM >= 20301
                const cChannel* channel = channels->GetByChannelID(channelId);
+#else
+               cChannel* channel = channels->GetByChannelID(channelId);
+#endif
                timer = new cTimer(no, no, channel);  // timer without a event
             }
 

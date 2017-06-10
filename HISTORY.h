@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.65"
-#define VERSION_DATE "09.06.2017"
+#define _VERSION     "1.1.66"
+#define VERSION_DATE "10.06.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-06-10: version 1.1.66 (horchi)
+   - Bugfix: Fixed vdr 2.2.0 compile problem (thx to Alexander Grothe)
 
 2017-06-09: version 1.1.65 (horchi)
    - Bugfix: Fixed another lock sequence
