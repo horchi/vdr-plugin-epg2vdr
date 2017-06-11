@@ -1625,13 +1625,7 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
 
    if (timerChanges)
    {
-//#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
       GET_TIMERS_WRITE(timers);
-      // LOCK_TIMERS_WRITE;
-      // cTimers* timers = Timers;
-// #else
-//       cTimers* timers = &Timers;
-// #endif
       timers->SetModified();
    }
 
