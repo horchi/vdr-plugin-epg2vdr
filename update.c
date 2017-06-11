@@ -10,6 +10,7 @@
 #include <vdr/videodir.h>
 #include <vdr/tools.h>
 
+#include "lib/vdrlocks.h"
 #include "lib/xml.h"
 #include "epg2vdr.h"
 #include "update.h"
@@ -1624,12 +1625,13 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
 
    if (timerChanges)
    {
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-      LOCK_TIMERS_WRITE;
-      cTimers* timers = Timers;
-#else
-      cTimers* timers = &Timers;
-#endif
+//#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+      GET_TIMERS_WRITE(timers);
+      // LOCK_TIMERS_WRITE;
+      // cTimers* timers = Timers;
+// #else
+//       cTimers* timers = &Timers;
+// #endif
       timers->SetModified();
    }
 
