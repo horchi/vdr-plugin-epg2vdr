@@ -739,8 +739,10 @@ int cMenuEpgWhatsOn::LoadSearch(const cUserTimes::UserTime* userTime)
       return fail;
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   cChannelsLock channelsLock(false);
-   const cChannels* channels = channelsLock.Channels();
+   LOCK_CHANNELS_READ;
+   const cChannels* channels = Channels;
+   // cChannelsLock channelsLock(false);
+   // const cChannels* channels = channelsLock.Channels();
 #else
    cChannels* channels = &Channels;
 #endif

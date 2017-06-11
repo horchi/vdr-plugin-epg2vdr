@@ -129,8 +129,10 @@ void cUpdate::Recording(const cDevice* Device, const char* Name, const char* Fil
    // get timers lock
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   cTimersLock timersLock(false);
-   const cTimers* timers = timersLock.Timers();
+   LOCK_TIMERS_READ;
+   const cTimers* timers = Timers;
+   // cTimersLock timersLock(false);
+   // const cTimers* timers = timersLock.Timers();
 #else
    const cTimers* timers = &Timers;
 #endif

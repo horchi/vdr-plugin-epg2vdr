@@ -69,8 +69,10 @@ int cUpdate::performTimerJobs()
    // get timers lock
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   cTimersLock timersLock(true);
-   cTimers* timers = timersLock.Timers();
+   LOCK_TIMERS_WRITE;
+   cTimers* timers = Timers;
+   // cTimersLock timersLock(true);
+   // cTimers* timers = timersLock.Timers();
 #else
    cTimers* timers = &Timers;
 #endif
@@ -78,8 +80,10 @@ int cUpdate::performTimerJobs()
    // get channels lock
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   cChannelsLock channelsLock(false);
-   const cChannels* channels = channelsLock.Channels();
+   LOCK_CHANNELS_WRITE;
+   const cChannels* channels = Channels;
+   // cChannelsLock channelsLock(false);
+   // const cChannels* channels = channelsLock.Channels();
 #else
    cChannels* channels = &Channels;
 #endif
@@ -436,8 +440,10 @@ int cUpdate::updateTimerTable()
    // get timers lock
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   cTimersLock timersLock(true);
-   cTimers* timers = timersLock.Timers();
+   LOCK_TIMERS_WRITE;
+   cTimers* timers = Timers;
+   // cTimersLock timersLock(true);
+   // cTimers* timers = timersLock.Timers();
 #else
    cTimers* timers = &Timers;
 #endif

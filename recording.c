@@ -324,15 +324,19 @@ int cUpdate::updateRecordingTable(int fullReload)
    // get channel and recordings lock
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   cChannelsLock channelsLock(false);
-   const cChannels* channels = channelsLock.Channels();
+   LOCK_CHANNELS_READ;
+   const cChannels* channels = Channels;
+   // cChannelsLock channelsLock(false);
+   // const cChannels* channels = channelsLock.Channels();
 #else
    cChannels* channels = &Channels;
 #endif
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   cRecordingsLock recordingsLock(false);
-   const cRecordings* recordings = recordingsLock.Recordings();
+   LOCK_RECORDINGS_READ;
+   const cRecordings* recordings = Recordings;
+   // cRecordingsLock recordingsLock(false);
+   // const cRecordings* recordings = recordingsLock.Recordings();
 #else
    const cRecordings* recordings = &Recordings;
 #endif
