@@ -8,6 +8,7 @@
 #include <vdr/menu.h>
 #include <vdr/interface.h>
 
+#include "lib/vdrlocks.h"
 #include "plgconfig.h"
 #include "menu.h"
 
@@ -133,11 +134,12 @@ eOSState cMenuEpgEditTimer::ProcessKey(eKeys Key)
          {
             int recording = no;
 
+            GET_CHANNELS_READ(channels);
+
 #if APIVERSNUM >= 20301
-            LOCK_CHANNELS_READ;
-            const cChannel* ch = Channels->GetByNumber(channelNr);
+            const cChannel* ch = channels->GetByNumber(channelNr);
 #else
-            cChannel* ch = Channels.GetByNumber(channelNr);
+            cChannel* ch = channels.GetByNumber(channelNr);
 #endif
 
             if (!ch)

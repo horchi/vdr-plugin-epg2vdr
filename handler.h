@@ -8,6 +8,8 @@
 #ifndef __HANDLER_H
 #define __HANDLER_H
 
+#include "lib/vdrlocks.h"
+
 #include "update.h"
 
 #define CHANNELMARKOBSOLETE "OBSOLETE"
@@ -1031,12 +1033,7 @@ class cEpg2VdrEpgHandler : public cEpgHandler
 
          // channel lock scope
          {
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-            LOCK_CHANNELS_READ;
-            const cChannels* channels = Channels;
-#else
-            cChannels* channels = &Channels;
-#endif
+            GET_CHANNELS_READ(channels);
 
             for (int f = selectAll->find(); f; f = selectAll->fetch())
             {
