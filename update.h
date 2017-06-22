@@ -16,6 +16,7 @@
 #include "lib/common.h"
 #include "lib/db.h"
 #include "lib/epgservice.h"
+#include "lib/vdrlocks.h"
 
 #include "epg2vdr.h"
 #include "parameters.h"
@@ -146,6 +147,16 @@ class cUpdate : public cThread, public cStatus, public cParameters
          char channelId[100];
       };
 
+      // struct to store a recording action delieverd by the status interface
+
+      struct RecordingAction
+      {
+         std::string name;
+         std::string fileName;
+         int cardIndex;
+         bool on;
+      };
+
       // functions
 
       int initDb();
@@ -189,6 +200,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       int cleanupDeletedRecordings(int force = no);
       int updateRecordingDirectory(const cRecording* recording);
       int updatePendingRecordingInfoFiles(const cRecordings* recordings);
+      int performRecordingActions();
       int storeAllRecordingInfoFiles();
       int updateRecordingInfoFiles();
 
@@ -273,7 +285,8 @@ class cUpdate : public cThread, public cStatus, public cParameters
       cDbValue* viewMergeSource;
       cDbValue* viewLongDescription;
 
-      std::queue<std::string> pendingNewRecordings; // recordings to store details
+      std::queue<std::string> pendingNewRecordings; // recordings to store details (obsolete if pendingRecordingActions implemented finally)
+      std::queue<RecordingAction> pendingRecordingActions; // recordings actions (start/stop)
       std::vector<TimerId> deletedTimers;
 
       static const char* auxFields[];

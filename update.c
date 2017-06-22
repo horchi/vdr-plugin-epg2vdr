@@ -1224,6 +1224,9 @@ void cUpdate::Action()
 
       if (dbConnected() && recordingStateChangedTrigger)
       {
+         if (!pendingRecordingActions.empty())
+            performRecordingActions();
+
          if (Epg2VdrConfig.shareInWeb)
             recordingChanged();            // update timer state
 

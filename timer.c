@@ -66,27 +66,8 @@ int cUpdate::performTimerJobs()
       selectPendingTimerActions->freeResult();
    }
 
-   // get timers lock
-
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   LOCK_TIMERS_WRITE;
-   cTimers* timers = Timers;
-   // cTimersLock timersLock(true);
-   // cTimers* timers = timersLock.Timers();
-#else
-   cTimers* timers = &Timers;
-#endif
-
-   // get channels lock
-
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   LOCK_CHANNELS_WRITE;
-   const cChannels* channels = Channels;
-   // cChannelsLock channelsLock(false);
-   // const cChannels* channels = channelsLock.Channels();
-#else
-   cChannels* channels = &Channels;
-#endif
+   GET_TIMERS_WRITE(timers);     // get timers lock
+   GET_CHANNELS_READ(channels);  // get channels lock
 
    // get schedules lock
 

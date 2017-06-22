@@ -67,7 +67,7 @@ struct tIndexTs
    }
 };
 
-int RecLengthInSecs(const cRecording *pRecording)
+int RecLengthInSecs(const cRecording* pRecording)
 {
   struct stat buf;
   cString fullname = cString::sprintf("%s%s", pRecording->FileName(), IsPesRecording(pRecording) ? LOC_INDEXFILESUFFIX ".vdr" : LOC_INDEXFILESUFFIX);
@@ -108,105 +108,114 @@ void cUpdate::TimerChange(const cTimer* Timer, eTimerChange Change)
 }
 
 //***************************************************************************
-// Recording Notification
+// Recording Notification (cStatus::MsgRecording(....))
 //***************************************************************************
 
 void cUpdate::Recording(const cDevice* Device, const char* Name, const char* FileName, bool On)
 {
-   cMutexLock lock(&runningRecMutex);
-   const int allowedBreakDuration = 2;
+   RecordingAction action;
 
    // Recording of 'Peter Hase' has 'started' [/srv/vdr/video.00/Peter_Hase/2014-10-08.11.05.18-0.rec]
    // Recording of '(null)' has 'stopped' [/srv/vdr/video.00/Peter_Hase/2014-10-08.11.05.18-0.rec]
 
    tell(1, "Recording of '%s' has '%s' [%s]", Name, On ? "started" : "stopped", FileName);
 
-   // at start of recording store event details to recording directory (info.epg2vdr)
+   // schedule this notification to perfrom it in oure context not in the cStatus Interface context
+   //  due to the needed list locks!
+
+   action.name = Name;
+   action.fileName = FileName;
+   action.cardIndex = Device->CardIndex();
+   action.on = On;
+   pendingRecordingActions.push(action);
 
    if (On)
       pendingNewRecordings.push(FileName);
 
-   // get timers lock
+   recordingStateChangedTrigger = yes;
+   waitCondition.Broadcast();            // wakeup
+}
 
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   LOCK_TIMERS_READ;
-   const cTimers* timers = Timers;
-   // cTimersLock timersLock(false);
-   // const cTimers* timers = timersLock.Timers();
-#else
-   const cTimers* timers = &Timers;
-#endif
+//***************************************************************************
+// Perform Pending Recording Notification
+//  (got by cStatus::MsgRecording(....) above)
+//***************************************************************************
 
-   // recording started ...
+int cUpdate::performRecordingActions()
+{
+   const int allowedBreakDuration = 2;
 
-   if (On && Name)
+   GET_TIMERS_READ(timers);           // get timers lock
+   GET_RECORDINGS_READ(recordings);   // recordings lock
+
+   while (!pendingNewRecordings.empty())
    {
-      for (const cTimer* ti = timers->First(); ti; ti = timers->Next(ti))
+      cMutexLock lock(&runningRecMutex);
+      RecordingAction action = pendingRecordingActions.front();
+      pendingRecordingActions.pop();
+
+      if (action.on && action.name.length())    // recording started ...
       {
-         if (ti->Recording())                     // timer nimmt gerade auf
+         for (const cTimer* ti = timers->First(); ti; ti = timers->Next(ti))
          {
-            cRunningRecording* recording = 0;
-
-            // check if already known
-
-            for (cRunningRecording* rr = runningRecordings.First(); rr;  rr = runningRecordings.Next(rr))
+            if (ti->Recording())                     // timer nimmt gerade auf
             {
-               if (rr->timer == ti)
+               cRunningRecording* recording = 0;
+
+               // check if already known
+
+               for (cRunningRecording* rr = runningRecordings.First(); rr;  rr = runningRecordings.Next(rr))
                {
-                  recording = rr;
-                  break;
+                  if (rr->timer == ti)
+                  {
+                     recording = rr;
+                     break;
+                  }
                }
+
+               if (recording) // already handled -> a resume?!
+               {
+                  tell(1, "Info: Detected resume of '%s' on device %d", action.name.c_str(), action.cardIndex);
+                  continue;
+               }
+
+               int doneid = na;
+               contentOfTag(ti, "doneid", doneid);
+
+               recording = new cRunningRecording(ti, doneid);
+               runningRecordings.Add(recording);
+               tell(1, "Info: Recording '%s' with doneid %d added to running list", action.name.c_str(), doneid);
             }
-
-            if (recording) // already handled -> a resume?!
-            {
-               tell(1, "Info: Detected resume of '%s' on device %d", Name, Device->CardIndex());
-               continue;
-            }
-
-            int doneid = na;
-            contentOfTag(ti, "doneid", doneid);
-
-            recording = new cRunningRecording(ti, doneid);
-            runningRecordings.Add(recording);
-            tell(1, "Info: Recording '%s' with doneid %d added to running list", Name, doneid);
          }
       }
-   }
 
-   // recording stopped ...
+      // recording stopped ...
 
-   if (!On)
-   {
-      // loop over running recordings ..
-
-      for (cRunningRecording* rr = runningRecordings.First(); rr;  rr = runningRecordings.Next(rr))
+      if (!action.on)
       {
-         const cTimer* pendingTimer = 0;
-         int complete;
-         double recFraction = 100.0;
-         long timerLengthSecs = rr->timer->StopTime() - rr->timer->StartTime();
-         bool vpsUsed = rr->timer->HasFlags(tfVps) && rr->timer->Event() && rr->timer->Event()->Vps();
+         // loop over running recordings ..
 
-         // check if timer still exists
-
-         for (pendingTimer = timers->First(); pendingTimer; pendingTimer = timers->Next(pendingTimer))
+         for (cRunningRecording* rr = runningRecordings.First(); rr;  rr = runningRecordings.Next(rr))
          {
-            if (pendingTimer == rr->timer)
-               break;
-         }
+            const cRecording* pRecording = recordings->GetByName(action.fileName.c_str());
+            const cTimer* pendingTimer = 0;
+            int complete;
+            double recFraction = 100.0;
+            long timerLengthSecs = rr->timer->StopTime() - rr->timer->StartTime();
+            bool vpsUsed = rr->timer->HasFlags(tfVps) && rr->timer->Event() && rr->timer->Event()->Vps();
 
-         // still recording :o ?
+            // check if timer still exists
 
-         if (pendingTimer && pendingTimer->Recording())
-            continue;
+            for (pendingTimer = timers->First(); pendingTimer; pendingTimer = timers->Next(pendingTimer))
+            {
+               if (pendingTimer == rr->timer)
+                  break;
+            }
 
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-         cStateKey stateKey;
+            // still recording :o ?
 
-         if (const cRecordings* recordings = cRecordings::GetRecordingsRead(stateKey))
-         {
-            const cRecording* pRecording = recordings->GetByName(FileName);
+            if (pendingTimer && pendingTimer->Recording())
+               continue;
 
             if (pRecording && timerLengthSecs)
             {
@@ -214,54 +223,42 @@ void cUpdate::Recording(const cDevice* Device, const char* Name, const char* Fil
                recFraction = double(recLen) * 100 / timerLengthSecs;
             }
 
-            stateKey.Remove();
-         }
-#else
-         const cRecording* pRecording = Recordings.GetByName(FileName);
+            // assure timer has reached it's end or at least 90% (vps) / 98% were recorded
 
-         if (pRecording && timerLengthSecs)
-         {
-            int recLen = RecLengthInSecs(pRecording);
-            recFraction = double(recLen) * 100 / timerLengthSecs;
-         }
-#endif
+            complete = recFraction >= (vpsUsed ? 90 : 98);
 
-         // assure timer has reached it's end or at least 90% (vps) / 98% were recorded
+            if (complete)
+               tell(1, "Info: Finished: '%s'; recorded %d%%; VPS %s",
+                    rr->timer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
+            else
+               tell(1, "Info: Finished: '%s' (not complete! - recorded only %d%%); VPS %s",
+                    rr->timer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
 
-         complete = recFraction >= (vpsUsed ? 90 : 98);
+            if (complete)
+               rr->lastBreak = 0;         // reset break
+            else if (!rr->lastBreak)
+               rr->lastBreak = time(0);   // store first break
 
-         if (complete)
-            tell(1, "Info: Finished: '%s'; recorded %d%%; VPS %s",
-                 rr->timer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
-         else
-            tell(1, "Info: Finished: '%s' (not complete! - recorded only %d%%); VPS %s",
-                 rr->timer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
+            if (!rr->lastBreak || (time(0) - rr->lastBreak) > allowedBreakDuration)
+            {
+               char* infoTxt;
 
-         if (complete)
-            rr->lastBreak = 0;         // reset break
-         else if (!rr->lastBreak)
-            rr->lastBreak = time(0);   // store first break
+               asprintf(&infoTxt, "Recording '%s' finished - %s complete (%d%%)",
+                        rr->timer->File(), complete ? "" : "NOT", (int)round(recFraction));
 
-         if (!rr->lastBreak || (time(0) - rr->lastBreak) > allowedBreakDuration)
-         {
-            char* infoTxt;
+               tell(1, "Info: %s", infoTxt);
 
-            asprintf(&infoTxt, "Recording '%s' finished - %s complete (%d%%)",
-                     rr->timer->File(), complete ? "" : "NOT", (int)round(recFraction));
+               rr->finished = yes;
+               rr->failed = !complete;
+               rr->setInfo(infoTxt);
 
-            tell(1, "Info: %s", infoTxt);
-
-            rr->finished = yes;
-            rr->failed = !complete;
-            rr->setInfo(infoTxt);
-
-            free(infoTxt);
+               free(infoTxt);
+            }
          }
       }
    }
 
-   recordingStateChangedTrigger = yes;
-   waitCondition.Broadcast();            // wakeup
+   return done;
 }
 
 //***************************************************************************

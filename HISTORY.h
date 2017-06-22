@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.68"
-#define VERSION_DATE "11.06.2017"
+#define _VERSION     "1.1.69"
+#define VERSION_DATE "22.06.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-06-22 version 1.1.69 (horchi)
+   - change: More rework of lock handling
 
 2017-06-11: version 1.1.68 (horchi)
    - change: Added lock macros for easier handling the vdr versions
