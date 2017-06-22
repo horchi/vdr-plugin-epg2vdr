@@ -123,7 +123,7 @@ void cUpdate::Recording(const cDevice* Device, const char* Name, const char* Fil
    // schedule this notification to perfrom it in oure context not in the cStatus Interface context
    //  due to the needed list locks!
 
-   action.name = Name;
+   action.name = notNull(Name, "");
    action.fileName = FileName;
    action.cardIndex = Device->CardIndex();
    action.on = On;
