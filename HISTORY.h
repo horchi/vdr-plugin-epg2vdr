@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.1.70"
+#define _VERSION     "1.1.71"
 #define VERSION_DATE "22.06.2017"
 
 #define DB_API       4
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-06-22 version 1.1.71 (horchi)
+   - bugfix: Fixed crash on recording
 
 2017-06-22 version 1.1.70 (horchi)
    - change: Fixed possible crash with unknown channels on wrong configuration

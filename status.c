@@ -148,9 +148,10 @@ int cUpdate::performRecordingActions()
    GET_TIMERS_READ(timers);           // get timers lock
    GET_RECORDINGS_READ(recordings);   // recordings lock
 
-   while (!pendingNewRecordings.empty())
+   while (!pendingRecordingActions.empty())
    {
       cMutexLock lock(&runningRecMutex);
+
       RecordingAction action = pendingRecordingActions.front();
       pendingRecordingActions.pop();
 
