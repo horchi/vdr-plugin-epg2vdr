@@ -1505,7 +1505,7 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
       else if (channels && schedules)
          tell(0, "Error: Channel with ID '%s' don't exist on this VDR", mapDb->getStrValue("ChannelId"));
 
-      if (!schedules || !channels || !timers || !s)
+      if (!schedules || !channels || !timers)
       {
          tell(3, "Info: Can't get write lock on '%s'", !schedules ? "schedules" : !timers ? "timers" : "channels");
 

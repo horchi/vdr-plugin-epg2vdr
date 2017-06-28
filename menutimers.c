@@ -139,7 +139,7 @@ eOSState cMenuEpgEditTimer::ProcessKey(eKeys Key)
 #if APIVERSNUM >= 20301
             const cChannel* ch = channels->GetByNumber(channelNr);
 #else
-            cChannel* ch = channels.GetByNumber(channelNr);
+            cChannel* ch = channels->GetByNumber(channelNr);
 #endif
 
             if (!ch)

@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.1.72"
+#define _VERSION     "1.1.73"
 #define VERSION_DATE "22.06.2017"
 
 #define DB_API       4
@@ -18,6 +18,10 @@
 
 /*
  * ------------------------------------
+
+2017-06-23 version 1.1.73 (horchi)
+   - bugfix: Fixed compile with VDR 2.2.0
+   - bugfix: Fixed problem with unknown channels
 
 2017-06-22 version 1.1.72 (horchi)
    - bugfix: Fixed crash on end of recording
