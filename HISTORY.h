@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.73"
-#define VERSION_DATE "22.06.2017"
+#define _VERSION     "1.1.74"
+#define VERSION_DATE "19.12.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-12-19 version 1.1.74 (horchi)
+   - added: recording detail query to service interface
 
 2017-06-23 version 1.1.73 (horchi)
    - bugfix: Fixed compile with VDR 2.2.0
@@ -318,7 +321,7 @@
    - bugfix: added missing table init
 
 2016-04-23: version 1.0.27 (horchi)
-   - change: added totoal count dor service interface (ForEachTimer)
+   - change: added totoal count for service interface (ForEachTimer)
 
 2016-04-22: version 1.0.26 (horchi)
    - bugfix: fixed set of scrnew on info.epg2vdr changes

@@ -333,8 +333,8 @@ int cUpdate::updateRecordingTable(int fullReload)
 #endif
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   LOCK_RECORDINGS_READ;
-   const cRecordings* recordings = Recordings;
+   LOCK_RECORDINGS_WRITE;
+   cRecordings* recordings = Recordings;
    // cRecordingsLock recordingsLock(false);
    // const cRecordings* recordings = recordingsLock.Recordings();
 #else
@@ -352,7 +352,7 @@ int cUpdate::updateRecordingTable(int fullReload)
    // ----------------
    // update ...
 
-   for (const cRecording* rec = recordings->First(); rec; rec = recordings->Next(rec))
+   for (cRecording* rec = recordings->First(); rec; rec = recordings->Next(rec))
    {
       int insert;
       int fsk;

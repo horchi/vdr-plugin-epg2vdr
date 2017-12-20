@@ -64,6 +64,7 @@ class cPluginEPG2VDR : public cPlugin
       int exitDb();
 
       int timerService(cEpgTimer_Service_V1* ts);
+      int recordingDetails(cEpgRecording_Details_Service_V1* rd);
 
    private:
 
@@ -72,6 +73,7 @@ class cPluginEPG2VDR : public cPlugin
       cDbTable* timerDb;
       cDbTable* vdrDb;
       cDbTable* useeventsDb;
+      cDbTable* recordingListDb;
       cDbStatement* selectTimers;
       cDbStatement* selectEventById;
       cMutex mutexTimerService;

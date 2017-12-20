@@ -423,6 +423,7 @@ cPluginEPG2VDR::cPluginEPG2VDR()
    useeventsDb = 0;
    selectTimers = 0;
    selectEventById = 0;
+   recordingListDb = 0;
 }
 
 cPluginEPG2VDR::~cPluginEPG2VDR()
@@ -447,6 +448,9 @@ int cPluginEPG2VDR::initDb()
 
    useeventsDb = new cDbTable(connection, "useevents");
    if (useeventsDb->open() != success) return fail;
+
+   recordingListDb = new cDbTable(connection, "recordinglist");
+   if (recordingListDb->open() != success) return fail;
 
    // ----------
    // select
@@ -509,6 +513,7 @@ int cPluginEPG2VDR::exitDb()
       delete useeventsDb;          useeventsDb = 0;
       delete timerDb;              timerDb = 0;
       delete vdrDb;                vdrDb = 0;
+      delete recordingListDb;      recordingListDb = 0;
 
       delete connection;           connection = 0;
    }
@@ -864,7 +869,7 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
       return true;
    }
 
-   if (strcmp(id, EPG2VDR_TIMER_SERVICE) == 0) // || .....
+   if (strcmp(id, EPG2VDR_TIMER_SERVICE) == 0 || strcmp(id, EPG2VDR_REC_DETAIL_SERVICE) == 0)
    {
       // Services with direct db access
 
@@ -878,6 +883,13 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
 
             if (ts)
                return timerService(ts);
+         }
+         else if (strcmp(id, EPG2VDR_REC_DETAIL_SERVICE) == 0)
+         {
+            cEpgRecording_Details_Service_V1* rd = (cEpgRecording_Details_Service_V1*)data;
+
+            if (rd)
+               return recordingDetails(rd);
          }
 
          exitDb();
@@ -917,6 +929,60 @@ int cPluginEPG2VDR::timerService(cEpgTimer_Service_V1* ts)
         ms2Dur(cTimeMs::Now()-start).c_str());
 
    return true;
+}
+
+//***************************************************************************
+// Recording Details
+//***************************************************************************
+
+#include <vdr/videodir.h>
+
+int cPluginEPG2VDR::recordingDetails(cEpgRecording_Details_Service_V1* rd)
+{
+   const char* videoBasePath = cVideoDirectory::Name();
+   md5Buf md5path;
+   const cRecording* recording;
+   int pathOffset = 0;
+
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+   LOCK_RECORDINGS_READ;
+   const cRecordings* recordings = Recordings;
+#else
+   const cRecordings* recordings = &Recordings;
+#endif
+
+   if (!(recording = recordings->GetById(rd->id)))
+      return false;
+
+   if (strncmp(recording->FileName(), videoBasePath, strlen(videoBasePath)) == 0)
+   {
+      pathOffset = strlen(videoBasePath);
+
+      if (*(recording->FileName()+pathOffset) == '/')
+         pathOffset++;
+   }
+
+   createMd5(recording->FileName()+pathOffset, md5path);
+
+   recordingListDb->clear();
+
+   recordingListDb->setValue("MD5PATH", md5path);
+   recordingListDb->setValue("STARTTIME", recording->Start());
+   recordingListDb->setValue("OWNER", Epg2VdrConfig.useCommonRecFolder ? "" : Epg2VdrConfig.uuid);
+
+   cXml xml;
+   int found = recordingListDb->find();
+
+   xml.create("epg2vdr");
+
+   if (found)
+      cEventDetails::row2Xml(recordingListDb->getRow(), &xml);
+
+   rd->details = xml.toText();
+
+   recordingListDb->reset();
+
+   return found;
 }
 
 //***************************************************************************

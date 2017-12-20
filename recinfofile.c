@@ -119,6 +119,28 @@ int cEventDetails::updateByRow(cDbRow* row)
 }
 
 //***************************************************************************
+// Row To Xml
+//***************************************************************************
+
+int cEventDetails::row2Xml(cDbRow* row, cXml* xml)
+{
+   for (int i = 0; fields[i]; i++)
+   {
+      cDbValue* value = row->getValue(fields[i]);
+
+      if (!value || value->isEmpty())
+         continue;
+
+      if (value->getField()->hasFormat(cDBS::ffAscii) || value->getField()->hasFormat(cDBS::ffText) || value->getField()->hasFormat(cDBS::ffMText))
+         xml->appendElement(fields[i], value->getStrValue());
+      else
+         xml->appendElement(fields[i], value->getIntValue());
+   }
+
+   return success;
+}
+
+//***************************************************************************
 // Update To Row
 //***************************************************************************
 
@@ -128,6 +150,9 @@ int cEventDetails::updateToRow(cDbRow* row)
 
    for (it = values.begin(); it != values.end(); it++)
    {
+      if (!it->first.length())
+         continue;
+
       cDbValue* value = row->getValue(it->first.c_str());
 
       if (!value)
@@ -135,9 +160,6 @@ int cEventDetails::updateToRow(cDbRow* row)
          tell(0, "Warning: Field '%s' not found", it->first.c_str());
          continue;
       }
-
-      if (!it->first.length())
-         continue;
 
       if (value->getField()->isString())
          value->setValue(it->second.c_str());

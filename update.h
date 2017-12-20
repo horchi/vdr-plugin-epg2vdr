@@ -17,6 +17,7 @@
 #include "lib/db.h"
 #include "lib/epgservice.h"
 #include "lib/vdrlocks.h"
+#include "lib/xml.h"
 
 #include "epg2vdr.h"
 #include "parameters.h"
@@ -86,6 +87,8 @@ class cEventDetails
       int loadFromFs(const char* path);
       int updateByRow(cDbRow* row);
       int updateToRow(cDbRow* row);
+
+      static int row2Xml(cDbRow* row, cXml* xml);
 
    private:
 
