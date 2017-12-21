@@ -361,7 +361,7 @@ int cUpdate::updateRecordingTable(int fullReload)
       int eventId = 0;
       std::string channelId = "";
       const char* description = "";
-      const char* longdescription = "";
+//      const char* longdescription = "";
       const char* title = rec->Name();
       const cRecordingInfo* recInfo = rec->Info();
       int pathOffset = 0;
@@ -403,8 +403,8 @@ int cUpdate::updateRecordingTable(int fullReload)
 
             if (!isEmpty(recInfo->GetEvent()->Aux()) && xml.set(recInfo->GetEvent()->Aux()) == success)
             {
-               if (XMLElement* e = xml.getElementByName("longdescription"))
-                  longdescription = e->GetText();
+               // if (XMLElement* e = xml.getElementByName("longdescription"))
+               //    longdescription = e->GetText();
             }
          }
       }
@@ -433,8 +433,8 @@ int cUpdate::updateRecordingTable(int fullReload)
       recordingListDb->setValue("CHANNELID", channelId.c_str());
       recordingListDb->setValue("FSK", fsk);
 
-      if (!isEmpty(longdescription))
-         recordingListDb->setValue("ORGDESCRIPTION", longdescription);  // since 'LONGDESCRIPTION' already used for 'DESCRIPTION' :(
+      // if (!isEmpty(longdescription))
+      //    recordingListDb->setValue("ORGDESCRIPTION", longdescription);  // since 'LONGDESCRIPTION' already used for 'DESCRIPTION' :(
 
       if (channel)
          recordingListDb->setValue("CHANNELNAME", channel->Name());
