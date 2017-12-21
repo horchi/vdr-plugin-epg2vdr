@@ -120,7 +120,6 @@ hlib:
 
 %.o: %.c
 	$(doCompile) $(INCLUDES) -o $@ $<
-#	$(CXX) $(CXXFLAGS) -c $(DEFINES) $(INCLUDES) -o $@ $<
 
 ### Dependencies:
 

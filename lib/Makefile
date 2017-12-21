@@ -53,10 +53,6 @@ ifdef SYSD_NOTIFY
 	CFLAGS += $(shell pkg-config --cflags libsystemd-daemon)
 endif
 
-ifdef DEBUG
-  CFLAGS += -ggdb -O0
-endif
-
 CFLAGS += $(shell mysql_config --include)
 DEFINES += $(USES)
 
@@ -88,7 +84,7 @@ cppchk:
 
 %.o: %.c
 	@echo Compile "$(*F)" ...
-	$(doCompile) $(*F).c -o $@
+	$(doCompile) -O3 $(INCLUDES) -o $@ $<
 
 #--------------------------------------------------------
 # dependencies

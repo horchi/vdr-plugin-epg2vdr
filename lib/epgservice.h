@@ -301,7 +301,7 @@ class cUserTimes
             if (strchr(strTime, ':'))
             {
                hhmm = atoi(strTime) * 100 + atoi(strchr(strTime, ':')+1);
-               sprintf(hhmmStr, "%02d:%02d", hhmm / 100, hhmm % 100);
+               sprintf(hhmmStr, "%02d%02d", hhmm / 100, hhmm % 100);
                mode = mTime;
             }
             else if (*strTime == '@')
@@ -366,7 +366,7 @@ class cUserTimes
          char* title;
          char* search;
          int hhmm;
-         char hhmmStr[5+TB];
+         char hhmmStr[15+TB];
       };
 
       cUserTimes()

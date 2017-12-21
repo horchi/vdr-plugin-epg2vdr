@@ -361,6 +361,7 @@ int cUpdate::updateRecordingTable(int fullReload)
       int eventId = 0;
       std::string channelId = "";
       const char* description = "";
+      const char* longdescription = "";
       const char* title = rec->Name();
       const cRecordingInfo* recInfo = rec->Info();
       int pathOffset = 0;
@@ -391,8 +392,21 @@ int cUpdate::updateRecordingTable(int fullReload)
          description = recInfo->Description() ? recInfo->Description() : "";
          channel = channels->GetByChannelID(recInfo->ChannelID());
 
-         if (recInfo->Title())    title = recInfo->Title();
-         if (recInfo->GetEvent()) eventId = recInfo->GetEvent()->EventID();
+         if (recInfo->Title())
+            title = recInfo->Title();
+
+         if (recInfo->GetEvent())
+         {
+            cXml xml;
+
+            eventId = recInfo->GetEvent()->EventID();
+
+            if (!isEmpty(recInfo->GetEvent()->Aux()) && xml.set(recInfo->GetEvent()->Aux()) == success)
+            {
+               if (XMLElement* e = xml.getElementByName("longdescription"))
+                  longdescription = e->GetText();
+            }
+         }
       }
 
       fsk = isProtected(rec->FileName());
@@ -418,6 +432,9 @@ int cUpdate::updateRecordingTable(int fullReload)
       recordingListDb->setValue("EVENTID", eventId);
       recordingListDb->setValue("CHANNELID", channelId.c_str());
       recordingListDb->setValue("FSK", fsk);
+
+      if (!isEmpty(longdescription))
+         recordingListDb->setValue("ORGDESCRIPTION", longdescription);  // since 'LONGDESCRIPTION' already used for 'DESCRIPTION' :(
 
       if (channel)
          recordingListDb->setValue("CHANNELNAME", channel->Name());

@@ -814,7 +814,7 @@ cString cPluginEPG2VDR::SVDRPCommand(const char* cmd, const char* Option, int &R
 bool cPluginEPG2VDR::Service(const char* id, void* data)
 {
    if (!data)
-      return fail;
+      return false;
 
    tell(4, "Service called with '%s', %d/%d", id,
         Epg2VdrConfig.replaceScheduleMenu, Epg2VdrConfig.replaceTimerMenu);
@@ -846,7 +846,7 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
    if (!pluginInitialized)
    {
       tell(2, "Service called but plugin not ready, retry later");
-      return fail;
+      return false;
    }
 
    if (strcmp(id, "MainMenuHooksPatch-v1.0::osSchedule") == 0 && Epg2VdrConfig.replaceScheduleMenu)
@@ -886,14 +886,10 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
          }
          else if (strcmp(id, EPG2VDR_REC_DETAIL_SERVICE) == 0)
          {
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
             cEpgRecording_Details_Service_V1* rd = (cEpgRecording_Details_Service_V1*)data;
 
             if (rd)
                return recordingDetails(rd);
-#else
-            return false;
-#endif
          }
 
          exitDb();
@@ -943,17 +939,16 @@ int cPluginEPG2VDR::timerService(cEpgTimer_Service_V1* ts)
 
 int cPluginEPG2VDR::recordingDetails(cEpgRecording_Details_Service_V1* rd)
 {
+   int found = false;
+
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
    const char* videoBasePath = cVideoDirectory::Name();
    md5Buf md5path;
    const cRecording* recording;
    int pathOffset = 0;
 
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
    LOCK_RECORDINGS_READ;
    const cRecordings* recordings = Recordings;
-#else
-   const cRecordings* recordings = &Recordings;
-#endif
 
    if (!(recording = recordings->GetById(rd->id)))
       return false;
@@ -975,7 +970,8 @@ int cPluginEPG2VDR::recordingDetails(cEpgRecording_Details_Service_V1* rd)
    recordingListDb->setValue("OWNER", Epg2VdrConfig.useCommonRecFolder ? "" : Epg2VdrConfig.uuid);
 
    cXml xml;
-   int found = recordingListDb->find();
+
+   found = recordingListDb->find();
 
    xml.create("epg2vdr");
 
@@ -985,6 +981,8 @@ int cPluginEPG2VDR::recordingDetails(cEpgRecording_Details_Service_V1* rd)
    rd->details = xml.toText();
 
    recordingListDb->reset();
+
+#endif
 
    return found;
 }
