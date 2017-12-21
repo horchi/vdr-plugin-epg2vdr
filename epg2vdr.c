@@ -886,10 +886,14 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
          }
          else if (strcmp(id, EPG2VDR_REC_DETAIL_SERVICE) == 0)
          {
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
             cEpgRecording_Details_Service_V1* rd = (cEpgRecording_Details_Service_V1*)data;
 
             if (rd)
                return recordingDetails(rd);
+#else
+            return false;
+#endif
          }
 
          exitDb();

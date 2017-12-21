@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.74"
-#define VERSION_DATE "19.12.2017"
+#define _VERSION     "1.1.75"
+#define VERSION_DATE "21.12.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-12-21 version 1.1.75 (horchi)
+   - change: backward compatibility to vdr 2.2.0
 
 2017-12-19 version 1.1.74 (horchi)
    - added: recording detail query to service interface
