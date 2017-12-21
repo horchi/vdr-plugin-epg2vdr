@@ -927,7 +927,7 @@ int cPluginEPG2VDR::timerService(cEpgTimer_Service_V1* ts)
          delete epgTimer;
    }
 
-   tell(1, "Answer '%s' call with %lu timers, duration was (%s)",
+   tell(1, "Answer '%s' call with %zd timers, duration was (%s)",
         EPG2VDR_TIMER_SERVICE,
         ts->epgTimers.size(),
         ms2Dur(cTimeMs::Now()-start).c_str());
