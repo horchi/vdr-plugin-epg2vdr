@@ -326,8 +326,6 @@ int cUpdate::updateRecordingTable(int fullReload)
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
    LOCK_CHANNELS_READ;
    const cChannels* channels = Channels;
-   // cChannelsLock channelsLock(false);
-   // const cChannels* channels = channelsLock.Channels();
 #else
    cChannels* channels = &Channels;
 #endif
@@ -335,8 +333,6 @@ int cUpdate::updateRecordingTable(int fullReload)
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
    LOCK_RECORDINGS_WRITE;
    cRecordings* recordings = Recordings;
-   // cRecordingsLock recordingsLock(false);
-   // const cRecordings* recordings = recordingsLock.Recordings();
 #else
    const cRecordings* recordings = &Recordings;
 #endif
@@ -361,7 +357,7 @@ int cUpdate::updateRecordingTable(int fullReload)
       int eventId = 0;
       std::string channelId = "";
       const char* description = "";
-//      const char* longdescription = "";
+      // const char* longdescription = "";
       const char* title = rec->Name();
       const cRecordingInfo* recInfo = rec->Info();
       int pathOffset = 0;
@@ -401,11 +397,13 @@ int cUpdate::updateRecordingTable(int fullReload)
 
             eventId = recInfo->GetEvent()->EventID();
 
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20304)) || (WITH_AUX_PATCH)
             if (!isEmpty(recInfo->GetEvent()->Aux()) && xml.set(recInfo->GetEvent()->Aux()) == success)
             {
                // if (XMLElement* e = xml.getElementByName("longdescription"))
                //    longdescription = e->GetText();
             }
+#endif
          }
       }
 
@@ -436,9 +434,6 @@ int cUpdate::updateRecordingTable(int fullReload)
       // if (!isEmpty(longdescription))
       //    recordingListDb->setValue("ORGDESCRIPTION", longdescription);  // since 'LONGDESCRIPTION' already used for 'DESCRIPTION' :(
 
-      if (channel)
-         recordingListDb->setValue("CHANNELNAME", channel->Name());
-
       // scraping relevand data ..
 
       baseChanges = recordingListDb->getChanges();
@@ -449,12 +444,13 @@ int cUpdate::updateRecordingTable(int fullReload)
       // load event details
 
       cEventDetails evd;
+      if (channel) evd.setValue("CHANNELNAME", channel->Name());
       evd.loadFromFs(rec->FileName());
       evd.updateToRow(recordingListDb->getRow());
 
       // any scrap relevand data changed?
 
-      if (recordingListDb->getChanges() != baseChanges)
+      if (recordingListDb->getChanges() > baseChanges)
       {
          int isSeries = recordingListDb->hasValue("CATEGORY", "Serie");
          int changed = no;

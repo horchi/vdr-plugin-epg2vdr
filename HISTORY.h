@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.76"
-#define VERSION_DATE "21.12.2017"
+#define _VERSION     "1.1.77"
+#define VERSION_DATE "22.12.2017"
 
 #define DB_API       4
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-12-22 version 1.1.77 (horchi)
+   - change: backward compatibility to vdr 2.2.0 - another step
 
 2017-12-21 version 1.1.76 (horchi)
    - change: backward compatibility to vdr 2.2.0 - second try

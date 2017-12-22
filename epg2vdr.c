@@ -816,7 +816,7 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
    if (!data)
       return false;
 
-   tell(4, "Service called with '%s', %d/%d", id,
+   tell(3, "Service called with '%s', %d/%d", id,
         Epg2VdrConfig.replaceScheduleMenu, Epg2VdrConfig.replaceTimerMenu);
 
    if (strcmp(id, EPG2VDR_UUID_SERVICE) == 0)

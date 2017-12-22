@@ -615,7 +615,8 @@ class cDbRow : public cDbService
          int count = 0;
 
          for (int f = 0; f < tableDef->fieldCount(); f++)
-            count += dbValues[f].getChanges();
+            if (dbValues[f].getChanges())
+               count++;
 
          return count;
       }
