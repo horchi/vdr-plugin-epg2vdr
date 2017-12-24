@@ -357,7 +357,7 @@ int cUpdate::updateRecordingTable(int fullReload)
       int eventId = 0;
       std::string channelId = "";
       const char* description = "";
-      // const char* longdescription = "";
+      std::string longdescription = "";
       const char* title = rec->Name();
       const cRecordingInfo* recInfo = rec->Info();
       int pathOffset = 0;
@@ -393,15 +393,37 @@ int cUpdate::updateRecordingTable(int fullReload)
 
          if (recInfo->GetEvent())
          {
-            cXml xml;
-
             eventId = recInfo->GetEvent()->EventID();
 
 #if (defined (APIVERSNUM) && (APIVERSNUM >= 20304)) || (WITH_AUX_PATCH)
-            if (!isEmpty(recInfo->GetEvent()->Aux()) && xml.set(recInfo->GetEvent()->Aux()) == success)
+            if (channel)
             {
-               // if (XMLElement* e = xml.getElementByName("longdescription"))
-               //    longdescription = e->GetText();
+               cStateKey schedulesKey;
+               const cSchedules* schedules = cSchedules::GetSchedulesRead(schedulesKey, 500/*ms*/);
+               const cSchedule* s = schedules ? (cSchedule*)schedules->GetSchedule(channel) : 0;
+               const cEvent* event = s ? s->GetEvent(eventId) : 0;
+
+               if (event)
+               {
+                  cXml xml;
+
+                  if (isEmpty(event->Aux()))
+                     tell(0, "AUX for '%s' is empty!", title);
+
+                  if (!isEmpty(event->Aux()) && xml.set(event->Aux()) == success)
+                  {
+                     tell(0, "search 'longdescription' for '%s'", title);
+
+                     if (XMLElement* element = xml.getElementByName("longdescription"))
+                     {
+                        tell(0, "found 'longdescription' for '%s'", title);
+                        longdescription = element->GetText();
+                     }
+                  }
+               }
+
+               if (schedules)
+                  schedulesKey.Remove();
             }
 #endif
          }
@@ -425,14 +447,14 @@ int cUpdate::updateRecordingTable(int fullReload)
       recordingListDb->setValue("PATH", rec->FileName()+pathOffset);
       recordingListDb->setValue("NAME", rec->BaseName());
       recordingListDb->setValue("FOLDER", rec->Folder());
-      recordingListDb->setValue("LONGDESCRIPTION", description);
+      recordingListDb->setValue("DESCRIPTION", description);
       recordingListDb->setValue("DURATION", rec->LengthInSeconds() > 0 ? rec->LengthInSeconds() : 0);
       recordingListDb->setValue("EVENTID", eventId);
       recordingListDb->setValue("CHANNELID", channelId.c_str());
       recordingListDb->setValue("FSK", fsk);
 
-      // if (!isEmpty(longdescription))
-      //    recordingListDb->setValue("ORGDESCRIPTION", longdescription);  // since 'LONGDESCRIPTION' already used for 'DESCRIPTION' :(
+      if (longdescription.length())
+         recordingListDb->setValue("LONGDESCRIPTION", longdescription.c_str());
 
       // scraping relevand data ..
 
@@ -452,32 +474,32 @@ int cUpdate::updateRecordingTable(int fullReload)
 
       if (recordingListDb->getChanges() > baseChanges)
       {
-         int isSeries = recordingListDb->hasValue("CATEGORY", "Serie");
-         int changed = no;
+         // int isSeries = recordingListDb->hasValue("CATEGORY", "Serie");
+         // int changed = no;
 
-         if (isSeries)
-         {
-            if (recordingListDb->getValue("SCRSERIESID")->isEmpty() ||
-                !recordingListDb->hasValue("SCRSERIESEPISODE", recordingListDb->getIntValue("SCRINFOEPISODEID")) ||
-                !recordingListDb->hasValue("SCRSERIESID", recordingListDb->getIntValue("SCRINFOSERIESID")))
-            {
-               changed = yes;
-            }
-         }
-         else
-         {
-            if (recordingListDb->getValue("SCRMOVIEID")->isEmpty() ||
-                !recordingListDb->hasValue("SCRMOVIEID", recordingListDb->getIntValue("SCRINFOMOVIEID")))
-            {
-               changed = yes;
-            }
-         }
+         // if (isSeries)
+         // {
+         //    if (recordingListDb->getValue("SCRSERIESID")->isEmpty() ||
+         //        !recordingListDb->hasValue("SCRSERIESEPISODE", recordingListDb->getIntValue("SCRINFOEPISODEID")) ||
+         //        !recordingListDb->hasValue("SCRSERIESID", recordingListDb->getIntValue("SCRINFOSERIESID")))
+         //    {
+         //       changed = yes;
+         //    }
+         // }
+         // else
+         // {
+         //    if (recordingListDb->getValue("SCRMOVIEID")->isEmpty() ||
+         //        !recordingListDb->hasValue("SCRMOVIEID", recordingListDb->getIntValue("SCRINFOMOVIEID")))
+         //    {
+         //       changed = yes;
+         //    }
+         // }
 
-         if (changed)
-         {
-            recordingListDb->setValue("SCRNEW", yes);     // force scrap
-            recordingListDb->setValue("SCRSP", time(0));  // force load from vdr
-         }
+         // if (changed)
+         // {
+         recordingListDb->setValue("SCRNEW", yes);     // force scrap
+         recordingListDb->setValue("SCRSP", time(0));  // force load from vdr
+         // }
       }
 
       // don't toggle uuid if already set!

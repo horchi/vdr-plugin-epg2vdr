@@ -13,6 +13,11 @@
 #  include <vdr/config.h>
 #  include <vdr/tools.h>
 
+/*
+ * It must always be done in the sequence:
+ *    Timers -> Channels -> Recordings -> Schedules
+*/
+
 //***************************************************************************
 // Timer List Lock Macros
 //***************************************************************************

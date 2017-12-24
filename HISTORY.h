@@ -5,10 +5,10 @@
  *
  */
 
-#define _VERSION     "1.1.77"
+#define _VERSION     "1.1.78"
 #define VERSION_DATE "22.12.2017"
 
-#define DB_API       4
+#define DB_API       5
 
 #ifdef GIT_REV
 #  define VERSION _VERSION "-GIT" GIT_REV
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2017-12-22 version 1.1.78 (horchi)
+   - change: update of recording description handling
 
 2017-12-22 version 1.1.77 (horchi)
    - change: backward compatibility to vdr 2.2.0 - another step

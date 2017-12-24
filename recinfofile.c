@@ -33,6 +33,7 @@ const char* cEventDetails::fields[] =
    "OTHER",
    "GUEST",
    "CAMERA",
+   "LONGDESCRIPTION",
 
    "SCRSERIESID",
    "SCRSERIESEPISODE",
@@ -166,10 +167,7 @@ int cEventDetails::updateToRow(cDbRow* row)
       else if (value->getField()->isInt())
          value->setValue(atoi(it->second.c_str()));
       else
-      {
          tell(0, "Info: Field '%s' unhandled for info.epg2vdr", it->first.c_str());
-         continue;
-      }
    }
 
    return success;
@@ -200,7 +198,12 @@ int cEventDetails::storeToFs(const char* path)
    // store fields
 
    for (it = values.begin(); it != values.end(); it++)
-      fprintf(f, "%s: %s\n", it->first.c_str(), it->second.c_str());
+   {
+      char* value = strdup(it->second.c_str());
+      strReplace(value, '\n', '|');
+      fprintf(f, "%s: %s\n", it->first.c_str(), value);
+      free(value);
+   }
 
    free(fileName);
    fclose(f);
@@ -257,7 +260,12 @@ int cEventDetails::loadFromFs(const char* path)
       p = skipspace(rTrim(p));
 
       if (!isEmpty(p))
-         values[s] = p;
+      {
+         char* value = strdup(p);
+         strReplace(value, '|', '\n');
+         values[s] = value;
+         free(value);
+      }
    }
 
    free(fileName);

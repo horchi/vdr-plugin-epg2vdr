@@ -501,7 +501,7 @@ Table recordinglist
    TITLE                ""            title            Ascii      200 Data,
    SHORTTEXT            ""            shorttext        Ascii      300 Data,
    LONGDESCRIPTION      ""            longdescription  MText    25000 Data,
-   // ORGDESCRIPTION       ""            orgdescription   MText    25000 Data,
+   DESCRIPTION          ""            description      MText    25000 Data,
    DURATION             ""            duration         UInt         0 Data,
    FSK                  ""            fsk              UInt         1 Data,
 
