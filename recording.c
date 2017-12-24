@@ -395,7 +395,7 @@ int cUpdate::updateRecordingTable(int fullReload)
          {
             eventId = recInfo->GetEvent()->EventID();
 
-#if (defined (APIVERSNUM) && (APIVERSNUM >= 20304)) || (WITH_AUX_PATCH)
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20304))
             if (channel)
             {
                cStateKey schedulesKey;
