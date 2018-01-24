@@ -730,7 +730,7 @@ class cDbConnection
          {
             connectDropped = yes;
 
-            tell(0, "Calling mysql_init(%ld)", syscall(__NR_gettid));
+            tell(2, "Calling mysql_init(%ld)", syscall(__NR_gettid));
 
             if (!(mysql = mysql_init(0)))
                return errorSql(this, "attachConnection(init)");
@@ -780,7 +780,7 @@ class cDbConnection
       {
          if (mysql)
          {
-            tell(0, "Closing mysql connection and calling mysql_thread_end(%ld)", syscall(__NR_gettid));
+            tell(2, "Closing mysql connection and calling mysql_thread_end(%ld)", syscall(__NR_gettid));
 
             mysql_close(mysql);
             mysql_thread_end();

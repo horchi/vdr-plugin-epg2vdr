@@ -55,14 +55,14 @@ const char* cEventDetails::fields[] =
 
 void cEventDetails::setValue(const char* name, const char* value)
 {
-   std::map<std::string,std::string>::iterator it;
+   // std::map<std::string,std::string>::iterator it;
 
-   it = values.find(name);
+   auto it = values.find(name);
 
-   if (it == values.end() || it->first != value)
+   if (it == values.end() || it->second != value)
    {
       changes++;
-      values[name] = value;
+      values[name] = value ? value : "";
    }
 }
 
@@ -77,7 +77,7 @@ void cEventDetails::setValue(const char* name, int value)
 
 int cEventDetails::updateByRow(cDbRow* row)
 {
-   std::map<std::string,std::string>::iterator it;
+   // std::map<std::string,std::string>::iterator it;
 
    for (int i = 0; fields[i]; i++)
    {
@@ -106,7 +106,7 @@ int cEventDetails::updateByRow(cDbRow* row)
             continue;
          }
 
-         it = values.find(fields[i]);
+         auto it = values.find(fields[i]);
 
          if (it == values.end() || it->second != v)
          {
@@ -215,14 +215,17 @@ int cEventDetails::storeToFs(const char* path)
 // Load From Fs
 //***************************************************************************
 
-int cEventDetails::loadFromFs(const char* path)
+int cEventDetails::loadFromFs(const char* path, cDbRow* row, int doClear)
 {
    FILE* f;
    char* fileName = 0;
    std::map<std::string,std::string>::iterator it;
 
-   values.clear();
-   changes = 0;
+   if (doClear)
+   {
+      values.clear();
+      changes = 0;
+   }
 
    asprintf(&fileName, "%s/info.epg2vdr", path);
 
@@ -258,6 +261,12 @@ int cEventDetails::loadFromFs(const char* path)
 
       *(p++) = 0;
       p = skipspace(rTrim(p));
+
+      if (!row->getTableDef()->getField(s, /*silent*/ yes))
+      {
+         tell(0, "Warning: Ignoring unexpected field '%s' in '%s'", s, fileName);
+         continue;
+      }
 
       if (!isEmpty(p))
       {

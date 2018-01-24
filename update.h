@@ -75,7 +75,7 @@ class cEventDetails
    public:
 
       cEventDetails()     { changes = 0; }
-      ~cEventDetails()    { }
+      ~cEventDetails()    {}
 
       int getChanges()    { return changes; }
       void clearChanges() { changes = 0; }
@@ -84,7 +84,7 @@ class cEventDetails
       void setValue(const char* name, int value);
 
       int storeToFs(const char* path);
-      int loadFromFs(const char* path);
+      int loadFromFs(const char* path, cDbRow* row, int doClear = yes);
       int updateByRow(cDbRow* row);
       int updateToRow(cDbRow* row);
 

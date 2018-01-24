@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.78"
-#define VERSION_DATE "22.12.2017"
+#define _VERSION     "1.1.79"
+#define VERSION_DATE "24.01.2018"
 
 #define DB_API       5
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-01-24 version 1.1.79 (horchi)
+   - change: minor changes, fixes and code cleanup
 
 2017-12-22 version 1.1.78 (horchi)
    - change: update of recording description handling

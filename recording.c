@@ -169,7 +169,7 @@ int cUpdate::updatePendingRecordingInfoFiles(const cRecordings* recordings)
 
       if (selectEventById->find())
       {
-         evd.loadFromFs(path.c_str());
+         evd.loadFromFs(path.c_str(), useeventsDb->getRow());
          evd.updateByRow(useeventsDb->getRow());
 
          if (evd.getChanges())
@@ -223,7 +223,7 @@ int cUpdate::storeAllRecordingInfoFiles()
 
       asprintf(&path, "%s/%s", videoBasePath, recordingListDb->getStrValue("PATH"));
 
-      evd.loadFromFs(path);
+      evd.loadFromFs(path, recordingListDb->getRow());
       evd.updateByRow(recordingListDb->getRow());
 
       if (evd.getChanges())
@@ -275,7 +275,7 @@ int cUpdate::updateRecordingInfoFiles()
 
       if (folderExists(path))
       {
-         evd.loadFromFs(path);
+         evd.loadFromFs(path, recordingListDb->getRow());
          evd.updateByRow(recordingListDb->getRow());
 
          if (evd.getChanges())
@@ -398,28 +398,16 @@ int cUpdate::updateRecordingTable(int fullReload)
 #if (defined (APIVERSNUM) && (APIVERSNUM >= 20304))
             if (channel)
             {
+               cXml xml;
                cStateKey schedulesKey;
                const cSchedules* schedules = cSchedules::GetSchedulesRead(schedulesKey, 500/*ms*/);
                const cSchedule* s = schedules ? (cSchedule*)schedules->GetSchedule(channel) : 0;
                const cEvent* event = s ? s->GetEvent(eventId) : 0;
 
-               if (event)
+               if (event && !isEmpty(event->Aux()) && xml.set(event->Aux()) == success)
                {
-                  cXml xml;
-
-                  if (isEmpty(event->Aux()))
-                     tell(0, "AUX for '%s' is empty!", title);
-
-                  if (!isEmpty(event->Aux()) && xml.set(event->Aux()) == success)
-                  {
-                     tell(0, "search 'longdescription' for '%s'", title);
-
-                     if (XMLElement* element = xml.getElementByName("longdescription"))
-                     {
-                        tell(0, "found 'longdescription' for '%s'", title);
-                        longdescription = element->GetText();
-                     }
-                  }
+                  if (XMLElement* element = xml.getElementByName("longdescription"))
+                     longdescription = element->GetText();
                }
 
                if (schedules)
@@ -467,39 +455,18 @@ int cUpdate::updateRecordingTable(int fullReload)
 
       cEventDetails evd;
       if (channel) evd.setValue("CHANNELNAME", channel->Name());
-      evd.loadFromFs(rec->FileName());
+      evd.loadFromFs(rec->FileName(), recordingListDb->getRow(), no);
+
+   tell(0, "CCCC");
       evd.updateToRow(recordingListDb->getRow());
+   tell(0, "DDDD");
 
       // any scrap relevand data changed?
 
       if (recordingListDb->getChanges() > baseChanges)
       {
-         // int isSeries = recordingListDb->hasValue("CATEGORY", "Serie");
-         // int changed = no;
-
-         // if (isSeries)
-         // {
-         //    if (recordingListDb->getValue("SCRSERIESID")->isEmpty() ||
-         //        !recordingListDb->hasValue("SCRSERIESEPISODE", recordingListDb->getIntValue("SCRINFOEPISODEID")) ||
-         //        !recordingListDb->hasValue("SCRSERIESID", recordingListDb->getIntValue("SCRINFOSERIESID")))
-         //    {
-         //       changed = yes;
-         //    }
-         // }
-         // else
-         // {
-         //    if (recordingListDb->getValue("SCRMOVIEID")->isEmpty() ||
-         //        !recordingListDb->hasValue("SCRMOVIEID", recordingListDb->getIntValue("SCRINFOMOVIEID")))
-         //    {
-         //       changed = yes;
-         //    }
-         // }
-
-         // if (changed)
-         // {
          recordingListDb->setValue("SCRNEW", yes);     // force scrap
          recordingListDb->setValue("SCRSP", time(0));  // force load from vdr
-         // }
       }
 
       // don't toggle uuid if already set!
@@ -517,7 +484,6 @@ int cUpdate::updateRecordingTable(int fullReload)
       }
 
       count++;
-
       recordingListDb->reset();
    }
 
