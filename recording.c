@@ -456,10 +456,7 @@ int cUpdate::updateRecordingTable(int fullReload)
       cEventDetails evd;
       if (channel) evd.setValue("CHANNELNAME", channel->Name());
       evd.loadFromFs(rec->FileName(), recordingListDb->getRow(), no);
-
-   tell(0, "CCCC");
       evd.updateToRow(recordingListDb->getRow());
-   tell(0, "DDDD");
 
       // any scrap relevand data changed?
 
