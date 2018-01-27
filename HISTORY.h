@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.79"
-#define VERSION_DATE "24.01.2018"
+#define _VERSION     "1.1.80"
+#define VERSION_DATE "27.01.2018"
 
 #define DB_API       5
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-01-27 version 1.1.80 (horchi)
+   - added: Service to check if event has a timer
 
 2018-01-24 version 1.1.79 (horchi)
    - change: minor changes, fixes and code cleanup
