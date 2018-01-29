@@ -407,7 +407,8 @@ int cUpdate::updateRecordingTable(int fullReload)
                if (event && !isEmpty(event->Aux()) && xml.set(event->Aux()) == success)
                {
                   if (XMLElement* element = xml.getElementByName("longdescription"))
-                     longdescription = element->GetText();
+                     if (!isEmpty(element->GetText()))
+                        longdescription = element->GetText();
                }
 
                if (schedules)

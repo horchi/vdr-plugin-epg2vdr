@@ -282,7 +282,8 @@ int cUpdate::initDb()
    if (vdrDb->getIntValue("DBAPI") != DB_API)
    {
       if (vdrDb->getIntValue("DBAPI") < DB_API)
-         tell(0, "Found dbapi %d, expected %d, please alter the tables first! Aborting now.",
+         tell(0,  "Your database has version %d, epg2vdr expects version %d. Please make sure, epgd and "
+              "epg2vdr use the same version and the database is properly updated",
               (int)vdrDb->getIntValue("DBAPI"), DB_API);
       else
          tell(0, "Found dbapi %d, expected %d, please update me! Aborting now.",
