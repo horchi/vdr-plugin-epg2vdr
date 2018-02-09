@@ -481,6 +481,23 @@ int cUpdate::updateRecordingTable(int fullReload)
          recordingListDb->store();
       }
 
+      // check recording image table
+
+      if (!recordingListDb->getValue("IMGID")->isEmpty())
+      {
+         recordingImagesDb->setValue("IMGID", recordingListDb->getStrValue("IMGID"));
+         recordingImagesDb->setValue("LFN", 1);
+
+         if (!recordingImagesDb->find())
+         {
+            // we don't have a image, check filesystem
+
+
+         }
+
+         recordingImagesDb->reset();
+      }
+
       count++;
       recordingListDb->reset();
    }

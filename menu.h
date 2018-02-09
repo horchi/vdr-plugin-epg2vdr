@@ -74,7 +74,8 @@ class cMenuDb : public cParameters
 
       // timer db
 
-      int createTimer(cDbRow* timerRow, const char* destUuid);
+      int createSwitchTimer(const cEvent* event);
+      int createTimer(cDbRow* timerRow, const char* destUuid, int type = ttRecord);
       int modifyTimer(cDbRow* timerRow, const char* destUuid = 0);
       int deleteTimer(long timerid);
 

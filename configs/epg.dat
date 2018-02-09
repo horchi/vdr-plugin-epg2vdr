@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------
 //
-// Table Dictionary for EPG Daemon and related Plugins
+// Database Dictionary for EPG Daemon and related Plugins
 //
 // --------------------------------------------------------------------------
 // See the README file for copyright information and how to reach the author
@@ -487,56 +487,57 @@ Index useevents
 
 Table recordinglist
 {
-   MD5PATH              ""            md5path          Ascii       40 Primary,
-   STARTTIME            ""            starttime        UInt         0 Primary,
-   OWNER                "uuid of vdr" owner            Ascii       40 Primary,
+   MD5PATH              ""                        md5path          Ascii       40 Primary,
+   STARTTIME            ""                        starttime        UInt         0 Primary,
+   OWNER                "uuid of vdr"             owner            Ascii       40 Primary,
 
-   INSSP                ""            inssp            Int         10 Meta,
-   UPDSP                ""            updsp            Int         10 Meta,
-   LASTIFOUPD           ""            lastifoupd       Int         10 Meta,
+   INSSP                ""                        inssp            Int         10 Meta,
+   UPDSP                ""                        updsp            Int         10 Meta,
+   LASTIFOUPD           ""                        lastifoupd       Int         10 Meta,
 
-   VDRUUID              ""            vdruuid          Ascii       40 Data,
-   PATH                 ""            path             Ascii     1000 Data,
-   NAME                 ""            name             Ascii     1000 Data,
-   FOLDER               ""            folder           Ascii     1000 Data,
-   TITLE                ""            title            Ascii      200 Data,
-   SHORTTEXT            ""            shorttext        Ascii      300 Data,
-   LONGDESCRIPTION      ""            longdescription  MText    25000 Data,
-   DESCRIPTION          ""            description      MText    25000 Data,
-   DURATION             ""            duration         UInt         0 Data,
-   FSK                  ""            fsk              UInt         1 Data,
+   IMGID                "md5 of title/shorttext"  imgid            Ascii       40 Data,
+   VDRUUID              ""                        vdruuid          Ascii       40 Data,
+   PATH                 ""                        path             Ascii     1000 Data,
+   NAME                 ""                        name             Ascii     1000 Data,
+   FOLDER               ""                        folder           Ascii     1000 Data,
+   TITLE                ""                        title            Ascii      200 Data,
+   SHORTTEXT            ""                        shorttext        Ascii      300 Data,
+   LONGDESCRIPTION      ""                        longdescription  MText    25000 Data,
+   DESCRIPTION          ""                        description      MText    25000 Data,
+   DURATION             ""                        duration         UInt         0 Data,
+   FSK                  ""                        fsk              UInt         1 Data,
 
-   EVENTID              "useid"       eventid          UInt         0 Data,
-   CHANNELID            ""            channelid        Ascii       50 Data,
-   CHANNELNAME          "just a copy" channelname      Ascii      100 Data,
+   EVENTID              "useid"                   eventid          UInt         0 Data,
+   CHANNELID            ""                        channelid        Ascii       50 Data,
+   CHANNELNAME          "just a copy"             channelname      Ascii      100 Data,
 
-   STATE                ""            state            Ascii        1 Data,
-   INUSE                ""            inuse            UInt         1 Data,
-   JOB                  ""            job              Ascii        1 Data,
+   STATE                ""                        state            Ascii        1 Data,
+   INUSE                ""                        inuse            UInt         1 Data,
+   JOB                  ""                        job              Ascii        1 Data,
 
    // enriched by 'external' data of events
 
-   ACTOR                ""            actor           MText     5000 Data,
-   AUDIO                ""            audio           Ascii       50 Data,
-   CATEGORY             ""            category        Ascii       50 Data,
-   COUNTRY              ""            country         Ascii       50 Data,
-   DIRECTOR             ""            director        Text      1000 Data,
-   FLAGS                ""            flags           Ascii      100 Data,
-   GENRE                ""            genre           Ascii      100 Data,
-   MUSIC                ""            music           Ascii      250 Data,
-   PRODUCER             ""            producer        Text      1000 Data,
-   SCREENPLAY           ""            screenplay      Ascii      500 Data,
-   SHORTREVIEW          ""            shortreview     Ascii      500 Data,
-   TIPP                 ""            tipp            Ascii      250 Data,
-   TOPIC                ""            topic           Ascii     1000 Data,
-   YEAR                 ""            year            Ascii       10 Data,
-   RATING               ""            rating          Ascii      250 Data,
-   NUMRATING            ""            numrating       Int          2 Data,
-   TXTRATING            ""            txtrating       Ascii      100 Data,
-   MODERATOR            ""            moderator       Ascii      250 Data,
-   OTHER                ""            other           Text      2000 Data,
-   GUEST                ""            guest           Text      1000 Data,
-   CAMERA               ""            camera          Text      1000 Data,
+   ACTOR                ""                        actor           MText     5000 Data,
+   AUDIO                ""                        audio           Ascii       50 Data,
+   CATEGORY             ""                        category        Ascii       50 Data,
+   COUNTRY              ""                        country         Ascii       50 Data,
+   DIRECTOR             ""                        director        Text      1000 Data,
+   FLAGS                ""                        flags           Ascii      100 Data,
+   GENRE                ""                        genre           Ascii      100 Data,
+   MUSIC                ""                        music           Ascii      250 Data,
+   PRODUCER             ""                        producer        Text      1000 Data,
+   SCREENPLAY           ""                        screenplay      Ascii      500 Data,
+   SHORTREVIEW          ""                        shortreview     Ascii      500 Data,
+   TIPP                 ""                        tipp            Ascii      250 Data,
+   TOPIC                ""                        topic           Ascii     1000 Data,
+   YEAR                 ""                        year            Ascii       10 Data,
+   RATING               ""                        rating          Ascii      250 Data,
+   NUMRATING            ""                        numrating       Int          2 Data,
+   TXTRATING            ""                        txtrating       Ascii      100 Data,
+   MODERATOR            ""                        moderator       Ascii      250 Data,
+   OTHER                ""                        other           Text      2000 Data,
+   GUEST                ""                        guest           Text      1000 Data,
+   CAMERA               ""                        camera          Text      1000 Data,
 
    // episode reference
 
@@ -561,6 +562,24 @@ Table recordinglist
 
    SCRNEW               ""            scrnew            UInt         0 Data,
    SCRSP                ""            scrsp             Int          0 Data,
+}
+
+// ----------------------------------------------------------------
+// Recording Images
+// ----------------------------------------------------------------
+
+Table recordingimages
+{
+   IMGID                "md5 of title/shorttext"  imgid     Ascii       40 Primary,
+   LFN                  ""                        lfn       UInt         0 Primary,
+
+   INSSP                ""                        inssp     Int          0 Meta,
+   UPDSP                ""                        updsp     Int          0 Meta,
+
+   TITLE                ""                        title     Ascii      200 Data,
+   SHORTTEXT            ""                        shorttext Ascii      300 Data,
+
+   IMAGE                ""                        image     Mlob    512000 Data,
 }
 
 // ----------------------------------------------------------------

@@ -122,6 +122,7 @@ cUpdate::cUpdate(cPluginEPG2VDR* aPlugin)
    timerDoneDb = 0;
    recordingDirDb = 0;
    recordingListDb = 0;
+   recordingImagesDb = 0;
 
    selectMasterVdr = 0;
    selectAllImages = 0;
@@ -140,6 +141,7 @@ cUpdate::cUpdate(cPluginEPG2VDR* aPlugin)
    selectTimerByDoneId = 0;
    selectMaxUpdSp = 0;
    selectPendingTimerActions = 0;
+   selectSwitchTimerActions = 0;
 
    viewDescription = 0;
    viewMergeSource = 0;
@@ -329,6 +331,9 @@ int cUpdate::initDb()
 
    recordingListDb = new cDbTable(connection, "recordinglist");
    if (recordingListDb->open() != success) return fail;
+
+   recordingImagesDb = new cDbTable(connection, "recordingimages");
+   if (recordingImagesDb->open() != success) return fail;
 
    if ((status = cParameters::initDb(connection)) != success)
       return status;
@@ -641,10 +646,28 @@ int cUpdate::initDb()
                                     timerDb->getField("ACTION")->getDbName(),
                                     timerDb->getField("ACTION")->getDbName(),
                                     timerDb->getField("ACTION")->getDbName());
+   selectPendingTimerActions->build(" and %s != '%c'",
+                                    timerDb->getField("TYPE")->getDbName(), ttView);
    selectPendingTimerActions->bind("VDRUUID", cDBS::bndIn | cDBS::bndSet, " and (");
    selectPendingTimerActions->build(" or %s = 'any')", timerDb->getField("VDRUUID")->getDbName());
 
    status += selectPendingTimerActions->prepare();
+
+   // select * from timers
+   //  where
+   //    action != 'A' and action != 'F' and action is not null   // !taAssumed and !taFailed
+   //    and (vdruuid = ? or vdruuid = 'any')
+
+   selectSwitchTimerActions = new cDbStatement(timerDb);
+
+   selectSwitchTimerActions->build("select ");
+   selectSwitchTimerActions->bindAllOut();
+   selectSwitchTimerActions->build(" from %s where ", timerDb->TableName());
+   selectSwitchTimerActions->build("%s != '%c'", timerDb->getField("STATE")->getDbName(), tsFinished);
+   selectSwitchTimerActions->build(" and %s = '%c'", timerDb->getField("TYPE")->getDbName(), ttView);
+   selectSwitchTimerActions->bind("VDRUUID", cDBS::bndIn | cDBS::bndSet, " and ");
+
+   status += selectSwitchTimerActions->prepare();
 
    // delete from timers where
    //  eventid = ?
@@ -758,6 +781,7 @@ int cUpdate::exitDb()
    delete selectTimerByDoneId;       selectTimerByDoneId = 0;
    delete selectMaxUpdSp;            selectMaxUpdSp = 0;
    delete selectPendingTimerActions; selectPendingTimerActions = 0;
+   delete selectSwitchTimerActions;  selectSwitchTimerActions = 0;
 
    delete vdrDb;                  vdrDb = 0;
    delete mapDb;                  mapDb = 0;
@@ -772,6 +796,7 @@ int cUpdate::exitDb()
    delete timerDoneDb;            timerDoneDb = 0;
    delete recordingDirDb;         recordingDirDb = 0;
    delete recordingListDb;        recordingListDb = 0;
+   delete recordingImagesDb;      recordingImagesDb = 0;
 
    delete viewDescription;        viewDescription = 0;
    delete viewMergeSource;        viewMergeSource = 0;
@@ -1223,6 +1248,10 @@ void cUpdate::Action()
       if (checkConnection(reconnectTimeout) != success)
          continue;
 
+      // switch timer
+
+      checkSwitchTimer();
+
       // recording stuff
 
       if (dbConnected() && updateRecFolderOptionTrigger)
@@ -1276,7 +1305,7 @@ void cUpdate::Action()
            updateTimerTable();
 
          if (dbConnected())
-            timerChanged();
+            hasTimerChanged();
       }
 
       // if triggered externally or updates pending

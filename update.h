@@ -144,10 +144,11 @@ class cUpdate : public cThread, public cStatus, public cParameters
 
    private:
 
-      struct TimerId
+      struct SwitchTimer
       {
-         unsigned int eventId;
-         char channelId[100];
+         long eventId;
+         std::string channelId;
+         time_t start;
       };
 
       // struct to store a recording action delieverd by the status interface
@@ -195,7 +196,9 @@ class cUpdate : public cThread, public cStatus, public cParameters
       int performTimerJobs();
       int recordingChanged();
       int updateTimerDone(int timerid, int doneid, char state);
-      int timerChanged();
+      int hasTimerChanged();
+      int takeSwitchTimer();
+      int checkSwitchTimer();
 
       // recording stuff
 
@@ -226,6 +229,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       char imageExtension[3+TB];
 
       cMutex timerMutex;
+      cMutex swTimerMutex;
       int dbReconnectTriggered;
       int timerJobsUpdateTriggered;
       int timerTableUpdateTriggered;
@@ -257,6 +261,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       cDbTable* compDb;
       cDbTable* recordingDirDb;
       cDbTable* recordingListDb;
+      cDbTable* recordingImagesDb;
 
       cDbStatement* selectMasterVdr;
       cDbStatement* selectAllImages;
@@ -271,6 +276,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       cDbStatement* selectRecordings;
       cDbStatement* selectRecForInfoUpdate;
       cDbStatement* selectPendingTimerActions;
+      cDbStatement* selectSwitchTimerActions;
       cDbStatement* selectTimerByEvent;
       cDbStatement* selectTimerById;
       cDbStatement* selectTimerByDoneId;
@@ -288,9 +294,9 @@ class cUpdate : public cThread, public cStatus, public cParameters
       cDbValue* viewMergeSource;
       cDbValue* viewLongDescription;
 
-      std::queue<std::string> pendingNewRecordings; // recordings to store details (obsolete if pendingRecordingActions implemented finally)
+      std::queue<std::string> pendingNewRecordings;        // recordings to store details (obsolete if pendingRecordingActions implemented finally)
       std::queue<RecordingAction> pendingRecordingActions; // recordings actions (start/stop)
-      std::vector<TimerId> deletedTimers;
+      std::map<long,SwitchTimer> switchTimers;
 
       static const char* auxFields[];
 };

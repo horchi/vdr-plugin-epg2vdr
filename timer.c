@@ -13,10 +13,74 @@
 #include "service.h"
 
 //***************************************************************************
+// Check Switch Timer
+//***************************************************************************
+
+int cUpdate::checkSwitchTimer()
+{
+   cMutexLock lock(&swTimerMutex);
+
+   for (auto it = switchTimers.begin(); it != switchTimers.end(); )
+   {
+      SwitchTimer* swTimer = &(it->second);
+
+      if (time(0) < swTimer->start)
+      {
+         it++;
+         continue;
+      }
+
+      tChannelID channelId = tChannelID::FromString(swTimer->channelId.c_str());
+
+#if APIVERSNUM >= 20301
+      LOCK_CHANNELS_READ;
+      const cChannels* channels = Channels;
+      const cChannel* channel = channels->GetByChannelID(channelId, true);
+#else
+      cChannels* channels = &Channels;
+      cChannel* channel = channels->GetByChannelID(channelId, true);
+#endif
+
+      if (!channel)
+      {
+         tell(0, "Switching to channel '%s' failed, channel not found!", swTimer->channelId.c_str());
+      }
+      else
+      {
+         tell(0, "Switching to channel '%s'", channel->Name());
+
+         if (!cDevice::PrimaryDevice()->SwitchChannel(channel, true))
+            Skins.Message(mtError, tr("Can't switch channel!"));
+      }
+
+      timerDb->clear();
+      timerDb->setValue("ID", it->first);
+      timerDb->setValue("VDRUUID", Epg2VdrConfig.uuid);
+
+      if (timerDb->find())
+      {
+         timerDb->setCharValue("ACTION", taAssumed);
+         timerDb->setCharValue("STATE", tsFinished);
+         timerDb->store();
+      }
+      else
+      {
+         tell(0, "Can't find timer '%ld', ignoring update of record", it->first);
+      }
+
+      timerDb->reset();
+
+      it = switchTimers.erase(it);
+   }
+
+   return done;
+}
+
+//***************************************************************************
 // Has Timer Changed
 //***************************************************************************
 
-int cUpdate::timerChanged()
+int cUpdate::hasTimerChanged()
 {
    int maxSp = 0;
    int changed = no;
@@ -48,6 +112,10 @@ int cUpdate::performTimerJobs()
    int deleteCount = 0;
    uint64_t start = cTimeMs::Now();
 
+   // switch timers ...
+
+   takeSwitchTimer();
+
    tell(1, "Checking pending timer actions ..");
 
    // check if timer pending
@@ -65,6 +133,8 @@ int cUpdate::performTimerJobs()
 
       selectPendingTimerActions->freeResult();
    }
+
+   // recording timers ...
 
    GET_TIMERS_WRITE(timers);     // get timers lock
    GET_CHANNELS_READ(channels);  // get channels lock
@@ -367,6 +437,64 @@ int cUpdate::performTimerJobs()
 }
 
 //***************************************************************************
+// Take Switch Timer
+//***************************************************************************
+
+int cUpdate::takeSwitchTimer()
+{
+   cMutexLock lock(&swTimerMutex);
+
+   tell(1, "Checking switch timer actions ..");
+
+   // iterate pending switch timers ...
+
+   timerDb->clear();
+   timerDb->setValue("VDRUUID", Epg2VdrConfig.uuid);
+
+   for (int f = selectSwitchTimerActions->find(); f && dbConnected(); f = selectSwitchTimerActions->fetch())
+   {
+      long timerid = timerDb->getIntValue("ID");
+
+      // to old?
+
+      if (time(0) > timerDb->getIntValue("_STARTTIME"))
+      {
+         // to old, set to 'Finished'
+
+         timerDb->setCharValue("ACTION", taAssumed);
+         timerDb->setCharValue("STATE", tsFinished);
+         timerDb->store();
+         continue;
+      }
+
+      // if already in list, ignore
+
+      auto it = switchTimers.find(timerid);
+
+      if (it != switchTimers.end())
+         continue;
+
+      // not in map, create
+
+      tell(1, "Got switch timer (%ld) for channel '%s' at '%s'",
+           timerDb->getIntValue("ID"), timerDb->getStrValue("CHANNELID"),
+           l2pTime(timerDb->getIntValue("_STARTTIME") - tmeSecondsPerMinute).c_str());
+
+      switchTimers[timerid].eventId = timerDb->getIntValue("EVENTID");
+      switchTimers[timerid].channelId = timerDb->getStrValue("CHANNELID");
+      switchTimers[timerid].start = timerDb->getIntValue("_STARTTIME") - tmeSecondsPerMinute;
+
+      timerDb->setCharValue("ACTION", taAssumed);
+      timerDb->setCharValue("STATE", tsPending);
+      timerDb->store();
+   }
+
+   selectSwitchTimerActions->freeResult();
+
+   return done;
+}
+
+//***************************************************************************
 // Timer Done to Failed
 //***************************************************************************
 
@@ -442,6 +570,11 @@ int cUpdate::updateTimerTable()
       // delete only assumed timers
 
       if (!timerDb->getValue("ACTION")->isEmpty() && !timerDb->hasCharValue("ACTION", taAssumed))
+         continue;
+
+      // ignore switch timer here
+
+      if (timerDb->hasCharValue("TYPE", ttView))
          continue;
 
       // count my timers to detect truncated (epmty) table
@@ -526,6 +659,7 @@ int cUpdate::updateTimerTable()
 
       if (insert)
       {
+         timerDb->setCharValue("TYPE", ttRecord);
          timerDb->setCharValue("STATE", tsPending);
          timerDb->insert();
 

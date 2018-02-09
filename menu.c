@@ -667,6 +667,7 @@ int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid)
       timerDb->setValue("VDRUUID", destUuid);
       timerDb->setCharValue("ACTION", taCreate);
       timerDb->setValue("SOURCE", Epg2VdrConfig.uuid);
+      timerDb->setCharValue("TYPE", ttRecord);
       timerDb->insert();
 
       tell(0, "Created 'move' request for timer (%d) at vdr '%s'",
@@ -681,6 +682,7 @@ int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid)
       timerDb->setCharValue("ACTION", knownTimer ? taModify : taCreate);
       timerDb->getValue("STATE")->setNull();
       timerDb->setValue("SOURCE", Epg2VdrConfig.uuid);
+      timerDb->setCharValue("TYPE", ttRecord);
 
       if (!knownTimer)
          timerDb->setValue("NAMINGMODE", tnmAuto);
@@ -702,10 +704,38 @@ int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid)
 }
 
 //***************************************************************************
+// Create Switch Timer
+//***************************************************************************
+
+int cMenuDb::createSwitchTimer(const cEvent* event)
+{
+   int timerMatch = tmNone;
+   int remote = no;
+
+   // alredy or nearly started?
+
+   if (!event || event->StartTime() <= time(0)+tmeSecondsPerMinute)
+      return done;
+
+   // already created?
+
+   if (lookupTimer(event, timerMatch, remote))
+      return done;
+
+   cDbRow* timerRow = newTimerRowFromEvent(event);
+   createTimer(timerRow, Epg2VdrConfig.uuid, ttView);
+
+   tell(0, "Switch timer for '%s' at '%s' created",
+        event->Title(), l2pTime(event->StartTime()).c_str());
+
+   return done;
+}
+
+//***************************************************************************
 // Create Timer
 //***************************************************************************
 
-int cMenuDb::createTimer(cDbRow* timerRow, const char* destUuid)
+int cMenuDb::createTimer(cDbRow* timerRow, const char* destUuid, int type)
 {
    long int manualTimer2Done;
 
@@ -717,11 +747,13 @@ int cMenuDb::createTimer(cDbRow* timerRow, const char* destUuid)
    timerDb->copyValues(timerRow, cDBS::ftData);
 
    timerDb->setValue("VDRUUID", destUuid);
+   timerDb->setCharValue("TYPE", type);
+   // timerDb->setCharValue("ACTIVE", type != ttView);  // #TODO will this better?
    timerDb->setCharValue("ACTION", taCreate);
    timerDb->setValue("SOURCE", Epg2VdrConfig.uuid);
    timerDb->setValue("NAMINGMODE", tnmAuto);
 
-   if (manualTimer2Done)
+   if (manualTimer2Done && type != ttView)
    {
       useeventsDb->clear();
       useeventsDb->setValue("USEID", timerRow->getIntValue("EVENTID"));

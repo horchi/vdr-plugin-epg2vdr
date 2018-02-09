@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2017-03-24 07:25+0100\n"
+"POT-Creation-Date: 2018-02-09 11:16+0100\n"
 "PO-Revision-Date: 2009-08-27 21:45+0100\n"
 "Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
 "Language-Team:  <vdr@linuxtv.org>\n"
@@ -181,6 +181,9 @@ msgid "Search matching Recordings"
 msgstr ""
 
 msgid "Searchtimers"
+msgstr ""
+
+msgid "Switch Timer"
 msgstr ""
 
 msgid "Matching recordings"

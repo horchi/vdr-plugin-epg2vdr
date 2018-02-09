@@ -5,10 +5,10 @@
  *
  */
 
-#define _VERSION     "1.1.81"
-#define VERSION_DATE "29.01.2018"
+#define _VERSION     "1.1.82"
+#define VERSION_DATE "09.02.2018"
 
-#define DB_API       5
+#define DB_API       6
 
 #ifdef GIT_REV
 #  define VERSION _VERSION "-GIT" GIT_REV
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-02-09 version 1.1.82 (horchi)
+   - added: Switch timer
 
 2018-01-29 version 1.1.81 (horchi)
    - bugfix: Fixed possible crash on recording update without longdescription

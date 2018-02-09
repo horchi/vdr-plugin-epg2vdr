@@ -4,4 +4,4 @@
 
 - anlegen eines Suchtimer über das event
 - timer mit action 'C' auch ohne vdruuid übernehmen
-- db Verbindungssaten ohne Neustart übernehmen
+- db Verbindungsdaten ohne Neustart übernehmen

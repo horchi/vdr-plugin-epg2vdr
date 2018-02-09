@@ -16,7 +16,7 @@
 
 #define LOC_INDEXFILESUFFIX "/index"
 
-bool IsPesRecording(const cRecording *pRecording)
+bool IsPesRecording(const cRecording* pRecording)
 {
 #if VDRVERSNUM < 10703
   return true;

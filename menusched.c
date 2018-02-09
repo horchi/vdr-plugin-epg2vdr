@@ -49,6 +49,7 @@ cEpgCommandMenu::cEpgCommandMenu(const char* title, cMenuDb* db, const cMenuEpgS
    cOsdMenu::Add(new cOsdItem(hk(tr("Search matching Events")),     osUser1));
    cOsdMenu::Add(new cOsdItem(hk(tr("Search matching Recordings")), osUser2));
    cOsdMenu::Add(new cOsdItem(hk(tr("Searchtimers")),               osUser3));
+   cOsdMenu::Add(new cOsdItem(hk(tr("Switch Timer")),               osUser4));
 
    SetHelp(0, 0, 0, 0);
 
@@ -77,7 +78,18 @@ eOSState cEpgCommandMenu::ProcessKey(eKeys key)
          break;
       }
 
-      case osUser3: return AddSubMenu(new cMenuEpgSearchTimers());
+      case osUser3:
+      {
+         return AddSubMenu(new cMenuEpgSearchTimers());
+      }
+
+      case osUser4:
+      {
+         if (item)
+            menuDb->createSwitchTimer(item->event);
+
+         return osBack;
+      }
 
       default: ;
    }
@@ -1028,13 +1040,13 @@ eOSState cMenuEpgWhatsOn::Record()
 
    menuDb->getParameter(menuDb->user.c_str(), "timerDefaultVDRuuid", timerDefaultVDRuuid);
 
-   // Menü bei 'aktuellem' Event Timer Dialog öffen -> #TODO
+   // // Menü bei 'aktuellem' Event Timer Dialog öffen -> #TODO
 
-   if (timer && timer->Event() && timer->Event()->StartTime() < time(0) + NEWTIMERLIMIT)
-   {
-      // timer = newTimerObjectFromRow(timerRow, xxxxx);
-      // return AddSubMenu(new cMenuEpgEditTimer(menuDb, timer));
-   }
+   // if (item->event && item->event->StartTime() < time(0) + NEWTIMERLIMIT)
+   // {
+   //    // timer = newTimerObjectFromRow(timerRow, xxxxx);
+   //    // return AddSubMenu(new cMenuEpgEditTimer(menuDb, timer));
+   // }
 
    // ansonsten direkt anlegen
 
@@ -1119,7 +1131,10 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
 
          case k4:  // Umschalt Timer erstellen
          {
-            break;
+            if (cMenuEpgScheduleItem* mi = (cMenuEpgScheduleItem*)Get(Current()))
+               menuDb->createSwitchTimer(mi->event);
+
+            return osContinue;
          }
 
          case kRecord:
