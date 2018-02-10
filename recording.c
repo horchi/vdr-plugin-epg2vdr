@@ -200,6 +200,7 @@ int cUpdate::storeAllRecordingInfoFiles()
 {
    cEventDetails evd;
    int count = 0;
+   int imgCount = 0;
 
    tell(1, "Store info.epg2vdr for all recordings");
 
@@ -239,6 +240,36 @@ int cUpdate::storeAllRecordingInfoFiles()
       recordingListDb->setValue("LASTIFOUPD", sp);
       recordingListDb->update(sp);
 
+      // store the pictures to the filesystem
+
+      recordingImagesDb->clear();
+      recordingImagesDb->setValue("IMGID", recordingListDb->getStrValue("IMGID"));
+
+      for (int i = selectImagesOfRecording->find(); i && dbConnected(); i = selectImagesOfRecording->fetch())
+      {
+         char* imgPath;
+         int lfn = recordingImagesDb->getIntValue("LFN");
+         int size = imageSize.getIntValue();
+
+         asprintf(&imgPath, "%s/test_%d.jpg", path, lfn);
+
+         if (!fileExists(imgPath) || fileSize(imgPath) != size)
+         {
+            tell(1, "Storing image of recording '%s'  to '%s'",
+                 recordingListDb->getStrValue("TITLE"), imgPath);
+
+            if (fileExists(imgPath))
+               removeFile(imgPath);
+
+            storeToFile(imgPath, recordingImagesDb->getStrValue("IMAGE"), size);
+            imgCount++;
+         }
+
+         free(imgPath);
+      }
+
+      selectImagesOfRecording->freeResult();
+
       free(path);
    }
 
@@ -246,7 +277,7 @@ int cUpdate::storeAllRecordingInfoFiles()
    selectRecordings->freeResult();
    storeAllRecordingInfoFilesTrigger = no;
 
-   tell(1, "Stored %d info.epg2vdr files", count);
+   tell(1, "Stored %d info.epg2vdr files and %d images", count, imgCount);
 
    return done;
 }
@@ -485,8 +516,9 @@ int cUpdate::updateRecordingTable(int fullReload)
 
       if (!recordingListDb->getValue("IMGID")->isEmpty())
       {
+         recordingImagesDb->clear();
          recordingImagesDb->setValue("IMGID", recordingListDb->getStrValue("IMGID"));
-         recordingImagesDb->setValue("LFN", 1);
+         recordingImagesDb->setValue("LFN", 0);
 
          if (!recordingImagesDb->find())
          {

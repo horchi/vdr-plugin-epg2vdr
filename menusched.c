@@ -1132,7 +1132,13 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
          case k4:  // Umschalt Timer erstellen
          {
             if (cMenuEpgScheduleItem* mi = (cMenuEpgScheduleItem*)Get(Current()))
+            {
                menuDb->createSwitchTimer(mi->event);
+               sleep(1);
+
+               if (Update())
+                  Display();
+            }
 
             return osContinue;
          }

@@ -274,6 +274,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       cDbStatement* deleteTimer;
       cDbStatement* selectMyTimer;
       cDbStatement* selectRecordings;
+      cDbStatement* selectImagesOfRecording;
       cDbStatement* selectRecForInfoUpdate;
       cDbStatement* selectPendingTimerActions;
       cDbStatement* selectSwitchTimerActions;
@@ -288,6 +289,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       cDbValue extChannelId;
       cDbValue imageUpdSp;
       cDbValue imageSize;
+      cDbValue imageSizeRec;
       cDbValue masterId;
 
       cDbValue* viewDescription;

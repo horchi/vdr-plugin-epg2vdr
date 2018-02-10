@@ -135,6 +135,7 @@ cUpdate::cUpdate(cPluginEPG2VDR* aPlugin)
    deleteTimer = 0;
    selectMyTimer = 0;
    selectRecordings = 0;
+   selectImagesOfRecording = 0;
    selectRecForInfoUpdate = 0;
    selectTimerByEvent = 0;
    selectTimerById = 0;
@@ -538,6 +539,24 @@ int cUpdate::initDb()
 
    status += selectRecordings->prepare();
 
+   // select *
+   //   from recordingimages where
+   //      imgid = ?
+
+   imageSizeRec.setField(&imageSizeDef);
+
+   selectImagesOfRecording = new cDbStatement(recordingImagesDb);
+
+   selectImagesOfRecording->build("select ");
+   selectImagesOfRecording->bindAllOut();
+   selectImagesOfRecording->build(", length(");
+   selectImagesOfRecording->bind(&imageSize, cDBS::bndOut);
+   selectImagesOfRecording->build(")");
+   selectImagesOfRecording->build(" from %s where ", recordingImagesDb->TableName());
+   selectImagesOfRecording->bind("IMGID", cDBS::bndIn | cDBS::bndSet);
+
+   status += selectImagesOfRecording->prepare();
+
    // select srcmovieid, srcseriesid, scrseriesepisode
    //   from recordinglist where
    //      state <> 'D' or stete is null
@@ -777,6 +796,7 @@ int cUpdate::exitDb()
    delete deleteTimer;               deleteTimer = 0;
    delete selectMyTimer;             selectMyTimer = 0;
    delete selectRecordings;          selectRecordings = 0;
+   delete selectImagesOfRecording;   selectImagesOfRecording = 0;
    delete selectRecForInfoUpdate;    selectRecForInfoUpdate = 0;
    delete selectTimerByEvent;        selectTimerByEvent = 0;
    delete selectTimerById;           selectTimerById = 0;
