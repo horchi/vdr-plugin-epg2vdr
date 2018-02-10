@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.82"
-#define VERSION_DATE "09.02.2018"
+#define _VERSION     "1.1.83"
+#define VERSION_DATE "10.02.2018"
 
 #define DB_API       6
 
@@ -18,6 +18,10 @@
 
 /*
  * ------------------------------------
+
+2018-02-10 version 1.1.83 (horchi)
+   - bugfix: Fixed delete of Switch timer
+   - added: Fill recording images table with images of existing recordings
 
 2018-02-09 version 1.1.82 (horchi)
    - added: Switch timer

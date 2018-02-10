@@ -663,7 +663,9 @@ int cUpdate::initDb()
    selectSwitchTimerActions->build("select ");
    selectSwitchTimerActions->bindAllOut();
    selectSwitchTimerActions->build(" from %s where ", timerDb->TableName());
-   selectSwitchTimerActions->build("%s != '%c'", timerDb->getField("STATE")->getDbName(), tsFinished);
+   selectSwitchTimerActions->build("%s != '%c' and %s != '%c'",
+                                   timerDb->getField("STATE")->getDbName(), tsFinished,
+                                   timerDb->getField("STATE")->getDbName(), tsDeleted);
    selectSwitchTimerActions->build(" and %s = '%c'", timerDb->getField("TYPE")->getDbName(), ttView);
    selectSwitchTimerActions->bind("VDRUUID", cDBS::bndIn | cDBS::bndSet, " and ");
 

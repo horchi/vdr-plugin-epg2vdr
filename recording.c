@@ -490,9 +490,56 @@ int cUpdate::updateRecordingTable(int fullReload)
 
          if (!recordingImagesDb->find())
          {
+            const char* ext = ".jpg";
+            MemoryStruct data;
+            struct dirent* dirent;
+            DIR* dir;
+            char* recdir;
+            int lfn = 0;
+
             // we don't have a image, check filesystem
 
+            asprintf(&recdir, "%s/%s", videoBasePath, recordingListDb->getStrValue("PATH"));
+            dir = opendir(recdir);
 
+            if (!dir)
+            {
+               tell(1, "Can't open directory '%s', '%s'", recdir, strerror(errno));
+               continue;
+            }
+
+            free(recdir);
+
+            while ((dirent = readdir(dir)))
+            {
+               // check extension
+
+               if (strncmp(dirent->d_name + strlen(dirent->d_name) - strlen(ext), ext, strlen(ext)) != 0)
+                  continue;
+
+               char* imgPath;
+               asprintf(&imgPath, "%s/%s/%s", videoBasePath, recordingListDb->getStrValue("PATH"), dirent->d_name);
+
+               tell(0, "%s'found image for '%s' [%s]", fileExists(imgPath) ? "" : "Don't ",
+                    recordingListDb->getStrValue("TITLE"), imgPath);
+
+               if (loadFromFile(imgPath, &data) == success)
+               {
+                  if (data.size < (unsigned long)imageDb->getField("IMAGE")->getSize())
+                  {
+                     recordingImagesDb->setValue("IMGID", recordingListDb->getStrValue("IMGID"));
+                     recordingImagesDb->setValue("LFN", lfn++);
+                     recordingImagesDb->setValue("IMAGE", data.memory, data.size);
+                     recordingImagesDb->setValue("TITLE", recordingListDb->getStrValue("TITLE"));
+                     recordingImagesDb->setValue("SHORTTEXT", recordingListDb->getStrValue("SHORTTEXT"));
+                     recordingImagesDb->store();
+                  }
+               }
+
+               free(imgPath);
+            }
+
+            closedir(dir);
          }
 
          recordingImagesDb->reset();

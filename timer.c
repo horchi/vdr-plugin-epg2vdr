@@ -467,14 +467,31 @@ int cUpdate::takeSwitchTimer()
          continue;
       }
 
-      // if already in list, ignore
+      // check state, did we have it already?
 
       auto it = switchTimers.find(timerid);
+
+      // ACTION is delete?
+
+      if (timerDb->hasCharValue("ACTION", taDelete))
+      {
+         if (it != switchTimers.end())
+            switchTimers.erase(it);
+
+         timerDb->setCharValue("ACTION", taAssumed);
+         timerDb->setCharValue("STATE", tsDeleted);
+         timerDb->store();
+         continue;
+      }
+
+      // if already in map, ignore
 
       if (it != switchTimers.end())
          continue;
 
-      // not in map, create
+      // not in map, create it
+      // independend if ACTION is 'pending', 'create' or 'modify' ore something else
+      // that's special for switch timers since we have to get the 'pending' also after a vdr restart
 
       tell(1, "Got switch timer (%ld) for channel '%s' at '%s'",
            timerDb->getIntValue("ID"), timerDb->getStrValue("CHANNELID"),
