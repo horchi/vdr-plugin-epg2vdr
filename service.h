@@ -22,6 +22,13 @@ class cEpgTimer_Interface_V1 : public cTimer
 {
    public:
 
+      enum TimerType
+      {
+         ttRecord = 'R',   // Aufnahme-Timer
+         ttView   = 'V',   // Umschalt-Timer
+         ttSearch = 'S'    // Such-Timer
+      };
+
       cEpgTimer_Interface_V1(bool Instant = false, bool Pause = false, const cChannel* Channel = 0)
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
          : cTimer(Instant, Pause, Channel) {}
@@ -36,11 +43,15 @@ class cEpgTimer_Interface_V1 : public cTimer
       int isVdrRunning()           const { return vdrRunning; }
       int isLocal()                const { return local; }
       int isRemote()               const { return !isLocal(); }
-
+      int isRecordTimer()          const { return type == ttRecord; }
+      int isSwithTimer()           const { return type == ttView; }
       char State()                 const { return state; }
       int  hasState(char s)        const { return state == s; }
       const char* StateInfo()      const { return stateInfo ? stateInfo : ""; }
       char Action()                const { return action; }
+      char Type()                  const { return type; }
+      time_t CreateTime()          const { return createTime; }
+      time_t ModTime()             const { return modTime; }
 
    protected:
 
@@ -55,6 +66,10 @@ class cEpgTimer_Interface_V1 : public cTimer
       char state;
       char* stateInfo;
       char action;
+
+      char type;
+      time_t createTime;
+      time_t modTime;
 };
 
 //***************************************************************************
@@ -110,10 +125,13 @@ class cEpgTimer : public cEpgTimer_Interface_V1
       cEpgTimer(bool Instant = false, bool Pause = false, const cChannel* Channel = 0);
       virtual ~cEpgTimer();
 
-      void setTimerId(long id)    { timerid = id; }
-      void setEventId(long id)    { eventid = id; }
+      void setTimerId(long id)      { timerid = id; }
+      void setEventId(long id)      { eventid = id; }
+      void setAction(char a)        { action = a; }
+      void setType(char t)          { type = t; }
+      void setCreateTime(time_t t)  { createTime = t; }
+      void setModTime(time_t t)     { modTime = t; }
       void setState(char s, const char* info);
-      void setAction(char a);
       void setVdr(const char* name, const char* uuid = 0, int running = 0);
 };
 

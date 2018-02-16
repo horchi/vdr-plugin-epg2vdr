@@ -595,7 +595,7 @@ int cUpdate::updateTimerTable()
          continue;
 
       // count my timers to detect truncated (epmty) table
-      // on empty table ignore known timer ids
+      //  -> on empty table ignore known timer ids
 
       cnt++;
 
@@ -613,8 +613,8 @@ int cUpdate::updateTimerTable()
 
          // compare by start-time and channelid
 
-         if (t->StartTime() == timerDb->getIntValue("StartTime") &&
-             strcmp(t->Channel()->GetChannelID().ToString(), timerDb->getStrValue("ChannelId")) == 0)
+         if (t->StartTime() == timerDb->getIntValue("STARTTIME") &&
+             strcmp(t->Channel()->GetChannelID().ToString(), timerDb->getStrValue("CHANNELID")) == 0)
          {
             exist = yes;
             break;

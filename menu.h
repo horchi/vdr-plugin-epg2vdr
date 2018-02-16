@@ -76,7 +76,7 @@ class cMenuDb : public cParameters
 
       int createSwitchTimer(const cEvent* event);
       int createTimer(cDbRow* timerRow, const char* destUuid, int type = ttRecord);
-      int modifyTimer(cDbRow* timerRow, const char* destUuid = 0);
+      int modifyTimer(cDbRow* timerRow, const char* destUuid, char destType);
       int deleteTimer(long timerid);
 
       //
@@ -206,6 +206,8 @@ class cMenuEpgEditTimer : public cOsdMenu
                strcpy(file, Timer->File());
                vdrIndex = 0;
                free(aux); aux = 0;
+               createTime = Timer->CreateTime();
+               modTime = Timer->ModTime();
 
                if (New)
                   flags |= tfActive;
@@ -218,6 +220,7 @@ class cMenuEpgEditTimer : public cOsdMenu
                state = Timer->State();
                sprintf(stateInfo, "%.300s", Timer->StateInfo());
                action = Timer->Action();
+               type = Timer->Type();
                strcpy(lastVdrUuid, Timer->VdrUuid());
 
                for (int i = 0; i < db->vdrCount; i++)
@@ -247,6 +250,7 @@ class cMenuEpgEditTimer : public cOsdMenu
                timerRow->setValue("PRIORITY", priority);
                timerRow->setValue("LIFETIME", lifetime);
                timerRow->setValue("EVENTID", eventid);
+               //  don't set TYPE here !!! timerRow->setValue("TYPE", type); if needed we have to do it via lastType like VdrUuid
 
                return done;
             }
@@ -263,7 +267,11 @@ class cMenuEpgEditTimer : public cOsdMenu
             char state;
             char stateInfo[300+TB];
             char action;
+            char type;
             int vdrIndex;
+            int typeIndex;
+            time_t createTime;
+            time_t modTime;
             const cChannel* channel;
             mutable time_t day;
             mutable char file[NAME_MAX*2 + TB]; // *2 to be able to hold 'title' and 'episode', which can each be up to 255 characters long

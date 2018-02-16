@@ -471,9 +471,12 @@ cEpgTimer* newTimerObjectFromRow(cDbRow* timerRow, cDbRow* vdrRow)
 
    timer->setTimerId(timerRow->getIntValue("ID"));
    timer->setEventId(timerRow->getIntValue("EVENTID"));
+   timer->setType(!timerRow->getValue("TYPE")->isNull() ? timerRow->getStrValue("TYPE")[0] : ttRecord);
    timer->setAction(!timerRow->getValue("ACTION")->isNull() ? timerRow->getStrValue("ACTION")[0] : ' ');
    timer->setVdr(vdrRow->getStrValue("NAME"), vdrRow->getStrValue("UUID"), vdrRow->hasValue("STATE", "attached"));
    timer->setState(!timerRow->getValue("STATE")->isNull() ? timerRow->getStrValue("STATE")[0] : ' ', timerRow->getStrValue("INFO"));
+   timer->setCreateTime(timerRow->getIntValue("INSSP"));
+   timer->setModTime(timerRow->getIntValue("UPDSP"));
 
 #ifdef WITH_PIN
    timer->SetFskProtection(timerRow->getIntValue("CHILDLOCK"));

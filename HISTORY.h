@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.83"
-#define VERSION_DATE "10.02.2018"
+#define _VERSION     "1.1.84"
+#define VERSION_DATE "13.02.2018"
 
 #define DB_API       6
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-02-13 version 1.1.84 (horchi)
+   - added: Timer 'type' to timers menu
 
 2018-02-10 version 1.1.83 (horchi)
    - bugfix: Fixed delete of Switch timer

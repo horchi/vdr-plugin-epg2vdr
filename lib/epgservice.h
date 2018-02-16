@@ -106,6 +106,8 @@ enum TimerAction
    taReject   = 'T'
 };
 
+// ATTENTION: Update type also in service.h when changing timer types here!!
+
 enum TimerType
 {
    ttRecord = 'R',   // Aufnahme-Timer

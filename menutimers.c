@@ -12,6 +12,13 @@
 #include "plgconfig.h"
 #include "menu.h"
 
+const char* actions[] =
+{
+   "Record",
+   "Switch",
+   0
+};
+
 //***************************************************************************
 // cMenuEpgEditTimer
 //***************************************************************************
@@ -28,9 +35,11 @@ cMenuEpgEditTimer::cMenuEpgEditTimer(cMenuDb* db, cEpgTimer* Timer, bool New)
    if (Timer)
    {
       data.fromTimer(Timer);
+      data.typeIndex = data.type == ttView ? 1 : 0;             // default 'Record'
 
       channelNr = data.channel->Number();
       Add(new cMenuEditBitItem(tr("Active"),       &data.flags, tfActive));
+      Add(new cMenuEditStraItem(tr("Type"),        &data.typeIndex, 2, actions));
 
       if (menuDb->vdrCount)
          Add(new cMenuEditStraItem(tr("VDR"),      &data.vdrIndex, menuDb->vdrCount, menuDb->vdrList));
@@ -61,6 +70,8 @@ cMenuEpgEditTimer::cMenuEpgEditTimer(cMenuDb* db, cEpgTimer* Timer, bool New)
          Add(new cOsdItem(cString::sprintf("\t%s", data.stateInfo)));
 
       Add(new cOsdItem(cString::sprintf("Pending action:\t%s", toName((TimerAction)data.action, yes))));
+      Add(new cOsdItem(cString::sprintf("Created:\t%s", l2pTime(data.createTime).c_str())));
+      Add(new cOsdItem(cString::sprintf("Modified:\t%s", l2pTime(data.modTime).c_str())));
    }
 
    SetHelpKeys();
@@ -153,11 +164,12 @@ eOSState cMenuEpgEditTimer::ProcessKey(eKeys Key)
             if (!*data.file)
                strcpy(data.file, data.channel->ShortName(true));
 
+            char newType = data.typeIndex == 0 ? ttRecord : ttView;
             cDbRow timerRow("timers");
 
             data.toRow(&timerRow);
 
-            // get actual timer state from database
+            // get actual timer state from database (only for check if it is running)
 
             menuDb->timerDb->clear();
             menuDb->timerDb->setValue("ID", data.TimerId());
@@ -176,7 +188,7 @@ eOSState cMenuEpgEditTimer::ProcessKey(eKeys Key)
                   return osContinue;
             }
 
-            menuDb->modifyTimer(&timerRow, data.getVdrUuid());
+            menuDb->modifyTimer(&timerRow, data.getVdrUuid(), newType);
 
             return osBack;
          }

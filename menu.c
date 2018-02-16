@@ -621,14 +621,27 @@ int cMenuDb::lookupTimer(const cEvent* event, int& timerMatch, int& remote, int 
 // Modify Timer
 //
 //    - timerRow contain the actual vdrUuid
-//    - for move destUuid is set
+//    - for move destUuid or newType is set
 //***************************************************************************
 
-int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid)
+int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid, char destType)
 {
-   int knownTimer = !timerRow->hasValue("ID", (long)na);
-   int move = knownTimer && destUuid && !timerRow->hasValue("VDRUUID", destUuid);
    int timerid = timerDb->getIntValue("ID");
+   int knownTimer = !timerRow->hasValue("ID", (long)na);
+   int move = no;
+
+   if (knownTimer)
+   {
+      // mive to other VDR?
+
+      if (!timerRow->hasValue("VDRUUID", destUuid))
+         move = yes;
+
+      // move to other type
+
+      else if (!timerRow->hasCharValue("TYPE", destType))
+         move = yes;
+   }
 
    // lookup known (existing) timer
 
@@ -667,11 +680,11 @@ int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid)
       timerDb->setValue("VDRUUID", destUuid);
       timerDb->setCharValue("ACTION", taCreate);
       timerDb->setValue("SOURCE", Epg2VdrConfig.uuid);
-      timerDb->setCharValue("TYPE", ttRecord);
+      timerDb->setCharValue("TYPE", destType);
       timerDb->insert();
 
-      tell(0, "Created 'move' request for timer (%d) at vdr '%s'",
-           timerid, timerDb->getStrValue("VDRUUID"));
+      tell(0, "Created 'move' request for timer (%d) at vdr '%s' and type '%s'",
+           timerid, timerDb->getStrValue("VDRUUID"), timerDb->getStrValue("TYPE"));
    }
    else
    {
@@ -682,7 +695,7 @@ int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid)
       timerDb->setCharValue("ACTION", knownTimer ? taModify : taCreate);
       timerDb->getValue("STATE")->setNull();
       timerDb->setValue("SOURCE", Epg2VdrConfig.uuid);
-      timerDb->setCharValue("TYPE", ttRecord);
+      timerDb->setCharValue("TYPE", destType);
 
       if (!knownTimer)
          timerDb->setValue("NAMINGMODE", tnmAuto);

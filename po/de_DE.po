@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2018-02-09 11:16+0100\n"
+"POT-Creation-Date: 2018-02-12 08:57+0100\n"
 "PO-Revision-Date: 2009-08-27 21:40+0200\n"
 "Last-Translator: Klaus Schmidinger <kls@cadsoft.de>\n"
 "Language-Team: <vdr@linuxtv.org>\n"
@@ -252,6 +252,9 @@ msgstr "Timer bearbeiten"
 
 msgid "Active"
 msgstr "Aktiv"
+
+msgid "Type"
+msgstr ""
 
 msgid "VDR"
 msgstr ""

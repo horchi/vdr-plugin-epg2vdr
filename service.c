@@ -20,6 +20,10 @@ cEpgTimer::cEpgTimer(bool Instant, bool Pause, const cChannel* Channel)
    vdrRunning = no;
    stateInfo = 0;
    local = yes;
+   type = ttRecord;
+   action = '-';
+   createTime = 0;
+   modTime = 0;
 }
 
 cEpgTimer::~cEpgTimer()
@@ -37,11 +41,6 @@ void cEpgTimer::setState(char s, const char* info)
 
    if (!isEmpty(info))
       stateInfo = strdup(info);
-}
-
-void cEpgTimer::setAction(char a)
-{
-   action = a;
 }
 
 void cEpgTimer::setVdr(const char* name, const char* uuid, int running)
