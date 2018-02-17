@@ -107,6 +107,7 @@ enum TimerAction
 };
 
 // ATTENTION: Update type also in service.h when changing timer types here!!
+//  -> and at the skindesigner plugin!
 
 enum TimerType
 {

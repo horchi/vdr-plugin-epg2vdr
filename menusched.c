@@ -154,8 +154,8 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
       const char* vdr = 0;
 
 #ifdef WITH_PIN
-         if (!cOsd::pinValid && menuDb->recordingListDb->getIntValue("FSK"))
-            continue;
+      if (!cOsd::pinValid && menuDb->recordingListDb->getIntValue("FSK"))
+         continue;
 #endif
 
       if (!menuDb->recordingListDb->getValue("OWNER")->isEmpty())

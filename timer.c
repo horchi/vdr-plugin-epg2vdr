@@ -19,6 +19,7 @@
 int cUpdate::checkSwitchTimer()
 {
    cMutexLock lock(&swTimerMutex);
+   int res = fail;
 
    for (auto it = switchTimers.begin(); it != switchTimers.end(); )
    {
@@ -51,6 +52,8 @@ int cUpdate::checkSwitchTimer()
 
          if (!cDevice::PrimaryDevice()->SwitchChannel(channel, true))
             Skins.Message(mtError, tr("Can't switch channel!"));
+         else
+            res = success;
       }
 
       timerDb->clear();
@@ -61,6 +64,7 @@ int cUpdate::checkSwitchTimer()
       {
          timerDb->setCharValue("ACTION", taAssumed);
          timerDb->setCharValue("STATE", tsFinished);
+         timerDb->getValue("INFO")->sPrintf("Swich %s", res == success ? "succeeded" : "failed");
          timerDb->store();
       }
       else
@@ -463,6 +467,7 @@ int cUpdate::takeSwitchTimer()
 
          timerDb->setCharValue("ACTION", taAssumed);
          timerDb->setCharValue("STATE", tsFinished);
+         timerDb->setValue("INFO", "Removed, to old");
          timerDb->store();
          continue;
       }
@@ -494,7 +499,7 @@ int cUpdate::takeSwitchTimer()
       // that's special for switch timers since we have to get the 'pending' also after a vdr restart
 
       tell(1, "Got switch timer (%ld) for channel '%s' at '%s'",
-           timerDb->getIntValue("ID"), timerDb->getStrValue("CHANNELID"),
+           timerid, timerDb->getStrValue("CHANNELID"),
            l2pTime(timerDb->getIntValue("_STARTTIME") - tmeSecondsPerMinute).c_str());
 
       switchTimers[timerid].eventId = timerDb->getIntValue("EVENTID");
