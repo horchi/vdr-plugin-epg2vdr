@@ -11,6 +11,8 @@
 #include <vdr/status.h>
 #include <vdr/menu.h>
 
+#include "lib/xml.h"
+
 #include "plgconfig.h"
 #include "menu.h"
 #include "ttools.h"
@@ -670,7 +672,7 @@ int cMenuEpgWhatsOn::LoadAt()
       return LoadSearch(userTime);
 
    Clear();
-//   Timers.Modified(timerState);
+   // Timers.Modified(timerState);
 
    SetMenuCategory(userTime->getMode() == cUserTimes::mNow ? mcScheduleNow : mcScheduleNext);
 
@@ -706,9 +708,6 @@ int cMenuEpgWhatsOn::LoadAt()
                case cUserTimes::mTime: Event = Schedule->GetEventAround(userTime->getTime());  break;
             }
          }
-
-         // #TODO
-         // hier ein cEpgEvent für das Event aus der Row erzeugen und dieses anstelle von cEvent für das Menü verwenden
 
          if (!Event && !Epg2VdrConfig.showEmptyChannels)
             continue;

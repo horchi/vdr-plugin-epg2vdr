@@ -871,7 +871,7 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
       return true;
    }
 
-   if (strcmp(id, EPG2VDR_TIMER_SERVICE) == 0 || strcmp(id, EPG2VDR_REC_DETAIL_SERVICE) == 0 || strcmp(id, EPG2VDR_HAS_TIMER) == 0)
+   if (strcmp(id, EPG2VDR_TIMER_SERVICE) == 0 || strcmp(id, EPG2VDR_REC_DETAIL_SERVICE) == 0 || strcmp(id, EPG2VDR_TIMER_DETAIL_SERVICE) == 0)
    {
       // Services with direct db access
 
@@ -886,9 +886,9 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
             if (ts)
                return timerService(ts);
          }
-         if (strcmp(id, EPG2VDR_HAS_TIMER) == 0)
+         if (strcmp(id, EPG2VDR_TIMER_DETAIL_SERVICE) == 0)
          {
-            cHas_Timer_V1* d = (cHas_Timer_V1*)data;
+            cTimer_Detail_V1* d = (cTimer_Detail_V1*)data;
 
             if (d)
                return hasTimerService(d);
@@ -912,7 +912,7 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
 // Has Timer Service
 //***************************************************************************
 
-int cPluginEPG2VDR::hasTimerService(cHas_Timer_V1* d)
+int cPluginEPG2VDR::hasTimerService(cTimer_Detail_V1* d)
 {
    cMutexLock lock(&mutexTimerService);
 
@@ -920,12 +920,17 @@ int cPluginEPG2VDR::hasTimerService(cHas_Timer_V1* d)
    vdrDb->clear();
 
    d->hastimer = no;
+   d->local = yes;
+   d->type = ttRecord;
 
    for (int f = selectTimers->find(); f && connection->check() == success; f = selectTimers->fetch())
    {
       if (timerDb->hasValue("EVENTID", d->eventid))
       {
          d->hastimer = yes;
+         d->local = timerDb->hasValue("VDRUUID", Epg2VdrConfig.uuid);
+         d->type = timerDb->getValue("TYPE")->getCharValue();
+
          break;
       }
    }

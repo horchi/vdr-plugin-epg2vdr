@@ -73,7 +73,7 @@ class cEpgTimer_Interface_V1 : public cTimer
 };
 
 //***************************************************************************
-// Timer Service Interface
+// Timer Service
 //***************************************************************************
 
 struct cEpgTimer_Service_V1
@@ -82,17 +82,19 @@ struct cEpgTimer_Service_V1
 };
 
 //***************************************************************************
-// Has Timer
+// Timer Detail Service
 //***************************************************************************
 
-struct cHas_Timer_V1
+struct cTimer_Detail_V1
 {
    long eventid;
    int hastimer;
+   int local;
+   char type;
 };
 
 //***************************************************************************
-// Recording Detail Service Interface
+// Recording Detail Service
 //***************************************************************************
 
 struct cEpgRecording_Details_Service_V1
@@ -101,17 +103,17 @@ struct cEpgRecording_Details_Service_V1
    std::string details;
 };
 
-#define EPG2VDR_TIMER_UPDATED      "Epg2Vdr_Timer_Updated-v1.0"
-#define EPG2VDR_TIMER_SERVICE      "Epg2Vdr_Timer_Service-v1.0"
-#define EPG2VDR_HAS_TIMER          "Epg2Vdr_Has_Timer_Service-v1.0"
-#define EPG2VDR_REC_DETAIL_SERVICE "Epg2Vdr_RecDetail_Service-v1.0"
+#define EPG2VDR_TIMER_UPDATED         "Epg2Vdr_Timer_Updated-v1.0"
+#define EPG2VDR_TIMER_SERVICE         "Epg2Vdr_Timer_Service-v1.0"
+#define EPG2VDR_TIMER_DETAIL_SERVICE  "Epg2Vdr_Timer_Detail_Service-v1.0"
+#define EPG2VDR_REC_DETAIL_SERVICE    "Epg2Vdr_RecDetail_Service-v1.0"
 
 #ifdef EPG2VDR
 
 //***************************************************************************
 //***************************************************************************
 //***************************************************************************
-// Internal Stuff
+// EPG2VDR Internal Stuff
 //***************************************************************************
 
 //***************************************************************************

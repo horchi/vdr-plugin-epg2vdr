@@ -1801,7 +1801,7 @@ cEvent* cUpdate::createEventFromRow(const cDbRow* row)
          // finally add some fields of the view
 
          xml.appendElement("source", viewMergeSource->getStrValue());
-         xml.appendElement("longdescription", viewLongDescription->getStrValue());
+         xml.appendElement("longdescription", viewLongDescription->getStrValue()); // the real original without view additions
 
          // set to events aux field
 
