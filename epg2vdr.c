@@ -422,6 +422,7 @@ cPluginEPG2VDR::cPluginEPG2VDR()
    vdrDb = 0;
    useeventsDb = 0;
    selectTimers = 0;
+   selectTimerByEvent = 0;
    selectEventById = 0;
    recordingListDb = 0;
 }
@@ -485,6 +486,23 @@ int cPluginEPG2VDR::initDb()
 
    status += selectTimers->prepare();
 
+   // select id, eventid, channelid, starttime, state, endtime
+   //   from timers where
+   //     eventid = ? and channelid = ? and vdruuid = ?
+
+   selectTimerByEvent = new cDbStatement(timerDb);
+
+   selectTimerByEvent->build("select ");
+   selectTimerByEvent->bindAllOut();
+   selectTimerByEvent->build(" from %s where %s and (%s in ('P','R') or %s is null)",
+                             timerDb->TableName(),
+                             timerDb->getField("ACTIVE")->getDbName(),
+                             timerDb->getField("STATE")->getDbName(),
+                             timerDb->getField("STATE")->getDbName());
+   selectTimerByEvent->bind("EVENTID", cDBS::bndIn | cDBS::bndSet, " and ");
+
+   status += selectTimerByEvent->prepare();
+
    // select event by useid
    // select * from eventsview
    //      where useid = ?
@@ -511,6 +529,7 @@ int cPluginEPG2VDR::exitDb()
    {
       delete selectEventById;      selectEventById = 0;
       delete selectTimers;         selectTimers = 0;
+      delete selectTimerByEvent;   selectTimerByEvent = 0;
 
       delete useeventsDb;          useeventsDb = 0;
       delete timerDb;              timerDb = 0;
@@ -916,24 +935,24 @@ int cPluginEPG2VDR::hasTimerService(cTimer_Detail_V1* d)
 {
    cMutexLock lock(&mutexTimerService);
 
-   timerDb->clear();
-   vdrDb->clear();
-
    d->hastimer = no;
    d->local = yes;
    d->type = ttRecord;
 
-   for (int f = selectTimers->find(); f && connection->check() == success; f = selectTimers->fetch())
-   {
-      if (timerDb->hasValue("EVENTID", d->eventid))
-      {
-         d->hastimer = yes;
-         d->local = timerDb->hasValue("VDRUUID", Epg2VdrConfig.uuid);
-         d->type = timerDb->getValue("TYPE")->getCharValue();
+   timerDb->clear();
+   timerDb->setValue("EVENTID", d->eventid);
 
-         break;
-      }
+   if (selectTimerByEvent->find())
+   {
+      d->hastimer = yes;
+      d->local = timerDb->hasValue("VDRUUID", Epg2VdrConfig.uuid);
+      d->type = timerDb->getValue("TYPE")->getCharValue();
+
+      tell(3, "timer service found '%s' timer (%ld) for event (%ld) type '%c'",
+           d->local ? "local" : "remote", timerDb->getIntValue("ID"), d->eventid, d->type);
    }
+
+   selectTimerByEvent->freeResult();
 
    return true;
 }
@@ -961,6 +980,8 @@ int cPluginEPG2VDR::timerService(cEpgTimer_Service_V1* ts)
       else
          delete epgTimer;
    }
+
+   selectTimers->freeResult();
 
    tell(1, "Answer '%s' call with %zd timers, duration was (%s)",
         EPG2VDR_TIMER_SERVICE,

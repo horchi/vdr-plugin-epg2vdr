@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.1.85"
+#define _VERSION     "1.1.86"
 #define VERSION_DATE "17.02.2018"
 
 #define DB_API       6
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-02-17 version 1.1.86 (horchi)
+   - bugfix: Fix for 1.1.85
 
 2018-02-17 version 1.1.85 (horchi)
    - added: Timer type and location to timer detail service

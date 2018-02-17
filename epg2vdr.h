@@ -76,6 +76,7 @@ class cPluginEPG2VDR : public cPlugin
       cDbTable* useeventsDb;
       cDbTable* recordingListDb;
       cDbStatement* selectTimers;
+      cDbStatement* selectTimerByEvent;
       cDbStatement* selectEventById;
       cMutex mutexTimerService;
       cMutex mutexServiceWithDb;
