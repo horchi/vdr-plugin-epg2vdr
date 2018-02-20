@@ -500,11 +500,11 @@ int cUpdate::takeSwitchTimer()
 
       tell(1, "Got switch timer (%ld) for channel '%s' at '%s'",
            timerid, timerDb->getStrValue("CHANNELID"),
-           l2pTime(timerDb->getIntValue("_STARTTIME") - tmeSecondsPerMinute).c_str());
+           l2pTime(timerDb->getIntValue("_STARTTIME")).c_str());
 
       switchTimers[timerid].eventId = timerDb->getIntValue("EVENTID");
       switchTimers[timerid].channelId = timerDb->getStrValue("CHANNELID");
-      switchTimers[timerid].start = timerDb->getIntValue("_STARTTIME") - tmeSecondsPerMinute;
+      switchTimers[timerid].start = timerDb->getIntValue("_STARTTIME");
 
       timerDb->setCharValue("ACTION", taAssumed);
       timerDb->setCharValue("STATE", tsPending);
