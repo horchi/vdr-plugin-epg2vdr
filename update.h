@@ -149,6 +149,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
          long eventId;
          std::string channelId;
          time_t start;
+         int notified;
       };
 
       // struct to store a recording action delieverd by the status interface

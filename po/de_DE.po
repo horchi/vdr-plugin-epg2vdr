@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2018-02-12 08:57+0100\n"
+"POT-Creation-Date: 2018-02-22 19:07+0100\n"
 "PO-Revision-Date: 2009-08-27 21:40+0200\n"
 "Last-Translator: Klaus Schmidinger <kls@cadsoft.de>\n"
 "Language-Team: <vdr@linuxtv.org>\n"
@@ -90,6 +90,9 @@ msgstr "Tausche Taste OK/Blau"
 
 msgid "Show Channels without EPG"
 msgstr "Zeige Kanäle ohne EPG"
+
+msgid "Switch timer notification timer [s]"
+msgstr ""
 
 msgid "Web"
 msgstr "Netzwerk"

@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.87"
-#define VERSION_DATE "20.02.2018"
+#define _VERSION     "1.1.88"
+#define VERSION_DATE "22.02.2018"
 
 #define DB_API       6
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-02-22 version 1.1.88 (horchi)
+   - added: Optional switch timer notification message
 
 2018-02-20 version 1.1.87 (horchi)
    - change: No forerunnings for switch timers

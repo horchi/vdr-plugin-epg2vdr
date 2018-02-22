@@ -38,6 +38,7 @@ struct cEpg2VdrConfig : public cEpgConfig
       char user[100+TB];
       int showEmptyChannels;
       int extendedEpgData2Aux;
+      int switchTimerNotifyTime;
 };
 
 extern cEpg2VdrConfig Epg2VdrConfig;

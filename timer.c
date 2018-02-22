@@ -27,6 +27,15 @@ int cUpdate::checkSwitchTimer()
 
       if (time(0) < swTimer->start)
       {
+         if (!swTimer->notified && Epg2VdrConfig.switchTimerNotifyTime && time(0) >= swTimer->start - Epg2VdrConfig.switchTimerNotifyTime)
+         {
+            char* buf;
+            asprintf(&buf, "Switching in %ld seconds to '%s'", swTimer->start-time(0), swTimer->channelId.c_str());
+            Skins.Message(mtInfo, buf);
+            free(buf);
+            swTimer->notified = yes;
+         }
+
          it++;
          continue;
       }
@@ -505,6 +514,7 @@ int cUpdate::takeSwitchTimer()
       switchTimers[timerid].eventId = timerDb->getIntValue("EVENTID");
       switchTimers[timerid].channelId = timerDb->getStrValue("CHANNELID");
       switchTimers[timerid].start = timerDb->getIntValue("_STARTTIME");
+      switchTimers[timerid].notified = no;
 
       timerDb->setCharValue("ACTION", taAssumed);
       timerDb->setCharValue("STATE", tsPending);

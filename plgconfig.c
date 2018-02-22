@@ -34,4 +34,5 @@ cEpg2VdrConfig::cEpg2VdrConfig()
    *user = 0;
    showEmptyChannels = no;
    extendedEpgData2Aux = no;
+   switchTimerNotifyTime = 0;
 }

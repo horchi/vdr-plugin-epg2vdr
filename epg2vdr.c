@@ -292,6 +292,7 @@ void cMenuSetupEPG2VDR::Setup()
    Add(new cMenuEditBoolItem(tr("Replace Timer Menu"), &data.replaceTimerMenu));
    Add(new cMenuEditBoolItem(tr("XChange Key Ok/Blue"), &data.xchgOkBlue));
    Add(new cMenuEditBoolItem(tr("Show Channels without EPG"), &data.showEmptyChannels));
+   Add(new cMenuEditIntItem(tr("Switch timer notification timer [s]"), &data.switchTimerNotifyTime, 0, 999));
 
    Add(new cOsdItem(cString::sprintf("--------------------- %s ---------------------------------", tr("Web"))));
    cList<cOsdItem>::Last()->SetSelectable(false);
@@ -375,6 +376,7 @@ void cMenuSetupEPG2VDR::Store()
    SetupStore("ReplaceScheduleMenu", Epg2VdrConfig.replaceScheduleMenu);
    SetupStore("ReplaceTimerMenu", Epg2VdrConfig.replaceTimerMenu);
    SetupStore("ExtendedEpgData2Aux", Epg2VdrConfig.extendedEpgData2Aux);
+   SetupStore("SwTimerNotifyTime", Epg2VdrConfig.switchTimerNotifyTime);
 
    if (userCount && Epg2VdrConfig.userIndex >= 0)
    {
@@ -1150,6 +1152,7 @@ bool cPluginEPG2VDR::SetupParse(const char *Name, const char *Value)
    else if (!strcasecmp(Name, "ReplaceTimerMenu"))     Epg2VdrConfig.replaceTimerMenu = atoi(Value);
    else if (!strcasecmp(Name, "User"))                 sstrcpy(Epg2VdrConfig.user, Value, sizeof(Epg2VdrConfig.user));
    else if (!strcasecmp(Name, "ExtendedEpgData2Aux"))  Epg2VdrConfig.extendedEpgData2Aux = atoi(Value);
+   else if (!strcasecmp(Name, "SwTimerNotifyTime"))    Epg2VdrConfig.switchTimerNotifyTime = atoi(Value);
 
    else
       return false;
