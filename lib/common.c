@@ -1919,3 +1919,51 @@ int urlUnescape(char* dst, const char* src, int normalize)
 
    return (dst - org_dst) - 1;
 }
+
+//***************************************************************************
+//***************************************************************************
+// Timer Thread
+//***************************************************************************
+
+cTimerThread::cTimerThread(sendEventFct fct, int aEvent, time_t aTime, void* aUserData, bool aSelfDistroy)
+{
+   sendEvent = fct;
+   event = aEvent;
+   theTime = aTime;
+   userData = aUserData;
+   selfdetroy = aSelfDistroy;
+   active = no;
+
+   Start();
+}
+
+//***************************************************************************
+// Action
+//***************************************************************************
+
+void cTimerThread::Action()
+{
+   cMutex mutex;
+
+   active = yes;
+
+   mutex.Lock();
+   tell(1, "Info: Started timer thread, event (%d) scheduled for '%s'", event, l2pTime(theTime).c_str());
+
+   while (time(0) < theTime && Running() && active)
+   {
+      // loop every 10 seconds
+
+      waitCondition.TimedWait(mutex, (theTime - time(0)) * 1000);
+   }
+
+   if (time(0) >= theTime && sendEvent)
+      sendEvent(event, userData);
+
+   tell(3, "Info: Finished timer thread");
+
+   active = no;
+
+   // if (selfdetroy)
+   //    delete this;   // :o :o ;)
+}

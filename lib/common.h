@@ -414,6 +414,34 @@ class LogDuration
 };
 
 //***************************************************************************
+// Timer Thread
+//***************************************************************************
+
+class cTimerThread : public cThread
+{
+   public:
+
+      typedef void (*sendEventFct)(int event, void* userData);
+
+      cTimerThread(sendEventFct fct, int aEvent, time_t aTime, void* aUserData = 0, bool aSelfDistroy = no);
+
+      int isActive() { return active; }
+
+   protected:
+
+      virtual void Action();
+
+      int event;
+      time_t theTime;
+      void* userData;
+      bool selfdetroy;
+      cCondVar waitCondition;
+      int active;
+
+      sendEventFct sendEvent;
+};
+
+//***************************************************************************
 // Semaphore
 //***************************************************************************
 

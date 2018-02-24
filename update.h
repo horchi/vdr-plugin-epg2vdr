@@ -115,6 +115,12 @@ class cUpdate : public cThread, public cStatus, public cParameters
          mmCount
       };
 
+      enum Event
+      {
+         evtUnknown = na,
+         evtSwitchTimer,
+      };
+
       cUpdate(cPluginEPG2VDR* aPlugin);
       ~cUpdate();
 
@@ -168,6 +174,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       int exitDb();
 
       void Action(void);
+      void processEvents();
       int isHandlerMaster();
       void updateVdrData();
       int updateRecFolderOption();
@@ -239,6 +246,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       int recordingFullReloadTrigger;
       int storeAllRecordingInfoFilesTrigger;
       int updateRecFolderOptionTrigger;
+      int switchTimerTrigger;
       cList<cRunningRecording> runningRecordings;
       cMutex runningRecMutex;
 
@@ -300,6 +308,11 @@ class cUpdate : public cThread, public cStatus, public cParameters
       std::queue<std::string> pendingNewRecordings;        // recordings to store details (obsolete if pendingRecordingActions implemented finally)
       std::queue<RecordingAction> pendingRecordingActions; // recordings actions (start/stop)
       std::map<long,SwitchTimer> switchTimers;
+      std::queue<int> eventHook;
+      cMutex eventHookMutex;
+
+      std::list<cTimerThread*> timerThreads;
+      static void sendEvent(int event, void* userData);
 
       static const char* auxFields[];
 };
