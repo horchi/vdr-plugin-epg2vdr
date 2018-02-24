@@ -584,7 +584,7 @@ int cUpdate::updateTimerTable()
 
    tell(1, "Updating table timers (and remove deleted and finished timers older than 2 days)");
 
-   timerDb->deleteWhere("%s < unix_timestamp() - %d and %s in ('D','F')",
+   timerDb->deleteWhere("%s < unix_timestamp() - %d and %s in ('D','F','-')",
                         timerDb->getField("UPDSP")->getDbName(),
                         2 * tmeSecondsPerDay,
                         timerDb->getField("STATE")->getDbName());
