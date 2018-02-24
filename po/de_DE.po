@@ -92,7 +92,7 @@ msgid "Show Channels without EPG"
 msgstr "Zeige Kanäle ohne EPG"
 
 msgid "Switch timer notification timer [s]"
-msgstr ""
+msgstr "OSD Meldung bevor umgeschaltet wird [s]"
 
 msgid "Web"
 msgstr "Netzwerk"
