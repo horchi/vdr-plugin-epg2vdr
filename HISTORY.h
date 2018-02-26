@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.90"
-#define VERSION_DATE  "24.02.2018"
+#define _VERSION     "1.1.91"
+#define VERSION_DATE  "26.02.2018"
 
 #define DB_API       6
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-02-26 version 1.1.91 (horchi)
+   - change: backward compatibility to vdr 2.2.0 - another step
 
 2018-02-23 version 1.1.90 (horchi)
    - change: improved timer cleanup

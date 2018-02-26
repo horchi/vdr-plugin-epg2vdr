@@ -33,6 +33,7 @@
 
 #ifdef VDR_PLUGIN
 #  include <vdr/tools.h>
+#  include <vdr/thread.h>
 #endif
 
 class MemoryStruct;

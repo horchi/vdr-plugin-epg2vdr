@@ -24,22 +24,6 @@ int cUpdate::checkSwitchTimer()
    for (auto it = switchTimers.begin(); it != switchTimers.end(); )
    {
       SwitchTimer* swTimer = &(it->second);
-
-      if (time(0) < swTimer->start)
-      {
-         if (!swTimer->notified && Epg2VdrConfig.switchTimerNotifyTime && time(0) >= swTimer->start - Epg2VdrConfig.switchTimerNotifyTime)
-         {
-            char* buf;
-            asprintf(&buf, "Switching in %ld seconds to '%s'", swTimer->start-time(0), swTimer->channelId.c_str());
-            Skins.QueueMessage(mtInfo, buf);
-            free(buf);
-            swTimer->notified = yes;
-         }
-
-         it++;
-         continue;
-      }
-
       tChannelID channelId = tChannelID::FromString(swTimer->channelId.c_str());
 
 #if APIVERSNUM >= 20301
@@ -50,6 +34,22 @@ int cUpdate::checkSwitchTimer()
       cChannels* channels = &Channels;
       cChannel* channel = channels->GetByChannelID(channelId, true);
 #endif
+
+      if (time(0) < swTimer->start)
+      {
+         if (!swTimer->notified && Epg2VdrConfig.switchTimerNotifyTime && time(0) >= swTimer->start - Epg2VdrConfig.switchTimerNotifyTime)
+         {
+            char* buf;
+            asprintf(&buf, tr("Switching in %ld seconds to '%s'"), swTimer->start-time(0),
+                     channel ? channel->Name() : swTimer->channelId.c_str());
+            Skins.QueueMessage(mtInfo, buf);
+            free(buf);
+            swTimer->notified = yes;
+         }
+
+         it++;
+         continue;
+      }
 
       if (!channel)
       {

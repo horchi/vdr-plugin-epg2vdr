@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2018-02-22 19:07+0100\n"
+"POT-Creation-Date: 2018-02-26 08:20+0100\n"
 "PO-Revision-Date: 2009-08-27 21:45+0100\n"
 "Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
 "Language-Team:  <vdr@linuxtv.org>\n"
@@ -334,6 +334,10 @@ msgid "Delete timer?"
 msgstr ""
 
 msgid "Timer still recording - really delete?"
+msgstr ""
+
+#, c-format
+msgid "Switching in %ld seconds to '%s'"
 msgstr ""
 
 #, c-format
