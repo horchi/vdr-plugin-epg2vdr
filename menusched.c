@@ -148,7 +148,7 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
 
    menuDb->selectRecordingForEvent->freeResult();
 
-   Add(new cOsdItem(tr("All Matches:")));
+   Add(new cOsdItem(tr("Similar Matches:")));
    cList<cOsdItem>::Last()->SetSelectable(no);
 
    menuDb->recordingListDb->clear();
