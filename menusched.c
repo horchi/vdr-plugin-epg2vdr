@@ -107,6 +107,7 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
    : cOsdMenu(tr("Matching recordings"), 30, 30, 30, 40)
 {
    cMenuDb* menuDb = db;
+   std::map<std::string,bool> directMatches;
 
    Add(new cOsdItem(tr("Direct Matches:")));
    cList<cOsdItem>::Last()->SetSelectable(no);
@@ -134,6 +135,8 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
          if (menuDb->vdrDb->find())
             vdr = menuDb->vdrDb->getStrValue("NAME");
       }
+
+      directMatches[menuDb->vdrDb->getStrValue("MD5PATH")] = yes;
 
       Add(new cEpgMenuTextItem(menuDb->recordingListDb->getStrValue("MD5PATH"),
                                cString::sprintf("%s%s%s\t%s\t%s/%s", vdr ? vdr : "", vdr ? "\t" : "",
@@ -169,12 +172,17 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
             vdr = menuDb->vdrDb->getStrValue("NAME");
       }
 
-      Add(new cEpgMenuTextItem(menuDb->recordingListDb->getStrValue("MD5PATH"),
-                               cString::sprintf("%s%s%s\t%s\t%s/%s", vdr ? vdr : "", vdr ? "\t" : "",
-                                                menuDb->recordingListDb->getStrValue("TITLE"),
-                                                menuDb->recordingListDb->getStrValue("SHORTTEXT"),
-                                                menuDb->recordingListDb->getStrValue("FOLDER"),
-                                                menuDb->recordingListDb->getStrValue("NAME"))));
+      auto it = directMatches.find(menuDb->vdrDb->getStrValue("MD5PATH"));
+
+      if (it == directMatches.end())
+      {
+         Add(new cEpgMenuTextItem(menuDb->recordingListDb->getStrValue("MD5PATH"),
+                                  cString::sprintf("%s%s%s\t%s\t%s/%s", vdr ? vdr : "", vdr ? "\t" : "",
+                                                   menuDb->recordingListDb->getStrValue("TITLE"),
+                                                   menuDb->recordingListDb->getStrValue("SHORTTEXT"),
+                                                   menuDb->recordingListDb->getStrValue("FOLDER"),
+                                                   menuDb->recordingListDb->getStrValue("NAME"))));
+      }
    }
 
    menuDb->selectRecordingForEventByLv->freeResult();
@@ -251,9 +259,10 @@ bool cMenuEpgScheduleItem::Update(bool Force)
    bool result = false;
    int oldTimerMatch = timerMatch;
    int remote = no;
+   char type;
 
    if (event)
-      menuDb->lookupTimer(event, timerMatch, remote); // -> loads timerDb, vdrDb and set ther timerMatch
+      menuDb->lookupTimer(event, timerMatch, remote, type); // -> loads timerDb, vdrDb and set ther timerMatch
 
    if (Force || timerMatch != oldTimerMatch)
    {
@@ -550,10 +559,11 @@ eOSState cMenuEpgEvent::ProcessKey(eKeys Key)
       const cEvent* e = getNextPrevEvent(event, Key == kGreen ? -1 : +1);
       int remote = no;
       int timerMatch = tmNone;
+      char type;
 
       // get remote and timerMatch info
 
-      menuDb->lookupTimer(e, timerMatch, remote);
+      menuDb->lookupTimer(e, timerMatch, remote, type);
       setEvent(e, timerMatch);
 
       return osContinue;
@@ -1010,12 +1020,13 @@ eOSState cMenuEpgWhatsOn::Record()
    cEpgTimer* timer = 0;
    long timerid = 0;
    int remote = no;
+   char type;
    cMenuEpgScheduleItem* item = (cMenuEpgScheduleItem*)Get(Current());
 
    if (!item)
       return osContinue;
 
-   if ((timerid = menuDb->lookupTimer(item->event, timerMatch, remote))) // -> loads timerDb and vdrDb
+   if ((timerid = menuDb->lookupTimer(item->event, timerMatch, remote, type))) // -> loads timerDb and vdrDb
    {
       menuDb->timerDb->clear();
       menuDb->timerDb->setValue("ID", timerid);

@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.91"
-#define VERSION_DATE  "26.02.2018"
+#define _VERSION     "1.1.92"
+#define VERSION_DATE  "07.03.2018"
 
 #define DB_API       6
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-03-07 version 1.1.92 (horchi)
+   - added: create of local switch timrt even when a 'recording' timer exists
 
 2018-02-26 version 1.1.91 (horchi)
    - change: backward compatibility to vdr 2.2.0 - another step

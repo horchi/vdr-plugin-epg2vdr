@@ -550,7 +550,7 @@ int cMenuDb::initUserTimes()
 // Lookup Timer
 //***************************************************************************
 
-int cMenuDb::lookupTimer(const cEvent* event, int& timerMatch, int& remote, int force)
+int cMenuDb::lookupTimer(const cEvent* event, int& timerMatch, int& remote, char& type, int force)
 {
    int maxSp = 0;
 
@@ -583,6 +583,7 @@ int cMenuDb::lookupTimer(const cEvent* event, int& timerMatch, int& remote, int 
 
          info->timerid = timerDb->getValue("ID")->getIntValue();
          info->state = timerDb->getValue("STATE")->getCharValue();
+         info->type = timerDb->getValue("TYPE")->getCharValue();
          info->starttime = valueStartTime.getIntValue();
          info->eventid = timerDb->getIntValue("EVENTID");
          strcpy(info->channelid, timerDb->getStrValue("CHANNELID"));
@@ -602,14 +603,16 @@ int cMenuDb::lookupTimer(const cEvent* event, int& timerMatch, int& remote, int 
       {
          remote = strcmp(ifo->uuid, Epg2VdrConfig.uuid) != 0;
          timerMatch = tmFull;
+         type = ifo->type;
          return ifo->timerid;
       }
 
       else if (strcmp(ifo->channelid, event->ChannelID().ToString()) == 0
-               && ifo->starttime == event->StartTime())  // #TODO around
+               && ifo->starttime == event->StartTime())  // #TODO? also around this time
       {
          remote = strcmp(ifo->uuid, Epg2VdrConfig.uuid) != 0;
          timerMatch = tmFull;
+         type = ifo->type;
          return ifo->timerid;
       }
    }
@@ -724,16 +727,20 @@ int cMenuDb::createSwitchTimer(const cEvent* event)
 {
    int timerMatch = tmNone;
    int remote = no;
+   char type;
 
-   // alredy or nearly started?
+   // already or nearly started?
 
    if (!event || event->StartTime() <= time(0)+tmeSecondsPerMinute)
       return done;
 
    // already created?
 
-   if (lookupTimer(event, timerMatch, remote))
-      return done;
+   if (lookupTimer(event, timerMatch, remote, type))
+   {
+      if (!remote && type == ttView)
+         return done;
+   }
 
    cDbRow* timerRow = newTimerRowFromEvent(event);
 

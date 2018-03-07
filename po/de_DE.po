@@ -185,7 +185,7 @@ msgid "Switch Timer"
 msgstr ""
 
 msgid "Matching recordings"
-msgstr "Vergleiche Aufnahmen"
+msgstr "Vorhandene Aufnahmen"
 
 msgid "Direct Matches:"
 msgstr "Direkte Übereinstimmungen:"

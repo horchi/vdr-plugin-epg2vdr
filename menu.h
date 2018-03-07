@@ -70,7 +70,7 @@ class cMenuDb : public cParameters
 
       int initUserTimes();
       int initUserList(char**& userList, int& count, long int& loginEnabled);
-      int lookupTimer(const cEvent* event, int& timerMatch, int& remote, int force = no);
+      int lookupTimer(const cEvent* event, int& timerMatch, int& remote, char& type, int force = no);
 
       // timer db
 
@@ -146,6 +146,7 @@ class cMenuDb : public cParameters
 
             uint timerid;
             char state;
+            char type;
             time_t starttime;
             uint eventid;
             char channelid[100];
