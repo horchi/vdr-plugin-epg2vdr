@@ -644,6 +644,8 @@ class cDbRow : public cDbService
          return s;
       }
 
+      void copyValues(const cDbRow* rFrom, int types = ftData);
+
       virtual cDbFieldDef* getField(int id)                     { return tableDef->getField(id); }
       virtual cDbFieldDef* getField(const char* name)           { return tableDef->getField(name); }
       virtual cDbFieldDef* getFieldByDbName(const char* dbname) { return tableDef->getFieldByDbName(dbname); }
@@ -1133,7 +1135,7 @@ class cDbTable : public cDbService
       void setBigintValue(const char* n, int64_t value)               { row->setBigintValue(n, value); }
       void setCharValue(const char* n, char value)                    { row->setCharValue(n, value); }
 
-      void copyValues(cDbRow* r, int types = ftData);
+      // void copyValues(cDbRow* r, int types = ftData);
 
       int hasValue(cDbFieldDef* f, const char* value)                 { return row->hasValue(f, value); }
       int hasCharValue(cDbFieldDef* f, char value)                    { return row->hasCharValue(f, value); }

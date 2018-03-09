@@ -229,10 +229,10 @@ int cUpdate::performRecordingActions()
             complete = recFraction >= (vpsUsed ? 90 : 98);
 
             if (complete)
-               tell(1, "Info: Finished: '%s'; recorded %d%%; VPS %s",
+               tell(1, "Info: Finished (%d) '%s'; recorded %d%%; VPS %s", getTimerIdOf(rr->aux),
                     rr->timer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
             else
-               tell(1, "Info: Finished: '%s' (not complete! - recorded only %d%%); VPS %s",
+               tell(1, "Info: Finished (%d) '%s' (not complete! - recorded only %d%%); VPS %s", getTimerIdOf(rr->aux),
                     rr->timer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
 
             if (complete)

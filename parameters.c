@@ -59,7 +59,9 @@ cParameters::Parameter cParameters::parameters[] =
    { "@",        "defaultVDRuuid",           ptAscii,   "",                         "^.{0,150}$",           no,    yes },
    { "@",        "startPage",                ptAscii,   "menu_magazine",            "^.{0,150}$",           no,    yes },
    { "@",        "timerDefaultVDRuuid",      ptAscii,   "",                         "^.{0,150}$",           no,    yes },
-   { "@",        "quickTimes",               ptAscii,   "Now=@Now~Next=@Next~PrimeTime=20:15~LateNight=00:00",  "^(~?[^=]+=(([0-1]?[0-9]|2[0-4]):[0-5]?[0-9]|@Now|@Next))*$",  no,  yes },
+   { "@",        "quickTimes",               ptAscii,   "Jetzt=@Now~Nächste=@Next~PrimeTime=20:20~EarlyNight=!22:20~MidNight=!00:00~LateNight=!02:00~Tipp=@TagesTipps~Action=@Action",
+                                                                                    "^(~?[^=]+=!?(([0-1]?[0-9]|2[0-4]):[0-5]?[0-9]|@Now|@Next|@[A-Za-z0-9]*))*$",
+                                                                                                            no,    yes },
    { "@",        "startWithSched",           ptBool,    "0",                        "^[01]$",               no,    yes },
    { "@",        "searchAdv",                ptBool,    "1",                        "^[01]$",               no,    yes },
    { "@",        "namingModeSerie",          ptNum,     "1",                        "^[0-5]$",              no,    yes },
@@ -70,6 +72,7 @@ cParameters::Parameter cParameters::parameters[] =
    { "@",        "sendTCC",                  ptBool,    "1",                        "^[01]$",               no,    yes },
    { "@",        "constabelLoginPath",       ptAscii,   "",                         "^.{0,150}$",           no,    yes },
    { "@",        "mailReceiver",             ptAscii,   "",                         "^.{0,150}$",           no,    yes },
+   { "@",        "osdTimerNotify",           ptBool,    "0",                        "^[01]$",               no,    yes },
 
    { 0, 0, 0, 0, 0, 0, 0 }
 };

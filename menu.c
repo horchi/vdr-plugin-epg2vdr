@@ -359,6 +359,7 @@ int cMenuDb::initDb()
 
    selectRecordingForEventByLv->build("select ");
    selectRecordingForEventByLv->bindAllOut();
+   // selectRecordingForEventByLv->bindTextFree(", epglvr(title, ?)", recordingListDb->getValue("TITLE"), cDBS::bndIn); -> core :o
    selectRecordingForEventByLv->build(" from %s where ", recordingListDb->TableName());
    selectRecordingForEventByLv->build(" (%s <> 'D' or %s is null)",
                                   recordingListDb->getField("STATE")->getDbName(),
@@ -653,7 +654,7 @@ int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid, char destType)
    if (knownTimer)
    {
       timerDb->clear();
-      timerDb->copyValues(timerRow, cDBS::ftPrimary);
+      timerDb->getRow()->copyValues(timerRow, cDBS::ftPrimary);
 
       if (!timerDb->find())
       {
@@ -678,7 +679,7 @@ int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid, char destType)
 
       // create new on other vdr
 
-      timerDb->copyValues(timerRow, cDBS::ftData);     // takeover all data (can be modified by user)
+      timerDb->getRow()->copyValues(timerRow, cDBS::ftData);     // takeover all data (can be modified by user)
       timerDb->setValue("ID", 0);                      // don't care on insert!
       timerDb->setValue("VDRUUID", destUuid);
       timerDb->setCharValue("ACTION", taCreate);
@@ -693,7 +694,7 @@ int cMenuDb::modifyTimer(cDbRow* timerRow, const char* destUuid, char destType)
    {
       // create 'C'reate oder 'M'odify request ...
 
-      timerDb->copyValues(timerRow, cDBS::ftData);
+      timerDb->getRow()->copyValues(timerRow, cDBS::ftData);
 
       timerDb->setCharValue("ACTION", knownTimer ? taModify : taCreate);
       timerDb->getValue("STATE")->setNull();
@@ -766,7 +767,7 @@ int cMenuDb::createTimer(cDbRow* timerRow, const char* destUuid, int type)
    // Timer 'C'reate request ...
 
    timerDb->clear();
-   timerDb->copyValues(timerRow, cDBS::ftData);
+   timerDb->getRow()->copyValues(timerRow, cDBS::ftData);
 
    timerDb->setValue("VDRUUID", destUuid);
    timerDb->setCharValue("TYPE", type);

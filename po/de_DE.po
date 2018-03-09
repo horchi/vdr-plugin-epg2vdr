@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2018-03-07 17:36+0100\n"
+"POT-Creation-Date: 2018-03-09 08:55+0100\n"
 "PO-Revision-Date: 2009-08-27 21:40+0200\n"
 "Last-Translator: Klaus Schmidinger <kls@cadsoft.de>\n"
 "Language-Team: <vdr@linuxtv.org>\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "Search Timer"
 msgstr "Suchtimer"
 
-msgid "Timer journal"
+msgid "Timer Journal"
 msgstr "Timerhistorie"
 
 msgid "Program"
@@ -71,7 +71,7 @@ msgid "Blacklist not configured Channels"
 msgstr "Nicht konfigurierte Kanäle 'blacklisten'"
 
 msgid "Store extended EPD Data to AUX (e.g. for Skins)"
-msgstr ""
+msgstr "Erweitertes EPG in AUX speichern (für Skins)"
 
 msgid "Menu"
 msgstr "Menü"
@@ -157,32 +157,32 @@ msgstr "Alle"
 msgid "Delete"
 msgstr "Löschen"
 
-msgid "Timer journal - Recorded"
+msgid "Timer Journal - Recorded"
 msgstr "Timerhistorie - Aufgenommen"
 
-msgid "Timer journal - Created"
+msgid "Timer Journal - Created"
 msgstr "Timerhistorie - Erzeugt"
 
-msgid "Timer journal - Failed"
+msgid "Timer Journal - Failed"
 msgstr "Timerhistorie - Fehlgeschlagen"
 
-msgid "Timer journal - Delete"
+msgid "Timer Journal - Delete"
 msgstr "Timerhistorie - Gelöscht"
 
 msgid "Delete timer from journal?"
 msgstr "Eintrag aus Timerhistorie löschen?"
 
 msgid "Search matching Events"
-msgstr ""
+msgstr "Wiederholungen"
 
 msgid "Search matching Recordings"
-msgstr ""
+msgstr "Vorhandene Aufnahmen"
 
 msgid "Searchtimers"
-msgstr ""
+msgstr "Suchtimer"
 
 msgid "Switch Timer"
-msgstr ""
+msgstr "Umschalttimer"
 
 msgid "Matching recordings"
 msgstr "Vorhandene Aufnahmen"
@@ -194,7 +194,7 @@ msgid "Similar Matches:"
 msgstr "Ähnliche Aufnahmen:"
 
 msgid "Event"
-msgstr ""
+msgstr "Sendung"
 
 msgid "Button$Timer"
 msgstr "Timer"
@@ -232,8 +232,11 @@ msgstr "Umschalten nicht möglich!"
 msgid "Edit Search Timer"
 msgstr "Suchtimer bearbeiten"
 
-msgid "Remove all done entries of this event?"
-msgstr "Alle erledigten Einträge dieses Ereignisses entfernen?"
+msgid "Search Result"
+msgstr "Suchergebnis"
+
+msgid "Show Journal"
+msgstr "Timerhistorie"
 
 msgid "Search Timers"
 msgstr "Suchtimer"
@@ -244,8 +247,8 @@ msgstr "Deaktivieren"
 msgid "Activate"
 msgstr "Aktivieren"
 
-msgid "Test"
-msgstr ""
+msgid "Check"
+msgstr "Test"
 
 msgid "Delete search timer?"
 msgstr "Suchtimer löschen?"
@@ -257,7 +260,7 @@ msgid "Active"
 msgstr "Aktiv"
 
 msgid "Type"
-msgstr ""
+msgstr "Typ"
 
 msgid "VDR"
 msgstr ""
@@ -333,11 +336,11 @@ msgstr "Timer zeichnet auf, dennoch löschen?"
 
 #, c-format
 msgid "Switching in %ld seconds to '%s'"
-msgstr ""
+msgstr "In %ld sekunden umschalten zu '%s'"
 
 #, c-format
 msgid "Skipping '%s' request, epgd busy. Trying again later"
-msgstr ""
+msgstr "epgd beschäftigt, '%s' request wird später ausgeführt"
 
 msgid "reload"
 msgstr "neu laden"
@@ -348,24 +351,3 @@ msgstr "aktualisieren"
 #, c-format
 msgid "EPG '%s' done"
 msgstr "EPG '%s' abgeschlossen"
-
-#~ msgid "Now"
-#~ msgstr "Jetzt"
-
-#~ msgid "Next"
-#~ msgstr "Nächste"
-
-#~ msgid "This event - %s"
-#~ msgstr "Dieses Ereignis - %s"
-
-#~ msgid "This event - all channels"
-#~ msgstr "Dieses Ereignis - alle Kanäle"
-
-#~ msgid "All events - all channels"
-#~ msgstr "Alle Ereignisse - alle Kanäle"
-
-#~ msgid "Button$Now"
-#~ msgstr "Jetzt"
-
-#~ msgid "Button$Next"
-#~ msgstr "Nächste"

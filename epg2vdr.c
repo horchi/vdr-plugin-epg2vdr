@@ -97,7 +97,7 @@ cEpgPluginMenu::cEpgPluginMenu(const char* title, cPluginEPG2VDR* aPlugin)
    {
       cOsdMenu::Add(new cOsdItem(hk(tr("Timer")), (eOSState)emsTimer));
       cOsdMenu::Add(new cOsdItem(hk(tr("Search Timer")), (eOSState)emsSearchtimer));
-      cOsdMenu::Add(new cOsdItem(hk(tr("Timer journal")), (eOSState)emsDones));
+      cOsdMenu::Add(new cOsdItem(hk(tr("Timer Journal")), (eOSState)emsDones));
    }
 
    cOsdMenu::Add(new cOsdItem(hk(tr("Program")), (eOSState)emsProgram));

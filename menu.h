@@ -54,6 +54,7 @@ class cMenuDb : public cParameters
    friend class cMenuEpgTimers;
    friend class cMenuEpgSearchTimers;
    friend class cEpgMenuDones;
+   friend class cEpgMenuDonesOf;
    friend class cEpgMenuSearchTimerEdit;
    friend class cMenuEpgMatchRecordings;
    friend class cEpgMenuSearchResult;
@@ -304,6 +305,15 @@ class cEpgMenuTextItem : public cOsdItem
       {
          cid = 0;
          id = aId;
+         row = 0;
+         SetText(text);
+      }
+
+      cEpgMenuTextItem(cDbRow* aRow, const char* text)
+      {
+         cid = 0;
+         id = na;
+         row = aRow;
          SetText(text);
       }
 
@@ -313,14 +323,20 @@ class cEpgMenuTextItem : public cOsdItem
          SetText(text);
       }
 
-      virtual ~cEpgMenuTextItem() { free(cid); }
+      virtual ~cEpgMenuTextItem()
+      {
+         free(cid);
+         delete row;
+      }
 
-      long getId() { return id; }
+      cDbRow* getRow()        { return row; }
+      long getId()            { return id; }
       const char* getCharId() { return cid; }
 
    protected:
 
       long id;
+      cDbRow* row;
       char* cid;
 };
 

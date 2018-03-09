@@ -13,6 +13,57 @@
 #include "db.h"
 
 //***************************************************************************
+// Copy Values
+//***************************************************************************
+
+void cDbRow::copyValues(const cDbRow* rowFrom, int typesFilter)
+{
+   std::map<std::string, cDbFieldDef*>::iterator f;
+
+   for (f = tableDef->dfields.begin(); f != tableDef->dfields.end(); f++)
+   {
+      cDbFieldDef* fld = f->second;
+
+      if (rowFrom->isNull(fld))                   // skip where source field is NULL
+         continue;
+
+      if (!(typesFilter & fld->getType()))  // Filter
+         continue;
+
+      switch (fld->getFormat())
+      {
+         case ffAscii:
+         case ffText:
+         case ffMText:
+         case ffMlob:
+            setValue(fld, rowFrom->getStrValue(fld));
+            break;
+
+         case ffFloat:
+            setValue(fld, rowFrom->getFloatValue(fld));
+            break;
+
+         case ffDateTime:
+            setValue(fld, rowFrom->getTimeValue(fld));
+            break;
+
+         case ffBigInt:
+         case ffUBigInt:
+            setBigintValue(fld, rowFrom->getBigintValue(fld));
+            break;
+
+         case ffInt:
+         case ffUInt:
+            setValue(fld, rowFrom->getIntValue(fld));
+            break;
+
+         default:
+            tell(0, "Fatal: Unhandled field type %d", fld->getFormat());
+      }
+   }
+}
+
+//***************************************************************************
 // DB Statement
 //***************************************************************************
 
@@ -1307,57 +1358,6 @@ int cDbTable::checkIndex(const char* idxName, int& fieldCount)
    connection->errorSql(getConnection(), "checkIndex()");
 
    return fail;
-}
-
-//***************************************************************************
-// Copy Values
-//***************************************************************************
-
-void cDbTable::copyValues(cDbRow* r, int typesFilter)
-{
-   std::map<std::string, cDbFieldDef*>::iterator f;
-
-   for (f = tableDef->dfields.begin(); f != tableDef->dfields.end(); f++)
-   {
-      cDbFieldDef* fld = f->second;
-
-      if (r->isNull(fld))                   // skip where source field is NULL
-         continue;
-
-      if (!(typesFilter & fld->getType()))  // Filter
-         continue;
-
-      switch (fld->getFormat())
-      {
-         case ffAscii:
-         case ffText:
-         case ffMText:
-         case ffMlob:
-            row->setValue(fld, r->getStrValue(fld));
-            break;
-
-         case ffFloat:
-            row->setValue(fld, r->getFloatValue(fld));
-            break;
-
-         case ffDateTime:
-            row->setValue(fld, r->getTimeValue(fld));
-            break;
-
-         case ffBigInt:
-         case ffUBigInt:
-            row->setBigintValue(fld, r->getBigintValue(fld));
-            break;
-
-         case ffInt:
-         case ffUInt:
-            row->setValue(fld, r->getIntValue(fld));
-            break;
-
-         default:
-            tell(0, "Fatal unhandled field type %d", fld->getFormat());
-      }
-   }
 }
 
 //***************************************************************************

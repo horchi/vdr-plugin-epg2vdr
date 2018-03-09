@@ -60,7 +60,7 @@ int cUpdate::checkSwitchTimer()
          tell(0, "Switching to channel '%s'", channel->Name());
 
          if (!cDevice::PrimaryDevice()->SwitchChannel(channel, true))
-            Skins.Message(mtError, tr("Can't switch channel!"));
+            Skins.QueueMessage(mtError, tr("Can't switch channel!"));
          else
             res = success;
       }
@@ -175,6 +175,19 @@ int cUpdate::performTimerJobs()
       return fail;
    }
 
+   // move this to cUpdate::init()
+
+   std::string user = "@";
+   long int webLoginEnabled = no;
+   long int osdTimerNotify = no;
+
+   getParameter("webif", "needLogin", webLoginEnabled);
+
+   if (webLoginEnabled)
+      user += Epg2VdrConfig.user;
+
+   getParameter(user.c_str(), "osdTimerNotify", osdTimerNotify);
+
    // iterate pending actions ...
 
    timerDb->clear();
@@ -239,6 +252,9 @@ int cUpdate::performTimerJobs()
          timerDb->setCharValue("ACTION", taAssumed);
          timerDb->setCharValue("STATE", tsDeleted);
          timerDb->update();
+
+         if (osdTimerNotify)
+            Skins.QueueMessage(mtInfo, cString::sprintf("Timer '%s' deleted", timerDb->getStrValue("FILE")));
       }
 
       // --------------------------------
@@ -427,6 +443,9 @@ int cUpdate::performTimerJobs()
          timerDb->setCharValue("ACTION", taAssumed);
          timerDb->setCharValue("STATE", tsPending);
          timerDb->store();
+
+         if (osdTimerNotify)
+            Skins.QueueMessage(mtInfo, cString::sprintf("Timer '%s' %s", timerDb->getStrValue("FILE"), insert ? "created" : "modified"));
       }
    }
 
@@ -654,7 +673,9 @@ int cUpdate::updateTimerTable()
       {
          int doneid = timerDb->getIntValue("DONEID");
 
-         if (!timerDb->hasCharValue("STATE", tsFinished))
+         if (!timerDb->hasCharValue("STATE", tsFinished) &&
+             !timerDb->hasCharValue("STATE", tsRunning) &&
+             !timerDb->hasCharValue("STATE", tsError))
          {
             timerDb->setCharValue("STATE", tsDeleted);
             timerDb->update();

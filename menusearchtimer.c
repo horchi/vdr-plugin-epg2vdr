@@ -9,7 +9,137 @@
 
 #include "lib/searchtimer.h"
 #include "menu.h"
+#include "lib/vdrlocks.h"
 
+//***************************************************************************
+// class cEpgMenuDonesOf
+//***************************************************************************
+
+class cEpgMenuDonesOf : public cOsdMenu
+{
+   public:
+
+      cEpgMenuDonesOf(cMenuDb* mdb, const cDbRow* aRow);
+      virtual ~cEpgMenuDonesOf();
+      virtual eOSState ProcessKey(eKeys Key);
+
+   protected:
+
+      int refresh();
+
+      // data
+
+      const cDbRow* useEventRow;
+      cMenuDb* menuDb;
+};
+
+//***************************************************************************
+// Object
+//***************************************************************************
+
+cEpgMenuDonesOf::cEpgMenuDonesOf(cMenuDb* mdb, const cDbRow* aRow)
+   : cOsdMenu(tr("Timer Journal"), 2, 20, 35, 40)
+{
+   menuDb = mdb;
+   useEventRow = aRow;
+
+   refresh();
+}
+
+cEpgMenuDonesOf::~cEpgMenuDonesOf()
+{
+}
+
+//***************************************************************************
+// Refresh
+//***************************************************************************
+
+int cEpgMenuDonesOf::refresh()
+{
+   cDbStatement* selectDones = 0;
+
+   Clear();
+
+   menuDb->useeventsDb->clear();
+   menuDb->useeventsDb->getRow()->copyValues(useEventRow, cDbService::ftPrimary);
+
+   if (!menuDb->useeventsDb->find())
+      return done;
+
+   // tell(0, "EVENT found: '%s/%s/%ld' [%s / %s]",
+   //      menuDb->useeventsDb->getStrValue("CNTSOURCE"),
+   //      menuDb->useeventsDb->getStrValue("CHANNELID"),
+   //      menuDb->useeventsDb->getBigintValue("CNTEVENTID"),
+   //      menuDb->useeventsDb->getStrValue("EPISODECOMPPARTNAME"),
+   //      menuDb->useeventsDb->getStrValue("COMPSHORTTEXT"));
+
+   // collect dones ...
+
+   if (menuDb->search->prepareDoneSelect(menuDb->useeventsDb->getRow(),
+                                         menuDb->searchtimerDb->getIntValue("REPEATFIELDS"),
+                                         selectDones) == success && selectDones)
+   {
+      for (int f = selectDones->find(); f; f = selectDones->fetch())
+      {
+         char* buf;
+
+         menuDb->search->getTimersDoneDb()->find();
+
+         asprintf(&buf, "%s\t%s\t%s\t%s",
+                  menuDb->search->getTimersDoneDb()->getStrValue("STATE"),
+                  l2pTime(menuDb->search->getTimersDoneDb()->getIntValue("STARTTIME"), "%d.%m.%y %H:%M").c_str(),
+                  menuDb->search->getTimersDoneDb()->getStrValue("TITLE"),
+                  menuDb->search->getTimersDoneDb()->getStrValue("SHORTTEXT"));
+
+         tell(0, "%s", buf);
+         Add(new cEpgMenuTextItem(menuDb->search->getTimersDoneDb()->getIntValue("ID"), buf));
+         free(buf);
+      }
+
+      selectDones->freeResult();
+   }
+
+   menuDb->useeventsDb->reset();
+
+   SetHelp(0, 0, tr("Delete"), 0);
+   Display();
+
+   return success;
+}
+
+//***************************************************************************
+// ProcessKey
+//***************************************************************************
+
+eOSState cEpgMenuDonesOf::ProcessKey(eKeys Key)
+{
+   eOSState state = cOsdMenu::ProcessKey(Key);
+
+   if (state == osUnknown)
+   {
+      switch (Key)
+      {
+         case kYellow:
+         {
+            cEpgMenuTextItem* item = (cEpgMenuTextItem*)Get(Current());
+
+            if (item && Interface->Confirm(tr("Delete timer from journal?")))
+            {
+               menuDb->timerDoneDb->deleteWhere("id = %ld", item->getId());
+               refresh();
+            }
+
+            return osContinue;
+         }
+
+         default: break;
+      }
+   }
+
+   return state;
+}
+
+//***************************************************************************
 //***************************************************************************
 // Class cEpgMenuSearchTimerEdit
 //***************************************************************************
@@ -87,7 +217,7 @@ class cEpgMenuSearchTimerItem : public cOsdItem
          SetText(text);
       }
 
-      ~cEpgMenuSearchTimerItem() { }
+      ~cEpgMenuSearchTimerItem() {}
 
       long getId()        { return id; }
       int isActive()      { return active; }
@@ -107,22 +237,22 @@ class cEpgMenuSearchResult : public cOsdMenu
 {
    public:
 
-      cEpgMenuSearchResult(cMenuDb* db, long id);
+      cEpgMenuSearchResult(cMenuDb* db, long searchTimerId);
       virtual ~cEpgMenuSearchResult();
       virtual eOSState ProcessKey(eKeys Key);
 
    protected:
 
-      int refresh(long id);
+      int refresh(long searchTimerId);
 
       cMenuDb* menuDb;
 };
 
-cEpgMenuSearchResult::cEpgMenuSearchResult(cMenuDb* db, long id)
-   : cOsdMenu(tr("Edit Search Timer"), 17, CHNAMWIDTH, 3, 30)
+cEpgMenuSearchResult::cEpgMenuSearchResult(cMenuDb* db, long searchTimerId)
+   : cOsdMenu(tr("Search Result"), 17, CHNAMWIDTH, 3, 30)
 {
    menuDb = db;
-   refresh(id);
+   refresh(searchTimerId);
 }
 
 cEpgMenuSearchResult::~cEpgMenuSearchResult()
@@ -133,11 +263,11 @@ cEpgMenuSearchResult::~cEpgMenuSearchResult()
 // Refresh
 //***************************************************************************
 
-int cEpgMenuSearchResult::refresh(long id)
+int cEpgMenuSearchResult::refresh(long searchTimerId)
 {
    cDbStatement* select = 0;
 
-   menuDb->searchtimerDb->setValue("ID", id);
+   menuDb->searchtimerDb->setValue("ID", searchTimerId);
 
    if (!menuDb->searchtimerDb->find())
       return done;
@@ -145,14 +275,7 @@ int cEpgMenuSearchResult::refresh(long id)
    if (!(select = menuDb->search->prepareSearchStatement(menuDb->searchtimerDb->getRow(), menuDb->useeventsDb)))
       return fail;
 
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   LOCK_CHANNELS_READ;
-   const cChannels* channels = Channels;
-   // cChannelsLock channelsLock(false);
-   // const cChannels* channels = channelsLock.Channels();
-#else
-   cChannels* channels = &Channels;
-#endif
+   GET_CHANNELS_READ(channels);
 
    menuDb->useeventsDb->clear();
 
@@ -170,11 +293,8 @@ int cEpgMenuSearchResult::refresh(long id)
 
       if (menuDb->search->prepareDoneSelect(menuDb->useeventsDb->getRow(),
                                             menuDb->searchtimerDb->getIntValue("REPEATFIELDS"),
-                                            selectDones) == success
-          && selectDones)
+                                            selectDones) == success && selectDones)
       {
-         // first only count - #TODO show them in a sub-menu oder let delete by kYellow?
-
          for (int f = selectDones->find(); f; f = selectDones->fetch())
             cnt++;
 
@@ -183,22 +303,25 @@ int cEpgMenuSearchResult::refresh(long id)
 
       //
 
+      cDbRow* useEventRow = new cDbRow("useevents");
+      useEventRow->copyValues(menuDb->useeventsDb->getRow(), cDbService::ftPrimary);
+
       const char* strChannelId = menuDb->useeventsDb->getStrValue("CHANNELID");
       const cChannel* channel = channels->GetByChannelID(tChannelID::FromString(strChannelId));
 
-      Add(new cEpgMenuTextItem(menuDb->useeventsDb->getIntValue("USEID"),
+      Add(new cEpgMenuTextItem(useEventRow,
                                cString::sprintf("%s\t%s\t%s\t%s\t%s",
                                                 l2pTime(menuDb->useeventsDb->getIntValue("STARTTIME")).c_str(),
                                                 channel->Name(),
                                                 cnt ? num2Str(cnt).c_str() : "",
                                                 menuDb->useeventsDb->getStrValue("TITLE"),
                                                 menuDb->useeventsDb->getStrValue("SHORTTEXT"))));
-  }
+   }
 
    select->freeResult();
    menuDb->searchtimerDb->reset();
 
-   SetHelp(0, 0, "Delete dones", 0);
+   SetHelp(0, tr("Show Journal"), 0, 0);
    Display();
 
    return success;
@@ -216,30 +339,10 @@ eOSState cEpgMenuSearchResult::ProcessKey(eKeys Key)
    {
       switch (Key)
       {
-         case kYellow:
+         case kGreen:
          {
-            cDbStatement* selectDones = 0;
             cEpgMenuTextItem* item = (cEpgMenuTextItem*)Get(Current());
-
-            if (item && Interface->Confirm(tr("Remove all done entries of this event?")))
-            {
-               menuDb->useeventsDb->clear();
-               menuDb->useeventsDb->setValue("USEID", item->getId());
-
-               if (menuDb->useeventsDb->find())
-               {
-                  if (menuDb->search->prepareDoneSelect(menuDb->useeventsDb->getRow(),
-                                                        menuDb->searchtimerDb->getIntValue("REPEATFIELDS"),
-                                                        selectDones) == success
-                      && selectDones)
-                  {
-                     for (int f = selectDones->find(); f; f = selectDones->fetch())
-                        selectDones->getTable()->deleteWhere("id = %ld", selectDones->getTable()->getIntValue("ID"));
-
-                     selectDones->freeResult();
-                  }
-               }
-            }
+            return AddSubMenu(new cEpgMenuDonesOf(menuDb, item->getRow()));
          }
 
          default: break;
@@ -305,7 +408,7 @@ void cMenuEpgSearchTimers::setHelpKeys()
 
    if (item)
       SetHelp(item->isActive() ? tr("Deactivate") : tr("Activate"),
-              tr("Test"),
+              tr("Check"),
               tr("Delete"),
               0);
    else
@@ -327,7 +430,7 @@ eOSState cMenuEpgSearchTimers::ProcessKey(eKeys Key)
    {
       switch (Key)
       {
-         case kOk:
+         case kOk:      // edit search timer
          {
             if (HasSubMenu() || Count() == 0)
                return osContinue;
@@ -336,7 +439,7 @@ eOSState cMenuEpgSearchTimers::ProcessKey(eKeys Key)
             return AddSubMenu(new cEpgMenuSearchTimerEdit(menuDb, item->getId()));
          }
 
-         case kRed:
+         case kRed:     // ativate/deactivate search timer
          {
             menuDb->searchtimerDb->setValue("ID", item->getId());
 
@@ -350,12 +453,12 @@ eOSState cMenuEpgSearchTimers::ProcessKey(eKeys Key)
             return osContinue;
          }
 
-         case kGreen:
+         case kGreen:    // test search
          {
             return AddSubMenu(new cEpgMenuSearchResult(menuDb, item->getId()));
          }
 
-         case kYellow:
+         case kYellow:   // delete search timer
          {
             if (item && Interface->Confirm(tr("Delete search timer?")))
             {

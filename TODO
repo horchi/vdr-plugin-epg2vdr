@@ -2,6 +2,6 @@
 - Fehler beim Anlegen eines Timer aus Suchergebniss, Dialog zeigt falschen Sender und File an
 - beim Timer löschen und laufender Aufnahme kommt dieser Hinweis nicht
 
-- anlegen eines Suchtimer über das event
-- timer mit action 'C' auch ohne vdruuid übernehmen
 - db Verbindungsdaten ohne Neustart übernehmen
+- serien timer für gewählte Sendung erstellen
+   (anlegen eines Suchtimer über das event)

@@ -41,6 +41,7 @@ class cSearchTimer
       int prepareDoneSelect(cDbRow* useeventsRow, int repeatfields, cDbStatement*& select);
       cDbStatement* prepareSearchStatement(cDbRow* searchTimer, cDbTable* db);
       int matchCriterias(cDbRow* searchTimer, cDbRow* event);
+      cDbTable* getTimersDoneDb() { return timersDoneDb; }
 
    private:
 

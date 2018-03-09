@@ -25,10 +25,10 @@ typedef int (*FilterFromName)(const char* name);
 class _casecmp_
 {
    public:
-      
+
       bool operator() (const std::string& a, const std::string& b) const
-      { 
-         return strcasecmp(a.c_str(), b.c_str()) < 0; 
+      {
+         return strcasecmp(a.c_str(), b.c_str()) < 0;
       }
 };
 
@@ -85,7 +85,7 @@ class cDbService
 
       enum ProcType
       {
-         ptProcedure, 
+         ptProcedure,
          ptFunction
       };
 
@@ -100,7 +100,7 @@ class cDbService
       static const char* formats[];
       static const char* dictFormats[];
 
-      static int toType(const char* type);      
+      static int toType(const char* type);
       static const char* toName(FieldType type, char* buf);
       static TypeDef types[];
 };
@@ -117,8 +117,8 @@ class cDbFieldDef : public cDbService
 
       friend class cDbDict;
 
-      cDbFieldDef() 
-      { 
+      cDbFieldDef()
+      {
          name = 0;
          dbname = 0,
          format = ffUnknown;
@@ -131,7 +131,7 @@ class cDbFieldDef : public cDbService
       }
 
       cDbFieldDef(const char* n, const char* dn, FieldFormat f, int s, int t, int flt = 0xFFFF)
-      { 
+      {
          name = strdup(n);
          dbname = strdup(dn);
          format = f;
@@ -144,13 +144,13 @@ class cDbFieldDef : public cDbService
       }
 
    ~cDbFieldDef()  { free(name); free(dbname); free(description); free(dbdescription); free(def); }
-      
+
       int getIndex()                 { return index; }
       const char* getName()          { return name; }
       int hasName(const char* n)     { return strcasecmp(n, name) == 0; }
       int hasDbName(const char* n)   { return strcasecmp(n, dbname) == 0; }
-      const char* getDescription()   { return description; } 
-      const char* getDbDescription() { return dbdescription; } 
+      const char* getDescription()   { return description; }
+      const char* getDbDescription() { return dbdescription; }
       const char* getDbName()        { return dbname; }
       int getSize()                  { return size; }
       FieldFormat getFormat()        { return format; }
@@ -161,7 +161,7 @@ class cDbFieldDef : public cDbService
       int hasType(int types)         { return types & type; }
       int hasFormat(int f)           { return format == f; }
 
-      int isString()                 { return format == ffAscii || format == ffText || 
+      int isString()                 { return format == ffAscii || format == ffText ||
                                               format == ffMText || format == ffMlob; }
       int isInt()                    { return format == ffInt || format == ffUInt; }
       int isBigInt()                 { return format == ffBigInt || format == ffUBigInt; }
@@ -178,9 +178,9 @@ class cDbFieldDef : public cDbService
       {
          if (!buf)
             return 0;
-         
+
          sprintf(buf, "%s", toString(format));
-         
+
          if (format != ffMlob)
          {
             if (!size)
@@ -192,16 +192,16 @@ class cDbFieldDef : public cDbService
                else if (format == ffFloat)
                   size = 10;
             }
-            
+
             if (format == ffFloat)
                sprintf(eos(buf), "(%d,%d)", size/10 + size%10, size%10); // 62 -> 8,2
             else if (format == ffInt || format == ffUInt || format == ffBigInt || format == ffUBigInt || format == ffAscii)
                sprintf(eos(buf), "(%d)", size);
-            
+
             if (format == ffUInt || format == ffUBigInt)
                sprintf(eos(buf), " unsigned");
          }
-         
+
          return buf;
       }
 
@@ -216,16 +216,16 @@ class cDbFieldDef : public cDbService
          return yes;
       }
 
-      void show()  
-      { 
-         char colFmt[100]; 
+      void show()
+      {
+         char colFmt[100];
          char fType[100];
          char tmp[100];
 
          sprintf(fType, "(%s)", toName((FieldType)type, tmp));
-            
-         tell(0, "%-20s %-25s %-17s %-20s (0x%04X) default '%s' '%s'", name, dbname, 
-              toColumnFormat(colFmt), fType, filter, notNull(def, ""), description); 
+
+         tell(0, "%-20s %-25s %-17s %-20s (0x%04X) default '%s' '%s'", name, dbname,
+              toColumnFormat(colFmt), fType, filter, notNull(def, ""), description);
       }
 
    protected:
@@ -270,7 +270,7 @@ class cDbIndexDef
          for (uint i = 0; i < dfields.size(); i++)
             s += dfields[i]->getName() + std::string(" ");
 
-         s.erase(s.find_last_not_of(' ')+1); 
+         s.erase(s.find_last_not_of(' ')+1);
 
          tell(0, "Index %-25s (%s)", getName(), s.c_str());
       }
@@ -296,8 +296,8 @@ class cDbTableDef : public cDbService
 
       cDbTableDef(const char* n)       { name = strdup(n); }
 
-      ~cDbTableDef()                
-      { 
+      ~cDbTableDef()
+      {
          for (uint i = 0; i < indices.size(); i++)
             delete indices[i];
 
@@ -307,17 +307,17 @@ class cDbTableDef : public cDbService
          clear();
       }
 
-      const char* getName()            { return name; } 
+      const char* getName()            { return name; }
       int fieldCount()                 { return dfields.size(); }
       cDbFieldDef* getField(int id)    { return _dfields[id]; }
 
-      cDbFieldDef* getField(const char* fname, int silent = no)    
-      { 
+      cDbFieldDef* getField(const char* fname, int silent = no)
+      {
          std::map<std::string, cDbFieldDef*, _casecmp_>::iterator f;
 
          if ((f = dfields.find(fname)) != dfields.end())
             return f->second;
-         
+
          if (!silent)
             tell(0, "Fatal: Missing definition of field '%s.%s' in dictionary!", name, fname);
 
@@ -325,7 +325,7 @@ class cDbTableDef : public cDbService
       }
 
       cDbFieldDef* getFieldByDbName(const char* dbname)
-      { 
+      {
          std::map<std::string, cDbFieldDef*, _casecmp_>::iterator it;
 
          for (it = dfields.begin(); it != dfields.end(); it++)
@@ -333,7 +333,7 @@ class cDbTableDef : public cDbService
             if (it->second->hasDbName(dbname))
                return it->second;
          }
-         
+
          tell(5, "Fatal: Missing definition of field '%s.%s' in dictionary!", name, dbname);
 
          return 0;
@@ -362,7 +362,7 @@ class cDbTableDef : public cDbService
          {
             if (f->second)
                delete f->second;
-            
+
             dfields.erase(f);
          }
       }
@@ -422,7 +422,7 @@ class cDbDict : public cDbService
          dtFormat,
          dtSize,
          dtType,
-         
+
          dtCount
       };
 

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2018-03-07 17:36+0100\n"
+"POT-Creation-Date: 2018-03-09 09:00+0100\n"
 "PO-Revision-Date: 2009-08-27 21:45+0100\n"
 "Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
 "Language-Team:  <vdr@linuxtv.org>\n"
@@ -27,7 +27,7 @@ msgstr ""
 msgid "Search Timer"
 msgstr ""
 
-msgid "Timer journal"
+msgid "Timer Journal"
 msgstr ""
 
 msgid "Program"
@@ -162,16 +162,16 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
-msgid "Timer journal - Recorded"
+msgid "Timer Journal - Recorded"
 msgstr ""
 
-msgid "Timer journal - Created"
+msgid "Timer Journal - Created"
 msgstr ""
 
-msgid "Timer journal - Failed"
+msgid "Timer Journal - Failed"
 msgstr ""
 
-msgid "Timer journal - Delete"
+msgid "Timer Journal - Delete"
 msgstr ""
 
 msgid "Delete timer from journal?"
@@ -237,7 +237,10 @@ msgstr ""
 msgid "Edit Search Timer"
 msgstr ""
 
-msgid "Remove all done entries of this event?"
+msgid "Search Result"
+msgstr ""
+
+msgid "Show Journal"
 msgstr ""
 
 msgid "Search Timers"
@@ -249,7 +252,7 @@ msgstr ""
 msgid "Activate"
 msgstr ""
 
-msgid "Test"
+msgid "Check"
 msgstr ""
 
 msgid "Delete search timer?"

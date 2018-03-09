@@ -18,7 +18,7 @@
 //***************************************************************************
 
 cEpgMenuDones::cEpgMenuDones()
-   : cOsdMenu("", 2, 20, 35)
+   : cOsdMenu("", 2, 20, 35, 40)
 {
    journalFilter = jfAll;
    order = 0;
@@ -48,7 +48,6 @@ void cEpgMenuDones::setHelp()
       case jfCreated:  btGreen = tr("Failed");    break;
       case jfFailed:   btGreen = tr("Deleted");   break;
       case jfDeleted:  btGreen = tr("Recorded");  break;
-
    }
 
    SetHelp(tr("All"), btGreen, tr("Delete"), 0);
@@ -69,11 +68,11 @@ int cEpgMenuDones::refresh()
 
    switch (journalFilter)
    {
-      case jfAll:      state = "%"; SetTitle(tr("Timer journal"));            break;
-      case jfRecorded: state = "R"; SetTitle(tr("Timer journal - Recorded")); break;
-      case jfCreated:  state = "C"; SetTitle(tr("Timer journal - Created"));  break;
-      case jfFailed:   state = "F"; SetTitle(tr("Timer journal - Failed"));   break;
-      case jfDeleted:  state = "D"; SetTitle(tr("Timer journal - Delete"));   break;
+      case jfAll:      state = "%"; SetTitle(tr("Timer Journal"));            break;
+      case jfRecorded: state = "R"; SetTitle(tr("Timer Journal - Recorded")); break;
+      case jfCreated:  state = "C"; SetTitle(tr("Timer Journal - Created"));  break;
+      case jfFailed:   state = "F"; SetTitle(tr("Timer Journal - Failed"));   break;
+      case jfDeleted:  state = "D"; SetTitle(tr("Timer Journal - Delete"));   break;
    }
 
    // fill menu ..

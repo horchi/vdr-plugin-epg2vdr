@@ -911,65 +911,41 @@ int cSearchTimer::prepareDoneSelect(cDbRow* useeventsRow, int repeatfields, cDbS
    selectDoneTimer->build(" from %s where ", timersDoneDb->TableName());
 
    // retry only 'F'ailed and re'J'ected timers, don't retry 'D'eleted timers sice they are deleted by user
+   /*
+     select id, state, title,comptitle, shorttext,compshorttext from timersdone where
+     state not in ('F','J')
+     and
+          (field('DERSTAATSANWALTDASLUDER', ifnull(comptitle,''),ifnull(episodecompshortname,'')) > 0
+       or  field('',ifnull(comptitle,''),ifnull(episodecompshortname,'NoShortnameAvailable')) > 0)
+     and
+          (field('',ifnull(compshorttext,''),ifnull(episodecomppartname,'')) > 0
+       or  field('',ifnull(compshorttext,''),ifnull(episodecomppartname,'')) > 0);
+   */
 
    selectDoneTimer->build(" %s not in ('F','J')",      // mysql ignoring case by default!
                           timersDoneDb->getField("STATE")->getDbName());
 
-   for (int i = 0; repeadCheckField[i]; i++)
+   if (repeatfields & sfTitle || repeatfields & sfFolge)  // 'Folge' vergelichen und 'Titel' nicht macht keinen Sinn
    {
-      const char* fieldName = repeadCheckFieldName[i];
+      selectDoneTimer->build(" and (field('%s', ifnull(comptitle,''),ifnull(episodecompshortname,'')) > 0"
+                             "   or field('%s',ifnull(comptitle,''),ifnull(episodecompshortname,'NoShortnameAvailable')) > 0)",
+                             useeventsRow->getStrValue("COMPTITLE"), useeventsRow->getStrValue("EPISODECOMPSHORTNAME"));
+   }
 
-      if (!timersDoneDb->getField(fieldName))
-         tell(0, "AUTOTIMER: Search (for 'done' check) field '%s' not known!",
-              fieldName);
-
-      else if (repeatfields & repeadCheckField[i])
-      {
-         // specical handling for episode, use EPISODECOMPSHORTNAME instead (if not null)!
-
-         if (repeadCheckField[i] == sfTitle)
-         {
-            if (!useeventsRow->getValue("EPISODECOMPSHORTNAME")->isNull())
-               fieldName = "EPISODECOMPSHORTNAME";
-            if (!useeventsRow->getValue("EPISODECOMPPARTNAME")->isNull())
-               fieldName = "EPISODECOMPPARTNAME";
-         }
-
-         if (repeadCheckField[i] == sfFolge)
-         {
-            if (!useeventsRow->getValue("EPISODECOMPSHORTNAME")->isNull())
-               fieldName = "EPISODECOMPSHORTNAME";
-         }
-
-         selectDoneTimer->bind(timersDoneDb->getField(fieldName),
-                               cDBS::bndIn | cDBS::bndSet, " and ");
-
-         chkFields += " " + std::string(fieldName);
-      }
+   if (repeatfields & sfFolge)
+   {
+      selectDoneTimer->build(" and (field('%s',ifnull(compshorttext,'NoShortnameAvailable'),ifnull(episodecomppartname,'NoShortnameAvailable')) > 0"
+                             "   or field('%s',ifnull(compshorttext,'NoShortnameAvailable'),ifnull(episodecomppartname,'NoShortnameAvailable')) > 0)",
+                             useeventsRow->getStrValue("COMPSHORTTEXT"), useeventsRow->getStrValue("EPISODECOMPPARTNAME"));
    }
 
    if (selectDoneTimer->prepare() != success)
    {
-      tell(0, "AUTOTIMER: Prepare of statement for 'done' check failed, skipping");
-      return fail;
+      tell(0, "Error: AUTOTIMER: Prepare of statement for 'done' check failed, skipping");
+      return yes;
    }
 
    timersDoneDb->clear();
-   timersDoneDb->setValue("COMPTITLE", useeventsRow->getStrValue("COMPTITLE"));
-
-   if (!useeventsRow->getValue("COMPSHORTTEXT")->isEmpty())
-      timersDoneDb->setValue("COMPSHORTTEXT", useeventsRow->getStrValue("COMPSHORTTEXT"));
-
-   if (!useeventsRow->getValue("EPISODECOMPNAME")->isEmpty())
-      timersDoneDb->setValue("EPISODECOMPNAME", useeventsRow->getStrValue("EPISODECOMPNAME"));
-   if (!useeventsRow->getValue("EPISODECOMPSHORTNAME")->isEmpty())
-      timersDoneDb->setValue("EPISODECOMPSHORTNAME", useeventsRow->getStrValue("EPISODECOMPSHORTNAME"));
-
-   if (!useeventsRow->getValue("EPISODECOMPPARTNAME")->isEmpty())
-      timersDoneDb->setValue("EPISODECOMPPARTNAME", useeventsRow->getStrValue("EPISODECOMPPARTNAME"));
-
-   if (!useeventsRow->getValue("COMPLONGDESCRIPTION")->isEmpty())
-      timersDoneDb->setValue("COMPLONGDESCRIPTION", useeventsRow->getStrValue("COMPLONGDESCRIPTION"));
 
    select = selectDoneTimer;
 
@@ -1140,7 +1116,7 @@ int cSearchTimer::modifyCreateTimer(cDbRow* timerRow, int& newid)
 
    if (knownTimer)
    {
-      timerDb->copyValues(timerRow, cDBS::ftPrimary);
+      timerDb->getRow()->copyValues(timerRow, cDBS::ftPrimary);
 
       if (!timerDb->find())
       {
@@ -1176,7 +1152,7 @@ int cSearchTimer::modifyCreateTimer(cDbRow* timerRow, int& newid)
 
       // create new on other vdr
 
-      timerDb->copyValues(timerRow, cDBS::ftData);          // takeover all data (can be modified by user)
+      timerDb->getRow()->copyValues(timerRow, cDBS::ftData);          // takeover all data (can be modified by user)
       timerDb->setValue("ID", 0);
       timerDb->setCharValue("ACTION", taCreate);
       status += timerDb->insert();
@@ -1190,7 +1166,7 @@ int cSearchTimer::modifyCreateTimer(cDbRow* timerRow, int& newid)
    {
       // create 'C'reate oder 'M'odify request ...
 
-      timerDb->copyValues(timerRow, cDBS::ftData);
+      timerDb->getRow()->copyValues(timerRow, cDBS::ftData);
 
       timerDb->setCharValue("ACTION", knownTimer ? taModify : taCreate);
 

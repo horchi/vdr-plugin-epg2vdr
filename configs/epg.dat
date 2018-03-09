@@ -396,7 +396,7 @@ Table useevents
 {
    CNTSOURCE               ""                                               cnt_source                    Ascii     10 Primary,
    CHANNELID               ""                                               cnt_channelid                 Ascii     50 Primary,
-   CNTEVENTID              ""                                               cnt_eventid                   UBigInt    0 Primary|Meta,
+   CNTEVENTID              ""                                               cnt_eventid                   UBigInt    0 Primary,
 
    MASTERID                ""                                               cnt_masterid                  UInt       0 Data|Meta,
    USEID                   ""                                               cnt_useid                     UInt       0 Data,

@@ -762,8 +762,6 @@ int cMenuEpgWhatsOn::LoadSearch(const cUserTimes::UserTime* userTime)
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
    LOCK_CHANNELS_READ;
    const cChannels* channels = Channels;
-   // cChannelsLock channelsLock(false);
-   // const cChannels* channels = channelsLock.Channels();
 #else
    cChannels* channels = &Channels;
 #endif
@@ -1050,15 +1048,7 @@ eOSState cMenuEpgWhatsOn::Record()
 
    menuDb->getParameter(menuDb->user.c_str(), "timerDefaultVDRuuid", timerDefaultVDRuuid);
 
-   // // Menü bei 'aktuellem' Event Timer Dialog öffen -> #TODO
-
-   // if (item->event && item->event->StartTime() < time(0) + NEWTIMERLIMIT)
-   // {
-   //    // timer = newTimerObjectFromRow(timerRow, xxxxx);
-   //    // return AddSubMenu(new cMenuEpgEditTimer(menuDb, timer));
-   // }
-
-   // ansonsten direkt anlegen
+   // create it
 
    menuDb->createTimer(timerRow, isEmpty(timerDefaultVDRuuid) || Epg2VdrConfig.createTimerLocal ? Epg2VdrConfig.uuid : timerDefaultVDRuuid);
    delete timerRow;
@@ -1134,12 +1124,12 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
             break;
          }
 
-         case k3:  // search timer dialog
+         case k3:      // search timer dialog
          {
             return AddSubMenu(new cMenuEpgSearchTimers());
          }
 
-         case k4:  // Umschalt Timer erstellen
+         case k4:      // Umschalt Timer erstellen
          {
             if (cMenuEpgScheduleItem* mi = (cMenuEpgScheduleItem*)Get(Current()))
             {
@@ -1207,13 +1197,10 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
             {
                cMenuEpgScheduleItem* item = (cMenuEpgScheduleItem*)Get(Current());
 
-               if (item)
+               if (Count() && item)
                {
-                  const cEvent* event = item->event;
-
-                  if (Count() && event)
-                     return AddSubMenu(new cMenuEpgEvent(menuDb, event, schedules,
-                                                         item->timerMatch, dispSchedule, canSwitch));
+                  if (const cEvent* event = item->event)
+                     return AddSubMenu(new cMenuEpgEvent(menuDb, event, schedules, item->timerMatch, dispSchedule, canSwitch));
                }
             }
 
