@@ -371,7 +371,7 @@ int cUpdate::performTimerJobs()
             {
                tell(0, "Took timer (%d) for uuid 'any', event (%ld)", timerid, eventid);
 
-               // mark 'na' record as assumed and create new with my UUID in primary key
+               // mark 'any' record as assumed and create new with my UUID in primary key
 
                timerDb->setCharValue("ACTION", taAssumed);
                timerDb->setCharValue("STATE", tsIgnore);
@@ -385,8 +385,10 @@ int cUpdate::performTimerJobs()
 
                // update timerid !!!
 
+               int otid = timerid;
                timerid = timerDb->getLastInsertId();
                timerDb->setValue("ID", timerid);
+               tell(0, "DEBUG: Copied timer (%d/%ld) to (%d/%ld)", otid, eventid, timerid, timerDb->getIntValue("EVENTID"));
             }
          }
          else
