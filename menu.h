@@ -319,6 +319,8 @@ class cEpgMenuTextItem : public cOsdItem
 
       cEpgMenuTextItem(const char* aId, const char* text)
       {
+         row = 0;
+         id = na;
          cid = strdup(aId);
          SetText(text);
       }

@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.1.94"
+#define _VERSION     "1.1.95"
 #define VERSION_DATE  "11.03.2018"
 
 #define DB_API       7
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-03-11 version 1.1.95 (horchi)
+   - bugfix: Fixed uninitialzed variable
 
 2018-03-11 version 1.1.94 (horchi)
    - change: Porting to dbapi 7 changes of epgd
