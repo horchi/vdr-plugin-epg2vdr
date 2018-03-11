@@ -386,9 +386,10 @@ int cUpdate::initDb()
    selectAllImages->setBindPrefix("e.");
    selectAllImages->bind(&masterId, cDBS::bndOut);
    selectAllImages->setBindPrefix("r.");
-   selectAllImages->bind("ImgName", cDBS::bndOut, ", ");
-   selectAllImages->bind("EventId", cDBS::bndOut, ", ");
-   selectAllImages->bind("Lfn", cDBS::bndOut, ", ");
+   selectAllImages->bind("IMGNAME", cDBS::bndOut, ", ");
+   selectAllImages->bind("IMGNAMEFS", cDBS::bndOut, ", ");
+   selectAllImages->bind("EVENTID", cDBS::bndOut, ", ");
+   selectAllImages->bind("LFN", cDBS::bndOut, ", ");
    selectAllImages->setBindPrefix("i.");
    selectAllImages->build(", length(");
    selectAllImages->bind(&imageSize, cDBS::bndOut);
@@ -397,13 +398,13 @@ int cUpdate::initDb()
    selectAllImages->build(" from %s r, %s i, %s e where ",
                           imageRefDb->TableName(), imageDb->TableName(), eventsDb->TableName());
    selectAllImages->build("e.%s = r.%s and i.%s = r.%s and (",
-                          eventsDb->getField("EventId")->getDbName(),
-                          imageRefDb->getField("EventId")->getDbName(),
-                          imageDb->getField("ImgName")->getDbName(),
-                          imageRefDb->getField("ImgName")->getDbName());
+                          eventsDb->getField("EVENTID")->getDbName(),
+                          imageRefDb->getField("EVENTID")->getDbName(),
+                          imageDb->getField("IMGNAME")->getDbName(),
+                          imageRefDb->getField("IMGNAME")->getDbName());
    selectAllImages->bindCmp("i", &imageUpdSp, ">");
    selectAllImages->build(" or ");
-   selectAllImages->bindCmp("r", "UpdSp", 0, ">");
+   selectAllImages->bindCmp("r", "UPDSP", 0, ">");
    selectAllImages->build(")");
 
    status += selectAllImages->prepare();
@@ -1876,6 +1877,7 @@ cEvent* cUpdate::createEventFromRow(const cDbRow* row)
 int cUpdate::storePicturesToFs()
 {
    int count = 0;
+   int cntLinks = 0;
    int updated = 0;
    char* path = 0;
    time_t start = time(0);
@@ -1893,21 +1895,21 @@ int cUpdate::storePicturesToFs()
    tell(0, "Load images from database");
 
    imageRefDb->clear();
-   imageRefDb->setValue("UpdSp", lastUpdateAt);
+   imageRefDb->setValue("UPDSP", lastUpdateAt);
    imageUpdSp.setValue(lastUpdateAt);
 
    for (int res = selectAllImages->find(); res; res = selectAllImages->fetch())
    {
       int eventid = masterId.getIntValue();
-      const char* imageName = imageRefDb->getStrValue("ImgName");
-      int lfn = imageRefDb->getIntValue("Lfn");
+      const char* imageNameFs = imageRefDb->getStrValue("IMGNAMEFS");
+      int lfn = imageRefDb->getIntValue("LFN");
       char* newpath;
       char* linkdest = 0;
       char* destfile = 0;
       int forceLink = no;
       int size = imageSize.getIntValue();
 
-      asprintf(&destfile, "%s/images/%s", epgimagedir, imageName);
+      asprintf(&destfile, "%s/images/%s", epgimagedir, imageNameFs);
 
       // check target ... image changed?
 
@@ -1916,9 +1918,9 @@ int cUpdate::storePicturesToFs()
          // get image
 
          imageDb->clear();
-         imageDb->setValue("ImgName", imageName);
+         imageDb->setValue("IMGNAME", imageRefDb->getStrValue("IMGNAME"));
 
-         if (imageDb->find() && !imageDb->getRow()->getValue("Image")->isNull())
+         if (imageDb->find() && !imageDb->getRow()->getValue("IMAGE")->isNull())
          {
             count++;
 
@@ -1935,7 +1937,7 @@ int cUpdate::storePicturesToFs()
 
             if (FILE* fh1 = fopen(destfile, "w"))
             {
-               fwrite(imageDb->getStrValue("Image"), 1, size, fh1);
+               fwrite(imageDb->getStrValue("IMAGE"), 1, size, fh1);
                fclose(fh1);
             }
             else
@@ -1951,7 +1953,7 @@ int cUpdate::storePicturesToFs()
 
       // create links ...
 
-      asprintf(&linkdest, "./images/%s", imageName);
+      asprintf(&linkdest, "./images/%s", imageNameFs);
 
 #ifdef _IMG_LINK
       if (!lfn)
@@ -1967,6 +1969,10 @@ int cUpdate::storePicturesToFs()
       // create link with index
 
       asprintf(&newpath, "%s/%d_%d.%s", epgimagedir, eventid, lfn, imageExtension);
+
+      if (!fileExists(newpath))
+         cntLinks++;
+
       createLink(newpath, linkdest, forceLink);
       free(newpath);
 
@@ -1980,8 +1986,8 @@ int cUpdate::storePicturesToFs()
 
    selectAllImages->freeResult();
 
-   tell(0, "Got %d images from database in %ld seconds (%d updates, %d new)",
-        count, time(0) - start, updated, count-updated);
+   tell(0, "Got %d images from database in %ld seconds (%d updates, %d new) and created %d links",
+        count, time(0) - start, updated, count-updated, cntLinks);
 
    return dbConnected(yes) ? success : fail;
 }
@@ -2018,9 +2024,9 @@ int cUpdate::cleanupPictures()
    cDbStatement* stmt = new cDbStatement(imageRefDb);
 
    stmt->build("select ");
-   stmt->bind("FileRef", cDBS::bndOut);
+   stmt->bind("FILEREF", cDBS::bndOut);
    stmt->build(" from %s where ", imageRefDb->TableName());
-   stmt->bind("ImgName", cDBS::bndIn | cDBS::bndSet);
+   stmt->bind("IMGNAMEFS", cDBS::bndIn | cDBS::bndSet);
 
    if (stmt->prepare() != success)
    {
@@ -2037,13 +2043,14 @@ int cUpdate::cleanupPictures()
    if (!(dir = opendir(pdir)))
    {
       tell(1, "Can't open directory '%s', '%s'", pdir, strerror(errno));
-
       free(pdir);
 
       return done;
    }
 
    free(pdir);
+
+   int cnt = 0;
 
    while (dbConnected() && (dirent = readdir(dir)))
    {
@@ -2053,11 +2060,13 @@ int cUpdate::cleanupPictures()
          continue;
 
       imageRefDb->clear();
-      imageRefDb->setValue("ImgName", dirent->d_name);
+      imageRefDb->setValue("IMGNAMEFS", dirent->d_name);
 
       if (!stmt->find())
       {
          asprintf(&pdir, "%s/images/%s", epgimagedir, dirent->d_name);
+
+         tell(2, "Remove image '%s'", pdir);
 
          if (!removeFile(pdir))
             iCount++;
@@ -2065,6 +2074,7 @@ int cUpdate::cleanupPictures()
          free(pdir);
       }
 
+      cnt++;
       stmt->freeResult();
    }
 

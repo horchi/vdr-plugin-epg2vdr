@@ -150,6 +150,7 @@ Table imagerefs
    SOURCE               ""  source               Ascii       10 Meta,
    FILEREF              ""  fileref              Ascii      100 Data,
    IMGNAME              ""  imagename            Ascii      100 Data,
+   IMGNAMEFS            ""  imagenamefs          Ascii      100 Data,
 }
 
 // ----------------------------------------------------------------
@@ -160,6 +161,7 @@ Index imagerefs
 {
    lfn                  ""  LFN,
    name                 ""  IMGNAME,
+   namefs               ""  IMGNAMEFS,
 }
 
 // ----------------------------------------------------------------

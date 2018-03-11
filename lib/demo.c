@@ -470,6 +470,11 @@ int main(int argc, char** argv)
    cEpgConfig::logstdout = yes;
    cEpgConfig::loglevel = 2;
 
+   char* str = strdup("https://cellular.images.dvbdata.com:1234/4998510/4998510/320x240.jpg");
+   replaceChars(str, "<>:\"/\\:|?*", '_');
+   tell(0, "%s", str);
+   free(str);
+
    const char* path = "/etc/epgd/epg.dat";
 
    if (argc > 1)

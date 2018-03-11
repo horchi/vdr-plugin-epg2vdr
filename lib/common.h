@@ -265,6 +265,7 @@ const char* bcastAddressOf(const char* ipStr, const char* maskStr = 0);
   const char* getUniqueId();
 #endif
 
+char* replaceChars(char* string, const char* chars, const char to);
 void removeChars(std::string& str, const char* ignore);
 void removeCharsExcept(std::string& str, const char* except);
 void removeWord(std::string& pattern, std::string word);
@@ -414,6 +415,8 @@ class LogDuration
       int logLevel;
 };
 
+#ifdef VDR_PLUGIN
+
 //***************************************************************************
 // Timer Thread
 //***************************************************************************
@@ -441,6 +444,8 @@ class cTimerThread : public cThread
 
       sendEventFct sendEvent;
 };
+
+#endif // VDR_PLUGIN
 
 //***************************************************************************
 // Semaphore

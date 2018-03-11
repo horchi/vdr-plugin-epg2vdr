@@ -5,10 +5,10 @@
  *
  */
 
-#define _VERSION     "1.1.93"
-#define VERSION_DATE  "09.03.2018"
+#define _VERSION     "1.1.94"
+#define VERSION_DATE  "11.03.2018"
 
-#define DB_API       6
+#define DB_API       7
 
 #ifdef GIT_REV
 #  define VERSION _VERSION "-GIT" GIT_REV
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-03-11 version 1.1.94 (horchi)
+   - change: Porting to dbapi 7 changes of epgd
 
 2018-03-09 version 1.1.93 (horchi)
    - added: Menu for matching 'jobs' (timersdone) of search timer results, with delete option
