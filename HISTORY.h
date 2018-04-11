@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.95"
-#define VERSION_DATE  "11.03.2018"
+#define _VERSION     "1.1.96"
+#define VERSION_DATE  "11.04.2018"
 
 #define DB_API       7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-04-11 version 1.1.96 (horchi)
+   - change: Changed menu item for better catagory choice by skin plugin (by Tomas Saxer)
 
 2018-03-11 version 1.1.95 (horchi)
    - bugfix: Fixed uninitialzed variable

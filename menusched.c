@@ -838,7 +838,7 @@ int cMenuEpgWhatsOn::LoadSchedule()
                Add(new cMenuEpgScheduleSepItem(0, ev));
 
             if (ev->EndTime() > now || ev == PresentEvent)
-               Add(new cMenuEpgScheduleItem(menuDb, ev, channel), ev == PresentEvent);
+               Add(new cMenuEpgScheduleItem(menuDb, ev), ev == PresentEvent);
 
             lastDay = tmSTime.tm_mday;
          }
