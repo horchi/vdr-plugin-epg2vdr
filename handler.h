@@ -1004,9 +1004,6 @@ class cEpg2VdrEpgHandler : public cEpgHandler
 
       int updateExternalIdsMap(cDbTable* mapDb)
       {
-         cMutexLock lock(&mapMutex);
-
-         externIdMap.clear();
          tell(1, "Handler: Start reading external ids from db");
          mapDb->clear();
 
@@ -1034,6 +1031,9 @@ class cEpg2VdrEpgHandler : public cEpgHandler
          // channel lock scope
          {
             GET_CHANNELS_READ(channels);
+
+            cMutexLock lock(&mapMutex);
+            externIdMap.clear();
 
             for (int f = selectAll->find(); f; f = selectAll->fetch())
             {

@@ -240,7 +240,9 @@ int cUpdate::performRecordingActions()
             else if (!rr->lastBreak)
                rr->lastBreak = time(0);   // store first break
 
-            if (!rr->lastBreak || (time(0) - rr->lastBreak) > allowedBreakDuration)
+            if (!rr->lastBreak ||
+                time(0) - rr->lastBreak > allowedBreakDuration ||
+                time(0) >= rr->timer->StopTime())
             {
                char* infoTxt;
 
