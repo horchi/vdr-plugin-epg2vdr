@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.97"
-#define VERSION_DATE  "26.09.2018"
+#define _VERSION     "1.1.98"
+#define VERSION_DATE  "15.10.2018"
 
 #define DB_API       7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2018-10-15 version 1.1.98 (horchi)
+   - bugfix: Fixed init of dummy separator items for EPG menu
 
 2018-09-26 version 1.1.97 (horchi)
    - change: Improved detection of recording end

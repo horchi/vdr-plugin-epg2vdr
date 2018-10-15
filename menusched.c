@@ -355,14 +355,24 @@ cMenuEpgScheduleSepItem::~cMenuEpgScheduleSepItem()
 
 bool cMenuEpgScheduleSepItem::Update(bool Force)
 {
+   if (tmpEvent)
+   {
+      delete tmpEvent;
+      tmpEvent = 0;
+   }
+
    if (channel)
    {
-      SetText(cString::sprintf("-----\t %s -----", channel ? channel->Name() : *event->GetDateString()));
+      tmpEvent = new cEvent(0);
+      tmpEvent->SetTitle(cString::sprintf("-----\t %s -----", channel->Name()));
+      tmpEvent->SetShortText(strncmp(channel->Name(), "->", 2) == 0 ? channel->Name()+2 : channel->Name()); // using short text to transport plain value to skin
+      SetText(tmpEvent->Title());
    }
    else if (event)
    {
       tmpEvent = new cEvent(0);
       tmpEvent->SetTitle(cString::sprintf("-----\t %s -----", *event->GetDateString()));
+      tmpEvent->SetShortText(event->GetDateString());  // using short text to transport plain value to skin
       SetText(tmpEvent->Title());
    }
 
@@ -371,6 +381,8 @@ bool cMenuEpgScheduleSepItem::Update(bool Force)
 
 void cMenuEpgScheduleSepItem::SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable)
 {
+   tell(0, "calling SetMenuItem with '%s'", tmpEvent ? tmpEvent->Title() : "<null>");
+
    if (!DisplayMenu->SetItemEvent(tmpEvent, Index, Current, Selectable, channel, no, tmNone))
       DisplayMenu->SetItem(Text(), Index, Current, Selectable);
 }
