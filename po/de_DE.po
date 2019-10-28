@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2018-03-09 08:55+0100\n"
+"POT-Creation-Date: 2019-10-28 16:00+0100\n"
 "PO-Revision-Date: 2009-08-27 21:40+0200\n"
 "Last-Translator: Klaus Schmidinger <kls@cadsoft.de>\n"
 "Language-Team: <vdr@linuxtv.org>\n"
@@ -90,6 +90,9 @@ msgstr "Tausche Taste OK/Blau"
 
 msgid "Show Channels without EPG"
 msgstr "Zeige Kanäle ohne EPG"
+
+msgid "Close Menu on Channel Switch (at blue key)"
+msgstr ""
 
 msgid "Switch timer notification timer [s]"
 msgstr "OSD Meldung bevor umgeschaltet wird [s]"
