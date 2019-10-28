@@ -1013,7 +1013,7 @@ eOSState cMenuEpgWhatsOn::Switch()
    cMenuEpgScheduleItem* item = (cMenuEpgScheduleItem*)Get(Current());
 
    if (cDevice::PrimaryDevice()->SwitchChannel(item->channel, true))
-      return osEnd;
+      return Epg2VdrConfig.closeOnSwith ? osEnd : osContinue;
 
    Skins.Message(mtError, tr("Can't switch channel!"));
 

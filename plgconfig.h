@@ -6,8 +6,7 @@
  * $Id: config.h,v 1.2 2012/10/26 08:44:13 wendel Exp $
  */
 
-#ifndef __EPG2VDR_CONFIG_H
-#define __EPG2VDR_CONFIG_H
+#pragma once
 
 #include "lib/config.h"
 
@@ -39,8 +38,7 @@ struct cEpg2VdrConfig : public cEpgConfig
       int showEmptyChannels;
       int extendedEpgData2Aux;
       int switchTimerNotifyTime;
+      int closeOnSwith {no};
 };
 
 extern cEpg2VdrConfig Epg2VdrConfig;
-
-#endif // __EPG2VDR_CONFIG_H

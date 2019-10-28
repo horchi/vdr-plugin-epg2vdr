@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.98"
-#define VERSION_DATE  "15.10.2018"
+#define _VERSION     "1.1.99"
+#define VERSION_DATE  "28.10.2019"
 
 #define DB_API       7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2019-10-28 version 1.1.99 (horchi)
+   - added: Option to keep menu on channel switch open
 
 2018-10-15 version 1.1.98 (horchi)
    - bugfix: Fixed init of dummy separator items for EPG menu

@@ -292,6 +292,7 @@ void cMenuSetupEPG2VDR::Setup()
    Add(new cMenuEditBoolItem(tr("Replace Timer Menu"), &data.replaceTimerMenu));
    Add(new cMenuEditBoolItem(tr("XChange Key Ok/Blue"), &data.xchgOkBlue));
    Add(new cMenuEditBoolItem(tr("Show Channels without EPG"), &data.showEmptyChannels));
+   Add(new cMenuEditBoolItem(tr("Close Menu on Channel Switch (at blue key)"), &data.closeOnSwith));
    Add(new cMenuEditIntItem(tr("Switch timer notification timer [s]"), &data.switchTimerNotifyTime, 0, 999));
 
    Add(new cOsdItem(cString::sprintf("--------------------- %s ---------------------------------", tr("Web"))));
@@ -372,6 +373,7 @@ void cMenuSetupEPG2VDR::Store()
    SetupStore("CreateTimerLocal", Epg2VdrConfig.createTimerLocal);
    SetupStore("XChgKeyOkBlue", Epg2VdrConfig.xchgOkBlue);
    SetupStore("ShowEmptyChannels", Epg2VdrConfig.showEmptyChannels);
+   SetupStore("CloseOnSwith", Epg2VdrConfig.closeOnSwith);
    SetupStore("UseCommonRecFolder", Epg2VdrConfig.useCommonRecFolder);
    SetupStore("ReplaceScheduleMenu", Epg2VdrConfig.replaceScheduleMenu);
    SetupStore("ReplaceTimerMenu", Epg2VdrConfig.replaceTimerMenu);
@@ -1146,6 +1148,7 @@ bool cPluginEPG2VDR::SetupParse(const char *Name, const char *Value)
    else if (!strcasecmp(Name, "CreateTimerLocal"))     Epg2VdrConfig.createTimerLocal = atoi(Value);
    else if (!strcasecmp(Name, "XChgKeyOkBlue"))        Epg2VdrConfig.xchgOkBlue = atoi(Value);
    else if (!strcasecmp(Name, "ShowEmptyChannels"))    Epg2VdrConfig.showEmptyChannels = atoi(Value);
+   else if (!strcasecmp(Name, "CloseOnSwith"))         Epg2VdrConfig.closeOnSwith = atoi(Value);
    else if (!strcasecmp(Name, "Uuid"))                 sstrcpy(Epg2VdrConfig.uuid, Value, sizeof(Epg2VdrConfig.uuid));
    else if (!strcasecmp(Name, "NetDevice"))            sstrcpy(Epg2VdrConfig.netDevice, Value, sizeof(Epg2VdrConfig.netDevice));
    else if (!strcasecmp(Name, "ReplaceScheduleMenu"))  Epg2VdrConfig.replaceScheduleMenu = atoi(Value);
