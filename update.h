@@ -24,6 +24,10 @@
 
 #define EPGDNAME "epgd"
 
+#if defined(APIVERSNUM) && APIVERSNUM < 20304
+#error "VDR-2.3.4 API version or greater is required!"
+#endif
+
 //***************************************************************************
 // Running Recording
 //***************************************************************************
@@ -34,7 +38,12 @@ class cRunningRecording : public cListObject
 
       cRunningRecording(const cTimer* t, long did = na)
       {
-         timer = t;
+         id = t->Id();
+
+         if (remote)
+            free(remote);
+
+         remote = t->Remote() ? strdup(t->Remote()) : nullptr;
          doneid = did;
          lastBreak = 0;
          info = 0;
@@ -44,7 +53,7 @@ class cRunningRecording : public cListObject
 
          // copy until timer get waste ..
 
-         aux = strdup(timer->Aux() ? timer->Aux() : "");
+         aux = strdup(t->Aux() ? t->Aux() : "");
       }
 
       ~cRunningRecording()
@@ -57,13 +66,14 @@ class cRunningRecording : public cListObject
 
       // data
 
-      const cTimer* timer;  // #TODO, it's may be fatal to hold a pointer to a timer!
+      int id = 0;           // use timer->Id(), timer->Remote and GetById instead of pointer to a timer
+      char* remote {nullptr};
       time_t lastBreak;
       int finished;
       int failed;
       long doneid;
-      char* aux;
-      char* info;
+      char* aux {nullptr};
+      char* info {nullptr};
 };
 
 //***************************************************************************

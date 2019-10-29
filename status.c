@@ -10,6 +10,10 @@
 #include "update.h"
 #include "ttools.h"
 
+#if defined (APIVERSNUM) && APIVERSNUM < 20304
+#  error "VDR-2.3.4 API version or greater is required!"
+#endif
+
 //***************************************************************************
 // ----> Copied from epgsearch ;-)
 //***************************************************************************
@@ -167,10 +171,13 @@ int cUpdate::performRecordingActions()
 
                for (cRunningRecording* rr = runningRecordings.First(); rr;  rr = runningRecordings.Next(rr))
                {
-                  if (rr->timer == ti)
+                  if (ti->Id() == rr->id)
                   {
-                     recording = rr;
-                     break;
+                     if (!rr->remote && !ti->Remote() || rr->remote && ti->Remote() && strcmp(rr->remote, ti->Remote()) == 0)
+                     {
+                        recording = rr;
+                        break;
+                     }
                   }
                }
 
@@ -202,60 +209,75 @@ int cUpdate::performRecordingActions()
             const cTimer* pendingTimer = 0;
             int complete;
             double recFraction = 100.0;
-            long timerLengthSecs = rr->timer->StopTime() - rr->timer->StartTime();
-            bool vpsUsed = rr->timer->HasFlags(tfVps) && rr->timer->Event() && rr->timer->Event()->Vps();
+            long timerLengthSecs = 0;
+            bool vpsUsed = false;
 
-            // check if timer still exists
+            pendingTimer = Timers->GetById(rr->id, rr->remote);
 
-            for (pendingTimer = timers->First(); pendingTimer; pendingTimer = timers->Next(pendingTimer))
+            if (pendingTimer)
             {
-               if (pendingTimer == rr->timer)
-                  break;
+               tell(2,"Info: valid timer for recording '%s' on Server '%s'", pendingTimer->File(), pendingTimer->Remote());
+               timerLengthSecs = pendingTimer->StopTime() - pendingTimer->StartTime();
+
+               if (pendingTimer->Event())
+               {
+                 tell(2,"Info: valid event for recording '%s'", pendingTimer->File());
+                 tell(2,"Info: pendingTimer->Event()->Vps() (%ld)", pendingTimer->Event()->Vps());
+                 vpsUsed = pendingTimer->HasFlags(tfVps) && pendingTimer->Event()->Vps();
+               }
+               else
+               {
+                  tell(2,"Info: no event for recording '%s'", pendingTimer->File());
+               }
+
+               // still recording :o ?
+
+               if (pendingTimer && pendingTimer->Recording())
+                  continue;
+
+               if (pRecording && timerLengthSecs)
+               {
+                  int recLen = RecLengthInSecs(pRecording);
+                  recFraction = double(recLen) * 100 / timerLengthSecs;
+               }
+
+               // assure timer has reached it's end or at least 90% (vps) / 98% were recorded
+
+               complete = recFraction >= (vpsUsed ? 90 : 98);
+
+               if (complete)
+                  tell(1, "Info: Finished (%d) '%s'; recorded %d%%; VPS %s", getTimerIdOf(rr->aux),
+                     pendingTimer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
+               else
+                  tell(1, "Info: Finished (%d) '%s' (not complete! - recorded only %d%%); VPS %s", getTimerIdOf(rr->aux),
+                       pendingTimer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
+
+               if (complete)
+                  rr->lastBreak = 0;         // reset break
+               else if (!rr->lastBreak)
+                  rr->lastBreak = time(0);   // store first break
+
+               if (!rr->lastBreak ||
+                   time(0) - rr->lastBreak > allowedBreakDuration ||
+                   time(0) >= pendingTimer->StopTime())
+               {
+                  char* infoTxt;
+
+                  asprintf(&infoTxt, "Recording '%s' finished - %s complete (%d%%)",
+                           pendingTimer->File(), complete ? "" : "NOT", (int)round(recFraction));
+
+                  tell(1, "Info: %s", infoTxt);
+
+                  rr->finished = yes;
+                  rr->failed = !complete;
+                  rr->setInfo(infoTxt);
+
+                  free(infoTxt);
+               }
             }
-
-            // still recording :o ?
-
-            if (pendingTimer && pendingTimer->Recording())
-               continue;
-
-            if (pRecording && timerLengthSecs)
-            {
-               int recLen = RecLengthInSecs(pRecording);
-               recFraction = double(recLen) * 100 / timerLengthSecs;
-            }
-
-            // assure timer has reached it's end or at least 90% (vps) / 98% were recorded
-
-            complete = recFraction >= (vpsUsed ? 90 : 98);
-
-            if (complete)
-               tell(1, "Info: Finished (%d) '%s'; recorded %d%%; VPS %s", getTimerIdOf(rr->aux),
-                    rr->timer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
             else
-               tell(1, "Info: Finished (%d) '%s' (not complete! - recorded only %d%%); VPS %s", getTimerIdOf(rr->aux),
-                    rr->timer->File(), (int)round(recFraction), vpsUsed ? "Yes": "No");
-
-            if (complete)
-               rr->lastBreak = 0;         // reset break
-            else if (!rr->lastBreak)
-               rr->lastBreak = time(0);   // store first break
-
-            if (!rr->lastBreak ||
-                time(0) - rr->lastBreak > allowedBreakDuration ||
-                time(0) >= rr->timer->StopTime())
             {
-               char* infoTxt;
-
-               asprintf(&infoTxt, "Recording '%s' finished - %s complete (%d%%)",
-                        rr->timer->File(), complete ? "" : "NOT", (int)round(recFraction));
-
-               tell(1, "Info: %s", infoTxt);
-
-               rr->finished = yes;
-               rr->failed = !complete;
-               rr->setInfo(infoTxt);
-
-               free(infoTxt);
+               tell(2,"Info: no timer for id '%d'", rr->id);
             }
          }
       }
