@@ -38,7 +38,7 @@ struct cEpg2VdrConfig : public cEpgConfig
       int showEmptyChannels;
       int extendedEpgData2Aux;
       int switchTimerNotifyTime;
-      int closeOnSwith {no};
+      int closeOnSwith {yes};
 };
 
 extern cEpg2VdrConfig Epg2VdrConfig;

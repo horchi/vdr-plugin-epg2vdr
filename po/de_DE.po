@@ -92,7 +92,7 @@ msgid "Show Channels without EPG"
 msgstr "Zeige Kanäle ohne EPG"
 
 msgid "Close Menu on Channel Switch (at blue key)"
-msgstr ""
+msgstr "Menü beim Umschalten über 'blau' schließen"
 
 msgid "Switch timer notification timer [s]"
 msgstr "OSD Meldung bevor umgeschaltet wird [s]"
