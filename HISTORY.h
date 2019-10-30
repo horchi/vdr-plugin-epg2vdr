@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.100"
-#define VERSION_DATE "29.10.2019"
+#define _VERSION     "1.1.101"
+#define VERSION_DATE "30.10.2019"
 
 #define DB_API 7
 
@@ -19,8 +19,11 @@
 /*
  * ------------------------------------
 
+2019-10-30 version 1.1.101 (horchi)
+   - change: Added evaluation of PKG_CONFIG_PATH environment variable (thaks to kfb77@vdr-portal)
+
 2019-10-29 version 1.1.100 (horchi)
-   - bugfix: Added patch to fix potentially cras at end of recording (thaks to kfb77@vdr-portal)
+   - bugfix: Added patch to fix potentially crash at end of recording (thaks to kfb77@vdr-portal)
 
 2019-10-28 version 1.1.99 (horchi)
    - added: Option to keep menu on channel switch open
