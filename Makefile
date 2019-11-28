@@ -70,7 +70,8 @@ LIBS  = $(HLIB)
 LIBS += -lrt -larchive -lcrypto
 LIBS += $(shell pkg-config --libs uuid)
 LIBS += $(shell pkg-config --libs tinyxml2)
-LIBS += $(shell mysql_config --libs_r) $(shell python-config --libs) $(shell pkg-config --libs jansson)
+LIBS += $(shell mysql_config --libs_r)
+LIBS += $(shell pkg-config --libs jansson)
 
 EPG2VDR_DATA_DIR = "/var/cache/vdr"
 

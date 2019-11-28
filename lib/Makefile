@@ -25,7 +25,7 @@ endif
 CFLAGS += $(shell pkg-config --cflags uuid)
 CFLAGS += $(shell pkg-config --cflags zlib)
 
-BASELIBS = -lrt
+BASELIBS += -lrt
 BASELIBS += $(shell mysql_config --libs_r)
 BASELIBS += $(shell pkg-config --libs uuid)
 BASELIBS += $(shell pkg-config --libs zlib)
@@ -36,11 +36,10 @@ ifdef USECURL
 endif
 
 ifdef USEEPGS
-	LIBOBJS += searchtimer.o
+   LIBOBJS += searchtimer.o
 endif
 
 ifdef USEPYTHON
-	BASELIBS += $(shell python-config --libs)
    LIBOBJS += python.o
 endif
 
@@ -50,15 +49,11 @@ endif
 
 ifdef SYSD_NOTIFY
    BASELIBS  += $(shell pkg-config --libs libsystemd-daemon)
-	CFLAGS += $(shell pkg-config --cflags libsystemd-daemon)
+   CFLAGS += $(shell pkg-config --cflags libsystemd-daemon)
 endif
 
 CFLAGS += $(shell mysql_config --include)
 DEFINES += $(USES)
-
-ifdef USEPYTHON
-	CFLAGS += $(shell python-config --includes)
-endif
 
 all: lib $(TEST) $(DEMO)
 lib: $(LIBTARGET).a

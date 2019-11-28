@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.101"
-#define VERSION_DATE "30.10.2019"
+#define _VERSION     "1.1.102"
+#define VERSION_DATE "28.11.2019"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2019-11-28: version 1.1.102 (horchi)
+   - added: Support of python 3.8 (by Alexander Grothe)
 
 2019-10-30 version 1.1.101 (horchi)
    - change: Added evaluation of PKG_CONFIG_PATH environment variable (thaks to kfb77@vdr-portal)
