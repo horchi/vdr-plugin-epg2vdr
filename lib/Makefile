@@ -29,6 +29,7 @@ BASELIBS += -lrt
 BASELIBS += $(shell mysql_config --libs_r)
 BASELIBS += $(shell pkg-config --libs uuid)
 BASELIBS += $(shell pkg-config --libs zlib)
+BASELIBS += $(PYTHON_LIBS)
 BASELIBS += $(shell pkg-config --libs tinyxml2)
 
 ifdef USECURL

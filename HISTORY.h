@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.102"
-#define VERSION_DATE "28.11.2019"
+#define _VERSION     "1.1.103"
+#define VERSION_DATE "02.13.2019"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2019-12-02: version 1.1.103 (horchi)
+   - bugfix: fixed python patch
 
 2019-11-28: version 1.1.102 (horchi)
    - added: Support of python 3.8 (by Alexander Grothe)
