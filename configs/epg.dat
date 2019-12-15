@@ -612,6 +612,7 @@ Table timers
    EVENTID              "useid"                                  eventid              UInt         0 Data,
    CHANNELID            ""                                       channelid            Ascii       50 Data,
    _STARTTIME           "pre filled start timer for trigger"     _starttime           Int         10 Data,
+   _ENDTIME             "pre filled end time"                    _endtime             Int         10 Data,
 
    SOURCE               "like  osd, webif, epgd"                 source               Ascii       40 Data,
    TYPE                 "'R'ecord, 'V'iew (umschalt)"            type                 Ascii        1 Data,
@@ -627,8 +628,8 @@ Table timers
    ACTIVE               ""                                       active               UInt         0 Data,
    DAY                  ""                                       day                  Int         10 Data,
    WEEKDAYS             ""                                       weekdays             Int         10 Data,
-   STARTTIME            ""                                       starttime            Int         10 Data,
-   ENDTIME              ""                                       endtime              Int         10 Data,
+   STARTTIME            "HHMM"                                   starttime            Int         10 Data,
+   ENDTIME              "HHMM"                                   endtime              Int         10 Data,
    FILE                 ""                                       file                 Ascii      512 Data,
    DIRECTORY            ""                                       directory            Ascii      512 Data,
 
