@@ -13,6 +13,7 @@
 
 #include <list>
 #include <map>
+#include <string>
 
 //***************************************************************************
 // Timer - Skin Interface

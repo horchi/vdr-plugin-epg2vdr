@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.104"
-#define VERSION_DATE "15.13.2019"
+#define _VERSION     "1.1.105"
+#define VERSION_DATE "17.12.2019"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2019-12-17: version 1.1.105 (horchi)
+   - added: Fixed compile with g++ 10 (provided by marco@vdr-developer.org)
 
 2019-12-15: version 1.1.104 (horchi)
    - added: Added _endtime to table timers
