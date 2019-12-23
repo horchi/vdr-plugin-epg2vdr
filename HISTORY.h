@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.105"
-#define VERSION_DATE "17.12.2019"
+#define _VERSION     "1.1.106"
+#define VERSION_DATE "23.12.2019"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2019-12-23: version 1.1.106 (horchi)
+   - change: Perform timer job also if eppgd busy
 
 2019-12-17: version 1.1.105 (horchi)
    - added: Fixed compile with g++ 10 (provided by marco@vdr-developer.org)

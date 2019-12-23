@@ -1361,6 +1361,17 @@ void cUpdate::Action()
 
       isHandlerMaster();
 
+      if (Epg2VdrConfig.shareInWeb)
+      {
+         // update timer
+
+         if (dbConnected() && timerTableUpdateTriggered)
+           updateTimerTable();
+
+         if (dbConnected())
+            hasTimerChanged();
+      }
+
       if (epgdBusy)
          continue;
 
@@ -1374,14 +1385,6 @@ void cUpdate::Action()
             refreshEpg(0, na);                  // refresh EPG before performing timer jobs!
             performTimerJobs();
          }
-
-         // update timer
-
-         if (dbConnected() && timerTableUpdateTriggered)
-           updateTimerTable();
-
-         if (dbConnected())
-            hasTimerChanged();
       }
 
       // if triggered externally or updates pending
