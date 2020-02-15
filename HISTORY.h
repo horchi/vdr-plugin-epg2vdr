@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.106"
-#define VERSION_DATE "23.12.2019"
+#define _VERSION     "1.1.107"
+#define VERSION_DATE "14.02.2020"
 
 #define DB_API 7
 
@@ -18,6 +18,11 @@
 
 /*
  * ------------------------------------
+
+2020-02-14: version 1.1.107 (horchi,seahawk1986)
+   - bugfix: Fixed cleanup of image links
+   - change: Improved cleanup spead for images and links
+   - bugfix: Fixed time handling for timers without event
 
 2019-12-23: version 1.1.106 (horchi)
    - change: Perform timer job also if eppgd busy

@@ -292,6 +292,7 @@ const char* toWeekdayName(uint day);
 time_t hhmmOf(time_t t);
 int l2hhmm(time_t t);
 std::string hhmm2pTime(int hhmm);
+time_t hhmm2L(int hhmm, time_t offset = 0);
 time_t midnightOf(time_t t);
 std::string l2pTime(time_t t, const char* format = "%d.%m.%Y %T");
 std::string l2pDate(time_t t);

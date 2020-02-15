@@ -5,8 +5,7 @@
  *
  */
 
-#ifndef __EPG2VDR_MENU_H
-#define __EPG2VDR_MENU_H
+#pragma once
 
 #include <vdr/osdbase.h>
 #include <vdr/menuitems.h>
@@ -549,7 +548,3 @@ class cMenuEpgMatchRecordings : public cOsdMenu
       virtual ~cMenuEpgMatchRecordings() {};
       virtual eOSState ProcessKey(eKeys Key);
 };
-
-//***************************************************************************
-
-#endif  // __EPG2VDR_MENU_H

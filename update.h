@@ -197,7 +197,6 @@ class cUpdate : public cThread, public cStatus, public cParameters
       int lookupVdrEventOf(int eId, const char* cId);
       int storePicturesToFs();
       int cleanupPictures();
-      int pictureLinkNeeded(const char* linkName);
       int getOsd2WebPort();
 
       tChannelID toChanID(const char* chanIdStr)
@@ -285,6 +284,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       cDbStatement* selectMasterVdr;
       cDbStatement* selectAllImages;
       cDbStatement* selectUpdEvents;
+      cDbStatement* selectAllEvents {nullptr};
       cDbStatement* selectEventById;
       cDbStatement* selectAllChannels;
       cDbStatement* selectChannelById;

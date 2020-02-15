@@ -329,10 +329,13 @@ int updateRowByTimer(cDbRow* timerRow, const cTimer* t)
    contentOfTag(t, "directory", directory, 512);
    contentOfTag(t, "source", source, 40);
 
+   time_t startTime = hhmm2L(t->Start(), t->Day());
+   time_t endTime = hhmm2L(t->Stop(), t->Day() + t->Stop() < t->Start() ? tmeSecondsPerDay : 0);
+
    timerRow->setValue("VDRUUID", Epg2VdrConfig.uuid);
    timerRow->setValue("EVENTID", t->Event() ? (long)t->Event()->EventID() : 0);
-   timerRow->setValue("_STARTTIME", t->Event() ? t->Event()->StartTime() : 0);
-   timerRow->setValue("_ENDTIME", t->Event() ? t->StopTime() : 0);
+   timerRow->setValue("_STARTTIME", startTime);
+   timerRow->setValue("_ENDTIME", endTime);
    timerRow->setValue("CHANNELID", channelId);
    timerRow->setValue("DAY", t->Day());
    timerRow->setValue("STARTTIME", t->Start());

@@ -6,6 +6,7 @@
  */
 
 #include <locale.h>
+#include <unordered_set>
 
 #include <vdr/videodir.h>
 #include <vdr/tools.h>
@@ -506,6 +507,22 @@ int cUpdate::initDb()
 
    status += selectEventById->prepare();
 
+   // select all active events
+
+   selectAllEvents = new cDbStatement(useeventsDb);
+
+   // select * from eventsview
+   //      where useid = ?
+   //        and updflg in (.....)
+
+   selectAllEvents->build("select ");
+   selectAllEvents->bind("USEID", cDBS::bndOut);
+   selectAllEvents->build(" from %s where ", useeventsDb->TableName());
+   selectAllEvents->build("%s in (%s)",
+                          useeventsDb->getField("UPDFLG")->getDbName(), Us::getNeeded());
+
+   status += selectAllEvents->prepare();
+
    // ...
 
    // select stream, type, lang, description
@@ -790,6 +807,7 @@ int cUpdate::exitDb()
    delete selectAllImages;           selectAllImages = 0;
    delete selectUpdEvents;           selectUpdEvents = 0;
    delete selectEventById;           selectEventById = 0;
+   delete selectAllEvents;           selectAllEvents = 0;
    delete selectAllChannels;         selectAllChannels = 0;
    delete selectChannelById;         selectChannelById = 0;
    delete markUnknownChannel;        markUnknownChannel = 0;
@@ -1363,7 +1381,7 @@ void cUpdate::Action()
 
       if (Epg2VdrConfig.shareInWeb)
       {
-         // update timer
+         // update timer - even when epgd is busy!
 
          if (dbConnected() && timerTableUpdateTriggered)
            updateTimerTable();
@@ -2001,12 +2019,12 @@ int cUpdate::storePicturesToFs()
 
 int cUpdate::cleanupPictures()
 {
-   const char* ext = ".jpg";
-   struct dirent* dirent;
-   DIR* dir;
-   char* pdir;
-   int iCount = 0;
-   int lCount = 0;
+   const char* ext {".jpg"};
+   struct dirent* dirent {nullptr};
+   DIR* dir {nullptr};
+   char* pdir {nullptr};
+   int iCount {0};
+   int lCount {0};
 
    imageRefDb->countWhere("", iCount);
 
@@ -2016,26 +2034,10 @@ int cUpdate::cleanupPictures()
       return done;
    }
 
-   // -----------------------
-   // remove unused images
-
    tell(1, "Starting cleanup of images in '%s'", epgimagedir);
 
    // -----------------------
    // cleanup 'images' directory
-
-   cDbStatement* stmt = new cDbStatement(imageRefDb);
-
-   stmt->build("select ");
-   stmt->bind("FILEREF", cDBS::bndOut);
-   stmt->build(" from %s where ", imageRefDb->TableName());
-   stmt->bind("IMGNAMEFS", cDBS::bndIn | cDBS::bndSet);
-
-   if (stmt->prepare() != success)
-   {
-      delete stmt;
-      return fail;
-   }
 
    iCount = 0;
 
@@ -2047,56 +2049,31 @@ int cUpdate::cleanupPictures()
    {
       tell(1, "Can't open directory '%s', '%s'", pdir, strerror(errno));
       free(pdir);
-
       return done;
    }
 
    free(pdir);
 
-   int cnt = 0;
-
-   while (dbConnected() && (dirent = readdir(dir)))
-   {
-      // check extension
-
-      if (strncmp(dirent->d_name + strlen(dirent->d_name) - strlen(ext), ext, strlen(ext)) != 0)
-         continue;
-
-      imageRefDb->clear();
-      imageRefDb->setValue("IMGNAMEFS", dirent->d_name);
-
-      if (!stmt->find())
-      {
-         asprintf(&pdir, "%s/images/%s", epgimagedir, dirent->d_name);
-
-         tell(2, "Remove image '%s'", pdir);
-
-         if (!removeFile(pdir))
-            iCount++;
-
-         free(pdir);
-      }
-
-      cnt++;
-      stmt->freeResult();
-   }
-
-   delete stmt;
-   closedir(dir);
-
    if (!dbConnected(yes))
       return fail;
 
-   // -----------------------
-   // remove wasted symlinks
+   cDbStatement stmt(imageRefDb);
 
-   if (!(dir = opendir(epgimagedir)))
-   {
-      tell(1, "Can't open directory '%s', '%s'", epgimagedir, strerror(errno));
-      return done;
-   }
+   stmt.build("select ");
+   stmt.bind("IMGNAMEFS", cDBS::bndOut);
+   stmt.build(" from %s", imageRefDb->TableName());
 
-   tell(1, "Remove %s symlinks", fullreload ? "all" : "old");
+   if (stmt.prepare() != success)
+      return fail;
+
+   std::unordered_set<std::string> usedRefs;
+
+   imageRefDb->clear();
+
+   for (int res = stmt.find(); res; res = stmt.fetch())
+      usedRefs.insert(imageRefDb->getStrValue("IMGNAMEFS"));
+
+   stmt.freeResult();
 
    while ((dirent = readdir(dir)))
    {
@@ -2105,45 +2082,72 @@ int cUpdate::cleanupPictures()
       if (strncmp(dirent->d_name + strlen(dirent->d_name) - strlen(ext), ext, strlen(ext)) != 0)
          continue;
 
+      if (usedRefs.count(dirent->d_name))
+      {
+         asprintf(&pdir, "%s/images/%s", epgimagedir, dirent->d_name);
+         tell(2, "Removing image '%s'", pdir);
+
+         if (!removeFile(pdir))
+            iCount++;
+
+         free(pdir);
+      }
+
+      stmt.freeResult();
+   }
+
+   closedir(dir);
+
+   // -----------------------
+   // remove unused symlinks
+
+   tell(1, "Cleanup %s symlinks", fullreload ? "all" : "old");
+
+   std::unordered_set<uint> useIds;
+
+   if (!fullreload)
+   {
+      if (!dbConnected(yes))
+         return fail;
+
+      for (int res = selectAllEvents->find(); res; res = selectAllEvents->fetch())
+         useIds.insert(useeventsDb->getIntValue("USEID"));
+
+      selectAllEvents->freeResult();
+   }
+
+   if (!(dir = opendir(epgimagedir)))
+   {
+      tell(1, "Can't open directory '%s', '%s'", epgimagedir, strerror(errno));
+      return done;
+   }
+
+   while ((dirent = readdir(dir)))
+   {
       asprintf(&pdir, "%s/%s", epgimagedir, dirent->d_name);
 
-      // fileExists use access() which dereference links!
-
-      if (isLink(pdir) && (fullreload || !fileExists(pdir)))
+      if (isLink(pdir))
       {
-         if (!removeFile(pdir))
-            lCount++;
+         if (fullreload || !fileExists(pdir))
+         {
+            if (!removeFile(pdir))
+               lCount++;
+         }
+
+         else if (useIds.count(atoi(dirent->d_name)) == 0)
+         {
+            if (!removeFile(pdir))
+               lCount++;
+         }
       }
 
       free(pdir);
    }
 
    closedir(dir);
+
    tell(1, "Cleanup finished, removed (%d) images and (%d) symlinks", iCount, lCount);
 
    return success;
 }
 
-//***************************************************************************
-// Link Needed
-//***************************************************************************
-
-int cUpdate::pictureLinkNeeded(const char* linkName)
-{
-   int found;
-
-   if (!dbConnected())
-      return yes;
-
-   // we don't need to patch the linkname "123456_0.jpg"
-   // since atoi() stops at the first non numerical character ...
-
-   imageRefDb->clear();
-   imageRefDb->setValue("LFN", 0L);
-   imageRefDb->setBigintValue("EVENTID", atol(linkName));
-
-   found = imageRefDb->find();
-   imageRefDb->reset();
-
-   return found;
-}
