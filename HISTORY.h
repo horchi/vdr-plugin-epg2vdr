@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.107"
-#define VERSION_DATE "14.02.2020"
+#define _VERSION     "1.1.108"
+#define VERSION_DATE "16.02.2020"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2020-02-16: version 1.1.108 (horchi)
+   - bugfix: 'Fix of fix' of time handling for timers without event :(
 
 2020-02-14: version 1.1.107 (horchi,seahawk1986)
    - bugfix: Fixed cleanup of image links
