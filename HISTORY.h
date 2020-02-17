@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.102"
-#define VERSION_DATE "23.12.2019"
+#define _VERSION     "1.1.103"
+#define VERSION_DATE "17.02.2020"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2020-02-17: version 1.1.103 (horchi)
+   - bugfix: Fixed conflicting timer start times
 
 2019-12-17: version 1.1.102 (horchi)
   - added: Ported changes of master branch
