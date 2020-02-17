@@ -334,6 +334,7 @@ int updateRowByTimer(cDbRow* timerRow, const cTimer* t)
 
    timerRow->setValue("VDRUUID", Epg2VdrConfig.uuid);
    timerRow->setValue("EVENTID", t->Event() ? (long)t->Event()->EventID() : 0);
+   if (t->Event()) timerRow->setValue("EVTSTARTTIME", t->Event()->StartTime());
    timerRow->setValue("_STARTTIME", startTime);
    timerRow->setValue("_ENDTIME", endTime);
    timerRow->setValue("CHANNELID", channelId);

@@ -611,6 +611,7 @@ Table timers
 
    EVENTID              "useid"                                  eventid              UInt         0 Data,
    CHANNELID            ""                                       channelid            Ascii       50 Data,
+   EVTSTARTTIME         "start time of the event, if any"        evtstarttime         Int         10 Data,
    _STARTTIME           "pre filled start timer for trigger"     _starttime           Int         10 Data,
    _ENDTIME             "pre filled end time"                    _endtime             Int         10 Data,
 
