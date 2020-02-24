@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.109"
-#define VERSION_DATE "17.02.2020"
+#define _VERSION     "1.1.110"
+#define VERSION_DATE "24.02.2020"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2020-02-24: version 1.1.110 (horchi)
+   - bugfix: Fixed timer deactivation by webif
 
 2020-02-17: version 1.1.109 (horchi)
    - bugfix: Fixed conflicting timer start times

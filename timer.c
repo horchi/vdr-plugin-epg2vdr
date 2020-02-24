@@ -618,8 +618,6 @@ int cUpdate::updateTimerTable()
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
    LOCK_TIMERS_WRITE;
    cTimers* timers = Timers;
-   // cTimersLock timersLock(true);
-   // cTimers* timers = timersLock.Timers();
 #else
    cTimers* timers = &Timers;
 #endif
@@ -710,6 +708,11 @@ int cUpdate::updateTimerTable()
    {
       int insert = yes;
       int timerId = getTimerIdOf(t);
+
+      // update only assumed timers
+
+      if (!timerDb->getValue("ACTION")->isEmpty() && !timerDb->hasCharValue("ACTION", taAssumed))
+         continue;
 
       // no timer id or not in table -> handle as insert!
 
