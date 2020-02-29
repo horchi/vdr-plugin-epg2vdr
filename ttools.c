@@ -330,7 +330,7 @@ int updateRowByTimer(cDbRow* timerRow, const cTimer* t)
    contentOfTag(t, "source", source, 40);
 
    time_t startTime = hhmm2L(t->Start(), t->Day());
-   time_t endTime = hhmm2L(t->Stop(), t->Day() + t->Stop() < t->Start() ? t->Day() + tmeSecondsPerDay : t->Day());
+   time_t endTime = hhmm2L(t->Stop(), t->Stop() < t->Start() ? t->Day() + tmeSecondsPerDay : t->Day());
 
    timerRow->setValue("VDRUUID", Epg2VdrConfig.uuid);
    timerRow->setValue("EVENTID", t->Event() ? (long)t->Event()->EventID() : 0);
