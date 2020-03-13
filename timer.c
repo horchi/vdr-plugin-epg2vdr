@@ -709,11 +709,6 @@ int cUpdate::updateTimerTable()
       int insert = yes;
       int timerId = getTimerIdOf(t);
 
-      // update only assumed timers
-
-      if (!timerDb->getValue("ACTION")->isEmpty() && !timerDb->hasCharValue("ACTION", taAssumed))
-         continue;
-
       // no timer id or not in table -> handle as insert!
 
       timerDb->clear();
@@ -725,6 +720,14 @@ int cUpdate::updateTimerTable()
 
          insert = !timerDb->find();
          timerDb->clearChanged();
+      }
+
+      // update only assumed timers
+
+      if (!insert)
+      {
+         if (!timerDb->getValue("ACTION")->isEmpty() && !timerDb->hasCharValue("ACTION", taAssumed))
+            continue;
       }
 
       updateRowByTimer(timerDb->getRow(), t);
