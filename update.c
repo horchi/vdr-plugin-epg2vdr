@@ -1635,7 +1635,7 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
       if (channels && schedules && (channel = channels->GetByChannelID(channelId, true)))
          s = (cSchedule*)schedules->GetSchedule(channel, true);
       else if (channels && schedules)
-         tell(0, "Error: Channel with ID '%s' don't exist on this VDR", mapDb->getStrValue("ChannelId"));
+         tell(mainActPending ? 0 : 4, "Error: Channel with ID '%s' don't exist on this VDR", mapDb->getStrValue("ChannelId"));
 
       if (!schedules || !channels || !timers)
       {
@@ -2150,4 +2150,3 @@ int cUpdate::cleanupPictures()
 
    return success;
 }
-
