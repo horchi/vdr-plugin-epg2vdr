@@ -2081,7 +2081,7 @@ int cUpdate::cleanupPictures()
       if (strncmp(dirent->d_name + strlen(dirent->d_name) - strlen(ext), ext, strlen(ext)) != 0)
          continue;
 
-      if (usedRefs.count(dirent->d_name))
+      if (usedRefs.count(dirent->d_name) == 0)
       {
          asprintf(&pdir, "%s/images/%s", epgimagedir, dirent->d_name);
          tell(2, "Removing image '%s'", pdir);
