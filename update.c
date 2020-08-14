@@ -99,7 +99,7 @@ cUpdate::cUpdate(cPluginEPG2VDR* aPlugin)
    fullreload = no;
    epgdBusy = yes;
    epgdState = cEpgdState::esUnknown;
-   mainActPending = no;
+   mainActPending = yes;
    eventsPending = no;
    nextEpgdUpdateAt = 0;
 
@@ -2024,7 +2024,6 @@ int cUpdate::cleanupPictures()
    DIR* dir {nullptr};
    char* pdir {nullptr};
    int iCount {0};
-   int lCount {0};
 
    imageRefDb->countWhere("", iCount);
 
@@ -2110,8 +2109,13 @@ int cUpdate::cleanupPictures()
       if (!dbConnected(yes))
          return fail;
 
+      useeventsDb->clear();
+
       for (int res = selectAllEvents->find(); res; res = selectAllEvents->fetch())
+      {
          useIds.insert(useeventsDb->getIntValue("USEID"));
+         // tell(0, "DEBUG: insert useid '%ld'", useeventsDb->getIntValue("USEID"));
+      }
 
       selectAllEvents->freeResult();
    }
@@ -2122,13 +2126,17 @@ int cUpdate::cleanupPictures()
       return done;
    }
 
+   int lCount {0};
+
+   // loop over all symlinks
+
    while ((dirent = readdir(dir)))
    {
       asprintf(&pdir, "%s/%s", epgimagedir, dirent->d_name);
 
       if (isLink(pdir))
       {
-         if (fullreload || !fileExists(pdir))
+         if (fullreload)
          {
             if (!removeFile(pdir))
                lCount++;
@@ -2136,6 +2144,8 @@ int cUpdate::cleanupPictures()
 
          else if (useIds.count(atoi(dirent->d_name)) == 0)
          {
+            // tell(0, "DEBUG: remove link of unused useid '%d'", atoi(dirent->d_name));
+
             if (!removeFile(pdir))
                lCount++;
          }
