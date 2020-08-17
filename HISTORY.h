@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.115"
-#define VERSION_DATE "14.08.2020"
+#define _VERSION     "1.1.116"
+#define VERSION_DATE "17.08.2020"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2020-08-17: version 1.1.116 (horchi, patch by kfb77)
+   - change: Improved match of series
 
 2020-08-14: version 1.1.115 (horchi)
    - bugfix: Fixed missing images after restart - again

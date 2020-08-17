@@ -2112,10 +2112,7 @@ int cUpdate::cleanupPictures()
       useeventsDb->clear();
 
       for (int res = selectAllEvents->find(); res; res = selectAllEvents->fetch())
-      {
          useIds.insert(useeventsDb->getIntValue("USEID"));
-         // tell(0, "DEBUG: insert useid '%ld'", useeventsDb->getIntValue("USEID"));
-      }
 
       selectAllEvents->freeResult();
    }

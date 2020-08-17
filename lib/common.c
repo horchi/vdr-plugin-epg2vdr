@@ -379,6 +379,7 @@ void prepareCompressed(std::string& pattern)
 
    toUpper(pattern);
    removeWord(pattern, " TEIL ");
+   removeWord(pattern, "(TEIL ");
    removeWord(pattern, " FOLGE ");
    removeCharsExcept(pattern, notignore);
 }
