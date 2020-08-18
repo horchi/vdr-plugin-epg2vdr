@@ -649,6 +649,9 @@ int cUpdate::updateTimerTable()
 
       for (const cTimer* t = timers->First(); t; t = timers->Next(t))
       {
+         if (!t->Local())
+            continue;
+
          int timerid = getTimerIdOf(t);
 
          // compare by timerid
@@ -708,6 +711,9 @@ int cUpdate::updateTimerTable()
    {
       int insert = yes;
       int timerId = getTimerIdOf(t);
+
+      if (!t->Local())
+         continue;
 
       // no timer id or not in table -> handle as insert!
 

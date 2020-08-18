@@ -1694,8 +1694,13 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
                if (event->HasTimer())
                {
                   for (timer = timers->First(); timer; timer = timers->Next(timer))
+                  {
+                     if (!timer->Local())
+                        continue;
+
                      if (timer->Event() == event)
                         break;
+                  }
                }
 
                if (timer)

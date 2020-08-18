@@ -163,6 +163,9 @@ int cUpdate::performRecordingActions()
       {
          for (const cTimer* ti = timers->First(); ti; ti = timers->Next(ti))
          {
+            if (!ti->Local())
+               continue;
+
             if (ti->Recording())                     // timer nimmt gerade auf
             {
                cRunningRecording* recording = 0;

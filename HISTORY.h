@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.116"
-#define VERSION_DATE "17.08.2020"
+#define _VERSION     "1.1.117"
+#define VERSION_DATE "18.08.2020"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2020-08-18: version 1.1.117 (horchi)
+   - addeed: compatibility to VDRs peering feature
 
 2020-08-17: version 1.1.116 (horchi, patch by kfb77)
    - change: Improved match of series

@@ -253,8 +253,13 @@ int setTimerId(cTimer* timer, int tid)
 cTimer* getTimerById(cTimers* timers, int timerid)
 {
    for (cTimer* t = timers->First(); t; t = timers->Next(t))
+   {
+      if (!t->Local())
+         continue;
+
       if (timerid == getTimerIdOf(t))
          return t;
+   }
 
    return 0;
 }
