@@ -96,20 +96,20 @@ int RecLengthInSecs(const cRecording* pRecording)
 //***************************************************************************
 // Notifications from VDRs Status Interface
 //***************************************************************************
-//***************************************************************************
-// Timers Change Notification
-//***************************************************************************
+// //***************************************************************************
+// // Timers Change Notification
+// //***************************************************************************
 
-void cUpdate::TimerChange(const cTimer* Timer, eTimerChange Change)
-{
-   if (!Epg2VdrConfig.shareInWeb)
-      return;
+// void cUpdate::TimerChange(const cTimer* Timer, eTimerChange Change)
+// {
+//    if (!Epg2VdrConfig.shareInWeb)
+//       return;
 
-   tell(1, "Timer changed, trigger update. Action was (%d)", Change);
+//    tell(1, "Timer changed, trigger update. Action was (%d)", Change);
 
-   timerTableUpdateTriggered = yes;
-   waitCondition.Broadcast();         // wakeup
-}
+//    timerTableUpdateTriggered = yes;
+//    waitCondition.Broadcast();         // wakeup
+// }
 
 //***************************************************************************
 // Recording Notification (cStatus::MsgRecording(....))

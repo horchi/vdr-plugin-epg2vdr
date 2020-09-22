@@ -154,7 +154,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
 
       // notifications from VDRs status interface
 
-      virtual void TimerChange(const cTimer* Timer, eTimerChange Change);
+      // virtual void TimerChange(const cTimer* Timer, eTimerChange Change);
       virtual void Recording(const cDevice *Device, const char *Name, const char *FileName, bool On);
       virtual void ChannelSwitch(const cDevice *Device, int ChannelNumber, bool LiveView);
 
@@ -250,6 +250,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       int dbReconnectTriggered;
       int timerJobsUpdateTriggered;
       int timerTableUpdateTriggered;
+      cStateKey timerStateKey;
       int manualTrigger;
       int recordingStateChangedTrigger;
       int recordingFullReloadTrigger;

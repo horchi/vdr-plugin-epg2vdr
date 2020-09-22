@@ -1383,6 +1383,12 @@ void cUpdate::Action()
       {
          // update timer - even when epgd is busy!
 
+         if (cTimers::GetTimersRead(timerStateKey))
+         {
+            timerTableUpdateTriggered = yes;
+            timerStateKey.Remove();
+         }
+
          if (dbConnected() && timerTableUpdateTriggered)
            updateTimerTable();
 
