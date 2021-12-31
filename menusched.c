@@ -310,7 +310,7 @@ void cMenuEpgScheduleItem::SetMenuItem(cSkinDisplayMenu* DisplayMenu,
                                        int Index, bool Current, bool Selectable)
 {
    if (!DisplayMenu->SetItemEvent(event, Index, Current, Selectable, channel,
-                                  withDate, (eTimerMatch)timerMatch))
+                                  withDate, (eTimerMatch)timerMatch, false))
    {
       DisplayMenu->SetItem(Text(), Index, Current, Selectable);
    }
@@ -383,7 +383,7 @@ void cMenuEpgScheduleSepItem::SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Ind
 {
    tell(0, "calling SetMenuItem with '%s'", tmpEvent ? tmpEvent->Title() : "<null>");
 
-   if (!DisplayMenu->SetItemEvent(tmpEvent, Index, Current, Selectable, channel, no, tmNone))
+   if (!DisplayMenu->SetItemEvent(tmpEvent, Index, Current, Selectable, channel, no, tmNone, false))
       DisplayMenu->SetItem(Text(), Index, Current, Selectable);
 }
 

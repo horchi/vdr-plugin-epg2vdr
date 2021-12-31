@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.1.118"
-#define VERSION_DATE "22.0.2020"
+#define _VERSION     "1.2.0"
+#define VERSION_DATE "31.12.2021"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2021-12-31: version 1.2.0(horchi)
+   - change: VDR 2.6 porting
 
 2020-09-22: version 1.1.118 (horchi)
    - bugfix: Fixed problem with update of timer table
