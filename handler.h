@@ -971,7 +971,7 @@ class cEpg2VdrEpgHandler : public cEpgHandler
 
          if (!handlerMutex.tryLock())
          {
-            tell(0, "Error: EPG Handler not working - brocken SegmentTransfer sequence in VDR");
+            tell(0, "Error: EPG Handler not working - broken SegmentTransfer sequence in VDR");
             return false;
          }
 
