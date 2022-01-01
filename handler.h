@@ -970,7 +970,10 @@ class cEpg2VdrEpgHandler : public cEpgHandler
          // beschäftigt ist (ergo wir den lock nicht bekommen) erst mal ignorieren
 
          if (!handlerMutex.tryLock())
+         {
+            tell(0, "Error: EPG Handler not working - brocken SegmentTransfer sequence in VDR");
             return false;
+         }
 
          return getHandler()->BeginSegmentTransfer(Channel, dummy);
       }

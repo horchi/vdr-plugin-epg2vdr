@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.2.0"
-#define VERSION_DATE "31.12.2021"
+#define _VERSION     "1.2.1"
+#define VERSION_DATE "01.01.2022"
 
 #define DB_API 7
 
@@ -19,7 +19,10 @@
 /*
  * ------------------------------------
 
-2021-12-31: version 1.2.0(horchi)
+2022-01-01: version 1.2.1 (horchi)
+   - added: Error message for broken EPG handler sequence
+
+2021-12-31: version 1.2.0 (horchi)
    - change: VDR 2.6 porting
 
 2020-09-22: version 1.1.118 (horchi)
