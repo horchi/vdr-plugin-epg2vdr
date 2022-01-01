@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.2.1"
+#define _VERSION     "1.2.2"
 #define VERSION_DATE "01.01.2022"
 
 #define DB_API 7
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2022-01-01: version 1.2.2 (horchi)
+   - change: Undo of 1.2.1 (can't detect the situation for this log message at plugin side)
 
 2022-01-01: version 1.2.1 (horchi)
    - added: Error message for broken EPG handler sequence
