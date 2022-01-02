@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.2.2"
+#define _VERSION     "1.2.3"
 #define VERSION_DATE "01.01.2022"
 
 #define DB_API 7
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2022-01-02: version 1.2.3 (horchi)
+   - change: Removed timer start margin for switch timers
 
 2022-01-01: version 1.2.2 (horchi)
    - change: Undo of 1.2.1 (can't detect the situation for this log message at plugin side)
