@@ -26,7 +26,7 @@ CFLAGS += $(shell pkg-config --cflags uuid)
 CFLAGS += $(shell pkg-config --cflags zlib)
 
 BASELIBS += -lrt
-BASELIBS += $(shell mysql_config --libs_r)
+BASELIBS += $(shell $(SQLCFG) --libs_r)
 BASELIBS += $(shell pkg-config --libs uuid)
 BASELIBS += $(shell pkg-config --libs zlib)
 BASELIBS += $(PYTHON_LIBS)
@@ -53,7 +53,7 @@ ifdef SYSD_NOTIFY
    CFLAGS += $(shell pkg-config --cflags libsystemd-daemon)
 endif
 
-CFLAGS += $(shell mysql_config --include)
+CFLAGS += $(shell $(SQLCFG) --include)
 DEFINES += $(USES)
 
 all: lib $(TEST) $(DEMO)

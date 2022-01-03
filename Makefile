@@ -70,7 +70,7 @@ LIBS += $(HLIB)
 LIBS += -lrt -larchive -lcrypto
 LIBS += $(shell pkg-config --libs uuid)
 LIBS += $(shell pkg-config --libs tinyxml2)
-LIBS += $(shell mysql_config --libs_r)
+LIBS += $(shell $(SQLCFG) --libs_r)
 ifdef USEPYTHON
   CFLAGS += $(shell $(PYTHON)-config --includes)
   LIBS += $(PYTHON_LIBS)
@@ -106,7 +106,7 @@ SOFILE = libvdr-$(PLUGIN).so
 
 ### Includes and Defines (add further entries here):
 
-INCLUDES += $(shell mysql_config --include)
+INCLUDES += $(shell $(SQLCFG) --include)
 
 DEFINES += -DEPG2VDR -DLOG_PREFIX='"$(PLUGIN): "' $(USES)
 

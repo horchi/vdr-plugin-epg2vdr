@@ -20,7 +20,7 @@ Requirements:
 -------------
 
   - VDR 1.7.27+     (since it use the EPG handler interface)
-  - libmysql >= 5.07
+  - libmariadb >= 10.x
   - libarchive
   - python libpython libpython-dev python-dev
   - libjansson4 libjansson-dev
@@ -29,7 +29,7 @@ Requirements:
 
 Ubuntu (16.04):
   - libarchive13, libarchive-dev
-  - libmysqlclient-dev libmysqlclient18
+  - libmariadb-dev mariadb-common
   - libjansson4 libjansson-dev
   - python libpython libpython-dev python-dev
   - uuid-dev
@@ -39,7 +39,7 @@ Description:
 ------------
 
 This plugin is used to retrieve EPG data into the VDR. The EPG data
-was loaded from a mysql database.
+was loaded from a mariadb database.
 
 Setup Menu:
 -----------
@@ -49,7 +49,7 @@ Setup Menu:
 
   Update DVB EPG Database
       Master/Slave Mode (one client should be master, e.g. 24/7 Server, all others slave)
-        - auto: Normally first VDR will be master - the master transfers the DVB events to the mySQL Server
+        - auto: Normally first VDR will be master - the master transfers the DVB events to the mariadb Server
         - yes: Master mode on
         - no: Master mode off
       Make sure that only one VDR will be master or you run into DB performance issues. Makes just sense, if you have different channels on your clients.
@@ -57,11 +57,11 @@ Setup Menu:
   Show In Main Menu
       Shows entry in main menu to perform update manually
 
-  MySQL Host
-      IP of mySQL Server
+  MariaDb Host
+      IP of mariadb Server
 
   Port
-      Port of your mySQL Server
+      Port of your mariadb Server
 
   Database Name
       Database name
@@ -76,7 +76,7 @@ Setup Menu:
       Blacklist (like noepg-plug) all channels which not listst in the channelmap table
 
   LoadImages
-      Load images from MySQL-Server to local file system
+      Load images from MariaDb-Server to local file system
 
   Prohibit Shutdown On Busy 'epgd'
       Don't shutdown VDR while epgd is busy
@@ -101,7 +101,7 @@ throwing away local changes and update to latest source:
 	git reset --hard
 	git pull
 
-setup.conf (put the IP of your mySQL server):
+setup.conf (put the IP of your MariaDb server):
 ---------------------------------------------
 
   epg2vdr.UpdateTime = 2

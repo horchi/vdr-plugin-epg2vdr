@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.2.3"
-#define VERSION_DATE "01.01.2022"
+#define _VERSION     "1.2.4"
+#define VERSION_DATE "03.01.2022"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2022-01-03: version 1.2.4 (horchi)
+   - change: Removed dependency to mysql-compat package
 
 2022-01-02: version 1.2.3 (horchi)
    - change: Removed timer start margin for switch timers

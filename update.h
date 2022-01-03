@@ -8,7 +8,7 @@
 #ifndef __UPDATE_H
 #define __UPDATE_H
 
-#include <mysql/mysql.h>
+#include <mysql.h>
 #include <queue>
 
 #include <vdr/status.h>

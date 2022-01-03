@@ -5,8 +5,7 @@
  *
  */
 
-#ifndef __DB_H
-#define __DB_H
+#pragma once
 
 #include <linux/unistd.h>
 
@@ -16,7 +15,7 @@
 #include <stdarg.h>
 #include <errno.h>
 
-#include <mysql/mysql.h>
+#include <mysql.h>
 
 #include <list>
 
@@ -1368,6 +1367,3 @@ class cDbProcedure : public cDbService
       char* name;
 
 };
-
-//***************************************************************************
-#endif //__DB_H
