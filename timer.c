@@ -802,9 +802,9 @@ int cUpdate::recordingChanged()
 
       // first: update timer state ..
 
-      if (!isEmpty(rr->aux))
+      if (!rr->aux.empty())
       {
-         int timerid = getTimerIdOf(rr->aux);
+         int timerid = getTimerIdOf(rr->aux.c_str());
          timerDb->clear();
          timerDb->setValue("ID", timerid);
          timerDb->setValue("VDRUUID", Epg2VdrConfig.uuid);
@@ -820,7 +820,7 @@ int cUpdate::recordingChanged()
             else
                timerDb->setCharValue("STATE", rr->failed ? tsError : rr->finished ? tsFinished : tsRunning);
 
-            timerDb->setValue("INFO", rr->info);
+            timerDb->setValue("INFO", rr->info.c_str());
             timerDb->store();
          }
          else

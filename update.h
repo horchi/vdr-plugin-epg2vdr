@@ -5,8 +5,7 @@
  *
  */
 
-#ifndef __UPDATE_H
-#define __UPDATE_H
+#pragma once
 
 #include <mysql.h>
 #include <queue>
@@ -38,42 +37,36 @@ class cRunningRecording : public cListObject
 
       cRunningRecording(const cTimer* t, long did = na)
       {
-         id = t->Id();
-
-         if (remote)
-            free(remote);
-
-         remote = t->Remote() ? strdup(t->Remote()) : nullptr;
          doneid = did;
-         lastBreak = 0;
-         info = 0;
-
-         finished = no;
-         failed = no;
-
-         // copy until timer get waste ..
-
-         aux = strdup(t->Aux() ? t->Aux() : "");
+         id = t->Id();
+         remote = t->Remote() ? strdup(t->Remote()) : nullptr;
+         aux = notNull(t->Aux());
+         startTime = t->StartTime();
+         stopTime = t->StopTime();
+         file = notNull(t->File());
+         if (t->Event())
+            vps = t->HasFlags(tfVps) && t->Event()->Vps();
       }
 
       ~cRunningRecording()
       {
-         free(aux);
-         free(info);
+         free(remote);
       }
 
-      void setInfo(const char* i) { info = strdup(i); }
+      void setInfo(const char* i) { info = notNull(i); }
 
-      // data
-
-      int id = 0;           // use timer->Id(), timer->Remote and GetById instead of pointer to a timer
+      int id {0};           // use timer->Id(), timer->Remote and GetById instead of pointer to a timer
       char* remote {nullptr};
-      time_t lastBreak;
-      int finished;
-      int failed;
-      long doneid;
-      char* aux {nullptr};
-      char* info {nullptr};
+      time_t lastBreak {0};
+      int finished {no};
+      int failed {no};
+      long doneid {0};
+      std::string aux;
+      std::string info;
+      std::string file;
+      time_t startTime {0};
+      time_t stopTime {0};
+      bool vps {false};
 };
 
 //***************************************************************************
@@ -327,6 +320,3 @@ class cUpdate : public cThread, public cStatus, public cParameters
 
       static const char* auxFields[];
 };
-
-//***************************************************************************
-#endif //__UPDATE_H
