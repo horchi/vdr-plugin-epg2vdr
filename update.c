@@ -79,83 +79,6 @@ const char* cUpdate::auxFields[] =
 cUpdate::cUpdate(cPluginEPG2VDR* aPlugin)
    : cThread("epg2vdr-update")
 {
-   // thread / update control
-
-   plugin = aPlugin;
-   connection = 0;
-   loopActive = no;
-   timerJobsUpdateTriggered = yes;
-   timerTableUpdateTriggered = yes;
-   recordingStateChangedTrigger = yes;
-   updateRecFolderOptionTrigger = no;
-
-   storeAllRecordingInfoFilesTrigger = no;
-   recordingFullReloadTrigger = no;
-   manualTrigger = no;
-   videoBasePath = 0;
-   dbReconnectTriggered = no;
-   switchTimerTrigger = no;
-
-   fullreload = no;
-   epgdBusy = yes;
-   epgdState = cEpgdState::esUnknown;
-   mainActPending = yes;
-   eventsPending = no;
-   nextEpgdUpdateAt = 0;
-
-   lastUpdateAt = 0;
-   lastEventsUpdateAt = 0;
-   lastRecordingCount = 0;
-   lastRecordingDeleteAt = 0;
-   timersTableMaxUpdsp = 0;
-
-   //
-
-   compDb = 0;
-   eventsDb = 0;
-   useeventsDb = 0;
-   fileDb = 0;
-   imageDb = 0;
-   imageRefDb = 0;
-   episodeDb = 0;
-   vdrDb = 0;
-   mapDb = 0;
-   timerDb = 0;
-   timerDoneDb = 0;
-   recordingDirDb = 0;
-   recordingListDb = 0;
-   recordingImagesDb = 0;
-
-   selectMasterVdr = 0;
-   selectAllImages = 0;
-   selectUpdEvents = 0;
-   selectEventById = 0;
-   selectAllChannels = 0;
-   selectChannelById = 0;
-   markUnknownChannel = 0;
-   selectComponentsOf = 0;
-   deleteTimer = 0;
-   selectMyTimer = 0;
-   selectRecordings = 0;
-   selectImagesOfRecording = 0;
-   selectRecForInfoUpdate = 0;
-   selectTimerByEvent = 0;
-   selectTimerById = 0;
-   selectTimerByDoneId = 0;
-   selectMaxUpdSp = 0;
-   selectPendingTimerActions = 0;
-   selectSwitchTimerActions = 0;
-
-   viewDescription = 0;
-   viewMergeSource = 0;
-   viewLongDescription = 0;
-
-   //
-
-   epgimagedir = 0;
-   withutf8 = no;
-   handlerMaster = no;
-
    // check/create uuid
 
    if (isEmpty(Epg2VdrConfig.uuid))
@@ -163,7 +86,6 @@ cUpdate::cUpdate(cPluginEPG2VDR* aPlugin)
       sstrcpy(Epg2VdrConfig.uuid, getUniqueId(), sizeof(Epg2VdrConfig.uuid));
       plugin->SetupStore("Uuid", Epg2VdrConfig.uuid);
       Setup.Save();
-
       tell(0, "Initially created uuid '%s'", Epg2VdrConfig.uuid);
    }
 }

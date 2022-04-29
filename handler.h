@@ -5,11 +5,9 @@
  *
  */
 
-#ifndef __HANDLER_H
-#define __HANDLER_H
+#pragma once
 
 #include "lib/vdrlocks.h"
-
 #include "update.h"
 
 #define CHANNELMARKOBSOLETE "OBSOLETE"
@@ -1131,6 +1129,3 @@ class cEpg2VdrEpgHandler : public cEpgHandler
 
       static cEpg2VdrEpgHandler* singleton;
 };
-
-//***************************************************************************
-#endif // __HANDLER_H

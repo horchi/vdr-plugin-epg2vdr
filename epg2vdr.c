@@ -25,7 +25,8 @@ const char* logPrefix = LOG_PREFIX;
 // Static global handler Instance
 //***************************************************************************
 
-cEpg2VdrEpgHandler* cEpg2VdrEpgHandler::singleton = cEpg2VdrEpgHandler::getSingleton();
+cEpg2VdrEpgHandler* cEpg2VdrEpgHandler::singleton {nullptr};
+// cEpg2VdrEpgHandler* cEpg2VdrEpgHandler::singleton = cEpg2VdrEpgHandler::getSingleton();
 
 //***************************************************************************
 // Menu Edit List Item
@@ -1060,6 +1061,7 @@ int cPluginEPG2VDR::recordingDetails(cEpgRecording_Details_Service_V1* rd)
 
 bool cPluginEPG2VDR::Initialize()
 {
+   cEpg2VdrEpgHandler::getSingleton();
    return true;
 }
 

@@ -222,79 +222,79 @@ class cUpdate : public cThread, public cStatus, public cParameters
 
       // data
 
-      cDbConnection* connection;
-      cPluginEPG2VDR* plugin;
-      int handlerMaster;
-      int loopActive;
-      time_t nextEpgdUpdateAt;
-      time_t lastUpdateAt;
-      time_t lastEventsUpdateAt;
-      time_t lastRecordingDeleteAt;
-      int lastRecordingCount;
-      char* epgimagedir;
-      int withutf8;
+      cDbConnection* connection {nullptr};
+      cPluginEPG2VDR* plugin {nullptr};
+      int handlerMaster {no};
+      int loopActive {no};
+      time_t nextEpgdUpdateAt {0};
+      time_t lastUpdateAt {0};
+      time_t lastEventsUpdateAt {0};
+      time_t lastRecordingDeleteAt {0};
+      int lastRecordingCount {0};
+      char* epgimagedir {nullptr};
+      int withutf8 {no};
       cCondVar waitCondition;
       cMutex mutex;
-      int fullreload;
-      char imageExtension[3+TB];
+      int fullreload {no};
+      char imageExtension[3+TB] {""};
 
       cMutex timerMutex;
       cMutex swTimerMutex;
-      int dbReconnectTriggered;
-      int timerJobsUpdateTriggered;
-      int timerTableUpdateTriggered;
+      int dbReconnectTriggered {no};
+      int timerJobsUpdateTriggered {yes};
+      int timerTableUpdateTriggered {yes};
       cStateKey timerStateKey;
-      int manualTrigger;
-      int recordingStateChangedTrigger;
-      int recordingFullReloadTrigger;
-      int storeAllRecordingInfoFilesTrigger;
-      int updateRecFolderOptionTrigger;
-      int switchTimerTrigger;
+      int manualTrigger {no};
+      int recordingStateChangedTrigger {yes};
+      int recordingFullReloadTrigger {no};
+      int storeAllRecordingInfoFilesTrigger {no};
+      int updateRecFolderOptionTrigger {no};
+      int switchTimerTrigger {no};
       cList<cRunningRecording> runningRecordings;
       cMutex runningRecMutex;
 
-      Es::State epgdState;
-      int epgdBusy;
-      int eventsPending;
-      int mainActPending;
-      const char* videoBasePath;
-      int timersTableMaxUpdsp;
+      Es::State epgdState {cEpgdState::esUnknown};
+      int epgdBusy {yes};
+      int eventsPending {no};
+      int mainActPending {yes};
+      const char* videoBasePath {nullptr};
+      int timersTableMaxUpdsp {0};
 
-      cDbTable* eventsDb;
-      cDbTable* useeventsDb;
-      cDbTable* fileDb;
-      cDbTable* imageDb;
-      cDbTable* imageRefDb;
-      cDbTable* episodeDb;
-      cDbTable* mapDb;
-      cDbTable* timerDb;
-      cDbTable* timerDoneDb;
-      cDbTable* vdrDb;
-      cDbTable* compDb;
-      cDbTable* recordingDirDb;
-      cDbTable* recordingListDb;
-      cDbTable* recordingImagesDb;
+      cDbTable* eventsDb {nullptr};
+      cDbTable* useeventsDb {nullptr};
+      cDbTable* fileDb {nullptr};
+      cDbTable* imageDb {nullptr};
+      cDbTable* imageRefDb {nullptr};
+      cDbTable* episodeDb {nullptr};
+      cDbTable* mapDb {nullptr};
+      cDbTable* timerDb {nullptr};
+      cDbTable* timerDoneDb {nullptr};
+      cDbTable* vdrDb {nullptr};
+      cDbTable* compDb {nullptr};
+      cDbTable* recordingDirDb {nullptr};
+      cDbTable* recordingListDb {nullptr};
+      cDbTable* recordingImagesDb {nullptr};
 
-      cDbStatement* selectMasterVdr;
-      cDbStatement* selectAllImages;
-      cDbStatement* selectUpdEvents;
+      cDbStatement* selectMasterVdr {nullptr};
+      cDbStatement* selectAllImages {nullptr};
+      cDbStatement* selectUpdEvents {nullptr};
       cDbStatement* selectAllEvents {nullptr};
-      cDbStatement* selectEventById;
-      cDbStatement* selectAllChannels;
-      cDbStatement* selectChannelById;
-      cDbStatement* markUnknownChannel;
-      cDbStatement* selectComponentsOf;
-      cDbStatement* deleteTimer;
-      cDbStatement* selectMyTimer;
-      cDbStatement* selectRecordings;
-      cDbStatement* selectImagesOfRecording;
-      cDbStatement* selectRecForInfoUpdate;
-      cDbStatement* selectPendingTimerActions;
-      cDbStatement* selectSwitchTimerActions;
-      cDbStatement* selectTimerByEvent;
-      cDbStatement* selectTimerById;
-      cDbStatement* selectTimerByDoneId;
-      cDbStatement* selectMaxUpdSp;
+      cDbStatement* selectEventById {nullptr};
+      cDbStatement* selectAllChannels {nullptr};
+      cDbStatement* selectChannelById {nullptr};
+      cDbStatement* markUnknownChannel {nullptr};
+      cDbStatement* selectComponentsOf {nullptr};
+      cDbStatement* deleteTimer {nullptr};
+      cDbStatement* selectMyTimer {nullptr};
+      cDbStatement* selectRecordings {nullptr};
+      cDbStatement* selectImagesOfRecording {nullptr};
+      cDbStatement* selectRecForInfoUpdate {nullptr};
+      cDbStatement* selectPendingTimerActions {nullptr};
+      cDbStatement* selectSwitchTimerActions {nullptr};
+      cDbStatement* selectTimerByEvent {nullptr};
+      cDbStatement* selectTimerById {nullptr};
+      cDbStatement* selectTimerByDoneId {nullptr};
+      cDbStatement* selectMaxUpdSp {nullptr};
 
       cDbValue vdrEvtId;
       cDbValue extEvtId;
@@ -305,9 +305,9 @@ class cUpdate : public cThread, public cStatus, public cParameters
       cDbValue imageSizeRec;
       cDbValue masterId;
 
-      cDbValue* viewDescription;
-      cDbValue* viewMergeSource;
-      cDbValue* viewLongDescription;
+      cDbValue* viewDescription {nullptr};
+      cDbValue* viewMergeSource {nullptr};
+      cDbValue* viewLongDescription {nullptr};
 
       std::queue<std::string> pendingNewRecordings;        // recordings to store details (obsolete if pendingRecordingActions implemented finally)
       std::queue<RecordingAction> pendingRecordingActions; // recordings actions (start/stop)
@@ -317,6 +317,5 @@ class cUpdate : public cThread, public cStatus, public cParameters
 
       std::list<cTimerThread*> timerThreads;
       static void sendEvent(int event, void* userData);
-
       static const char* auxFields[];
 };

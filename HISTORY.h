@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.2.6"
-#define VERSION_DATE "12.01.2022"
+#define _VERSION     "1.2.7"
+#define VERSION_DATE "29.04.2022"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2022-04-29: version 1.2.7 (horchi)
+ - change: Moded initialize of EPG handler to Initialize() (reported by Alexander Grothe)
 
 2022-01-12: version 1.2.6 (horchi)
  - change: Further porting to vdr 2.6 (fixed detection of timer stop)
