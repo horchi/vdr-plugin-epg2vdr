@@ -215,10 +215,8 @@ vcheck:
 push: vcheck
 	echo "tagging git with $(VERSION)"
 	git push origin master
-	git push github master
 	git tag $(VERSION)
 	git push origin master --tags
-	git push github master --tags
 
 commit: vcheck
 	git commit -m "$(LASTCOMMENT)" -a
