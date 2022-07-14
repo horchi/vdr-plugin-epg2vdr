@@ -17,6 +17,38 @@
 #include "update.h"
 #include "handler.h"
 
+
+//***************************************************************************
+// EPG Sanitizer
+//***************************************************************************
+
+static void stripControlCharacters(char* s)
+{
+   if (s)
+   {
+      int len = strlen(s);
+
+      while (len > 0)
+      {
+         int l = Utf8CharLen(s);
+         uchar* p = (uchar*)s;
+
+         if (l == 2 && *p == 0xC2) // UTF-8 sequence
+            p++;
+
+         if (*p == 0x86 || *p == 0x87 || *p == 0x0D)
+         {
+            memmove(s, p + 1, len - l + 1); // we also copy the terminating 0!
+            len -= l;
+            l = 0;
+         }
+
+         s += l;
+         len -= l;
+      }
+   }
+}
+
 //***************************************************************************
 // Events AUX Fields - stored as XML in cEvent:aux
 //***************************************************************************
@@ -1724,13 +1756,32 @@ cEvent* cUpdate::createEventFromRow(const cDbRow* row)
 
    e->SetTableID(row->getIntValue("TABLEID"));
    e->SetVersion(row->getIntValue("VERSION"));
-   e->SetTitle(row->getStrValue("TITLE"));
-   e->SetShortText(row->getStrValue("SHORTTEXT"));
+
+   // e->SetTitle(row->getStrValue("TITLE"));
+   char* title = strdup(row->getStrValue("TITLE"));
+   strreplace(title, '\n', ' ');
+   stripControlCharacters(title);
+   e->SetTitle(title);
+   free(title);
+
+   // e->SetShortText(row->getStrValue("SHORTTEXT"));
+   char* shortText = strdup(row->getStrValue("SHORTTEXT"));
+   strreplace(shortText, '\n', ' ');
+   stripControlCharacters(shortText);
+   e->SetShortText(shortText);
+   free(shortText);
+
    e->SetStartTime(row->getIntValue("STARTTIME"));
    e->SetDuration(row->getIntValue("DURATION"));
    e->SetParentalRating(row->getIntValue("PARENTALRATING"));
    e->SetVps(row->getIntValue("VPS"));
-   e->SetDescription(viewDescription->getStrValue());
+
+   // e->SetDescription(viewDescription->getStrValue());
+   char* description = strdup(viewDescription->getStrValue());
+   stripControlCharacters(description);
+   e->SetDescription(description);
+   free(description);
+
    e->SetComponents(0);
 
    // ------------
