@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.2.8"
-#define VERSION_DATE "12.07.2022"
+#define _VERSION     "1.2.9"
+#define VERSION_DATE "22.10.2022"
 
 #define DB_API 7
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2022-10-22: version 1.2.9 (horchi)
+ - bugfix: Fixed crash on initial start without uuid
 
 2022-07-12: version 1.2.8 (horchi)
  - change: Added EPG path of MegaV0lt to fix special chars in EPG

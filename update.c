@@ -113,6 +113,8 @@ cUpdate::cUpdate(cPluginEPG2VDR* aPlugin)
 {
    // check/create uuid
 
+   plugin = aPlugin;
+
    if (isEmpty(Epg2VdrConfig.uuid))
    {
       sstrcpy(Epg2VdrConfig.uuid, getUniqueId(), sizeof(Epg2VdrConfig.uuid));
