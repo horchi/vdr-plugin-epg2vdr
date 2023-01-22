@@ -1618,8 +1618,8 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
             break;
          }
 
-         tell(3, "Retrying in 3 seconds");
-         sleep(3);
+         tell(1, "Retrying in 1 seconds");
+         sleep(1);
 
          continue;
       }

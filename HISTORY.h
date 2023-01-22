@@ -5,10 +5,10 @@
  *
  */
 
-#define _VERSION     "1.2.9"
-#define VERSION_DATE "22.10.2022"
+#define _VERSION     "1.2.10"
+#define VERSION_DATE "22.01.2023"
 
-#define DB_API 7
+#define DB_API 8
 
 #ifdef GIT_REV
 #  define VERSION _VERSION "-GIT" GIT_REV
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2023-01-22: version 1.2.10 (horchi)
+ - change: DBAPI migration
 
 2022-10-22: version 1.2.9 (horchi)
  - bugfix: Fixed crash on initial start without uuid
