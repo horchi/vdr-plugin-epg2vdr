@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.2.11"
+#define _VERSION     "1.2.12"
 #define VERSION_DATE "22.01.2023"
 
 #define DB_API 8
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2023-01-22: version 1.2.12 (horchi)
+   - change: More dynamic detection of python version
 
 2023-01-22: version 1.2.11 (horchi)
  - change: Lib SSL porting
