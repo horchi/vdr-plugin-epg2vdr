@@ -90,7 +90,16 @@ void tell(int eloquence, const char* format, ...)
       printf("%s %s\n", buf, t);
    }
    else
-      syslog(LOG_ERR, "%s", t);
+   {
+      switch (eloquence)
+      {
+         case 0:  syslog(LOG_ERR, "%s", t);     break;
+         case 1:  syslog(LOG_WARNING, "%s", t); break;
+         case 2:  syslog(LOG_NOTICE, "%s", t);  break;
+         case 3:  syslog(LOG_INFO, "%s", t);    break;
+         default: syslog(LOG_DEBUG, "%s", t);   break;
+      }
+   }
 
    logMutex.Unlock();
 
