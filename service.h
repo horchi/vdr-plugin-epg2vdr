@@ -5,8 +5,7 @@
  *
  */
 
-#ifndef _SERVICE_H_
-#define _SERVICE_H_
+#pragma once
 
 #include <vdr/timers.h>
 #include <vdr/epg.h>
@@ -59,18 +58,18 @@ class cEpgTimer_Interface_V1 : public cTimer
       long timerid;
       long eventid;
 
-      char* vdrName;
-      char* vdrUuid;
+      char* vdrName {};
+      char* vdrUuid {};
       int local;
       int vdrRunning;
 
       char state;
-      char* stateInfo;
+      char* stateInfo {};
       char action;
 
       char type;
-      time_t createTime;
-      time_t modTime;
+      time_t createTime {0};
+      time_t modTime {0};
 };
 
 //***************************************************************************
@@ -112,8 +111,6 @@ struct cEpgRecording_Details_Service_V1
 #ifdef EPG2VDR
 
 //***************************************************************************
-//***************************************************************************
-//***************************************************************************
 // EPG2VDR Internal Stuff
 //***************************************************************************
 
@@ -139,7 +136,3 @@ class cEpgTimer : public cEpgTimer_Interface_V1
 };
 
 #endif // EPG2VDR
-
-//***************************************************************************
-
-#endif // _SERVICE_H_

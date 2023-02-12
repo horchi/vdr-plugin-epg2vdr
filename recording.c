@@ -583,8 +583,7 @@ int cUpdate::updateRecordingTable(int fullReload)
 
    connection->commit();
 
-   tell(0, "Info: Found %d recordings; %d inserted; %d updated "
-        "and %d directories", count, insCnt, updCnt, dirCnt);
+   tell(0, "Info: Found %d recordings; %d inserted; %d updated and %d directories", count, insCnt, updCnt, dirCnt);
 
    // create info files for new recordings
 

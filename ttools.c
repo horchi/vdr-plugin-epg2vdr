@@ -22,8 +22,8 @@ int contentOfTag(const char* tag, const char* xml, char* buf, int size)
    string sTag = "<" + string(tag) + ">";
    string eTag = "</" + string(tag) + ">";
 
-   const char* s;
-   const char* e;
+   const char* s {};
+   const char* e {};
 
    if (buf)
       *buf = 0;
@@ -47,7 +47,7 @@ int contentOfTag(const char* tag, const char* xml, char* buf, int size)
 
 int contentOfTag(const cTimer* timer, const char* tag, char* buf, int size)
 {
-   char epgaux[512+TB];
+   char epgaux[512+TB] {};
 
    if (!timer || isEmpty(timer->Aux()))
       return fail;
@@ -63,8 +63,8 @@ int contentOfTag(const cTimer* timer, const char* tag, char* buf, int size)
 
 int contentOfTag(const cTimer* timer, const char* tag, int& value)
 {
-   char epgaux[512+TB];
-   char buf[100+TB];
+   char epgaux[512+TB] {};
+   char buf[100+TB] {};
 
    if (!timer || isEmpty(timer->Aux()))
       return fail;
@@ -86,7 +86,7 @@ int contentOfTag(const cTimer* timer, const char* tag, int& value)
 
 int getTimerIdOf(const cTimer* timer)
 {
-   char tid[100+TB];
+   char tid[100+TB] {};
 
    if (!timer || isEmpty(timer->Aux()))
       return na;
@@ -99,8 +99,8 @@ int getTimerIdOf(const cTimer* timer)
 
 int getTimerIdOf(const char* aux)
 {
-   char tid[100+TB];
-   char epgaux[512+TB];
+   char tid[100+TB] {};
+   char epgaux[512+TB] {};
 
    if (isEmpty(aux))
       return na;
@@ -123,8 +123,8 @@ void removeTag(char* xml, const char* tag)
    string sTag = "<" + string(tag) + ">";
    string eTag = "</" + string(tag) + ">";
 
-   const char* s;
-   const char* e;
+   const char* s {};
+   const char* e {};
 
    if ((s = strstr(xml, sTag.c_str())) && (e = strstr(xml, eTag.c_str())))
    {
@@ -149,9 +149,9 @@ void removeTag(char* xml, const char* tag)
 
 int insertTag(char* xml, const char* parent, const char* tag, int value)
 {
-   char* tmp;
+   char* tmp {};
    string sTag = "<" + string(parent) + ">";
-   const char* s;
+   const char* s {};
 
    if ((s = strstr(xml, sTag.c_str())))
    {
@@ -171,9 +171,9 @@ int insertTag(char* xml, const char* parent, const char* tag, int value)
 
 int insertTag(char* xml, const char* parent, const char* tag, const char* value)
 {
-   char* tmp;
+   char* tmp {};
    string sTag = "<" + string(parent) + ">";
-   const char* s;
+   const char* s {};
 
    if ((s = strstr(xml, sTag.c_str())))
    {
@@ -197,7 +197,7 @@ int insertTag(char* xml, const char* parent, const char* tag, const char* value)
 
 int setTagTo(cTimer* timer, const char* tag, int value)
 {
-   char aux[10000+TB] = "";
+   char aux[10000+TB] {};
 
    if (!isEmpty(timer->Aux()))
       strcpy(aux, timer->Aux());
@@ -212,7 +212,7 @@ int setTagTo(cTimer* timer, const char* tag, int value)
 
 int setTagTo(cTimer* timer, const char* tag, const char* value)
 {
-   char aux[10000+TB] = "";
+   char aux[10000+TB] {};
 
    if (!isEmpty(timer->Aux()))
       strcpy(aux, timer->Aux());
@@ -231,7 +231,7 @@ int setTagTo(cTimer* timer, const char* tag, const char* value)
 
 int setTimerId(cTimer* timer, int tid)
 {
-   char aux[10000+TB] = "";
+   char aux[10000+TB] {};
 
    if (!isEmpty(timer->Aux()))
       strcpy(aux, timer->Aux());
@@ -270,7 +270,7 @@ cTimer* getTimerById(cTimers* timers, int timerid)
 
 cTimer* getTimerByEvent(cTimers* timers, const cEvent* event)
 {
-   cTimer* timer = 0;
+   cTimer* timer {};
 
    eTimerMatch tm = tmNone;
 
@@ -319,11 +319,11 @@ int updateRowByTimer(cDbRow* timerRow, const cTimer* t)
    int autotimerinssp = na;
    int doneid = na;
    int namingmode = na;
-   char tmplExpression[100+TB] = "";
+   char tmplExpression[100+TB] {};
    int childLock = no;
    int epgs = no;
-   char directory[512+TB] = "";
-   char source[40+TB] = "";
+   char directory[512+TB] {};
+   char source[40+TB] {};
    cString channelId = t->Event() ? t->Event()->ChannelID().ToString() : t->Channel()->GetChannelID().ToString();
 
    contentOfTag(t, "autotimerid", autotimerid);
@@ -403,12 +403,12 @@ int updateRowByTimer(cDbRow* timerRow, const cTimer* t)
 
 cEpgTimer* newTimerObjectFromRow(cDbRow* timerRow, cDbRow* vdrRow)
 {
-   cEpgTimer* timer = 0;
-   const cEvent* event = 0;
+   cEpgTimer* timer {};
+   const cEvent* event {};
    cString buf;
    tChannelID channelId = tChannelID::FromString(timerRow->getStrValue("CHANNELID"));
    uint flags = tfNone;
-   char* file;
+   char* file {};
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
    LOCK_CHANNELS_READ;
@@ -503,7 +503,7 @@ int updateTimerObjectFromRow(cTimer* timer, cDbRow* timerRow, const cEvent* even
 {
    if (!timerRow->getValue("FILE")->isEmpty())
    {
-      string path = "";
+      string path;
 
       if (!timerRow->getValue("DIRECTORY")->isEmpty())
          path = timerRow->getStrValue("DIRECTORY") + string("~");

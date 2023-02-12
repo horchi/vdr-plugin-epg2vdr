@@ -54,7 +54,7 @@ ifdef SYSD_NOTIFY
 endif
 
 CFLAGS += $(shell $(SQLCFG) --include)
-DEFINES += $(USES)
+DEFINES += $(USES) -DDEMO
 
 all: lib $(TEST) $(DEMO)
 lib: $(LIBTARGET).a

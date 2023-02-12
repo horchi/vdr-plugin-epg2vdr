@@ -2014,6 +2014,7 @@ int urlUnescape(char* dst, const char* src, int normalize)
    return (dst - org_dst) - 1;
 }
 
+// #ifndef DEMO
 #ifdef VDR_PLUGIN
 
 //***************************************************************************
@@ -2065,3 +2066,4 @@ void cTimerThread::Action()
 }
 
 #endif // VDR_PLUGIN
+// #endif // DEMO

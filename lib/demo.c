@@ -22,8 +22,8 @@ void initConnection()
 {
    cDbConnection::init();
 
-   cDbConnection::setHost("localhost");
-   // cDbConnection::setHost("192.168.200.101");
+   // cDbConnection::setHost("localhost");
+   cDbConnection::setHost("192.168.200.101");
    cDbConnection::setPort(3306);
    cDbConnection::setName("epg2vdr");
    cDbConnection::setUser("epg2vdr");
@@ -475,7 +475,7 @@ int main(int argc, char** argv)
    tell(0, "%s", str);
    free(str);
 
-   const char* path = "/etc/epgd/epg.dat";
+   const char* path = "/var/lib/vdr/plugins/epg2vdr/epg.dat";
 
    if (argc > 1)
       path = argv[1];
@@ -501,8 +501,6 @@ int main(int argc, char** argv)
       tell(0, "%d - %s (%s) %s", t->getHHMM(), t->getTitle(), t->getHHMMStr(), t->isHighlighted() ? "highlighted" : "");
    }
 
-   return 0;
-
    // read dictionary
 
    dbDict.setFilterFromNameFct(toFieldFilter);
@@ -525,8 +523,41 @@ int main(int argc, char** argv)
 
    tell(0, "- - - - - - - - - - - - - - - - - ");
 
-   //updateRecordingDirectory();
-   findUseEvent();
+   // updateRecordingDirectory();
+   // findUseEvent();
+
+   cDbTable* vdrDb = new cDbTable(connection, "vdrs");
+   if (vdrDb->open() != success) return fail;
+
+   // DB-API check
+
+   vdrDb->clear();
+   vdrDb->setValue("UUID", "epgd");
+
+   if (!vdrDb->find())
+   {
+      tell(0, "Can't lookup epgd information, start epgd to create the tables first! Aborting now.");
+      return fail;
+   }
+
+   vdrDb->reset();
+
+   const int DB_API = 8;
+
+   tell(0, "Found DBAPI '%s' verion %ld", vdrDb->getStrValue("UUID"), vdrDb->getIntValue("DBAPI"));
+
+   if (vdrDb->getIntValue("DBAPI") != DB_API)
+   {
+      if (vdrDb->getIntValue("DBAPI") < DB_API)
+         tell(0,  "Your database has version %d, epg2vdr expects version %d. Please make sure, epgd and "
+              "epg2vdr use the same version and the database is properly updated",
+              (int)vdrDb->getIntValue("DBAPI"), DB_API);
+      else
+         tell(0, "Found dbapi %d, expected %d, please update me! Aborting now.",
+              (int)vdrDb->getIntValue("DBAPI"), DB_API);
+
+      return fail;
+   }
 
    tell(0, "- - - - - - - - - - - - - - - - - ");
 
