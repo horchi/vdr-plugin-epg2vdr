@@ -27,8 +27,6 @@ class cEpgMenuDonesOf : public cOsdMenu
 
       int refresh();
 
-      // data
-
       const cDbRow* useEventRow;
       cMenuDb* menuDb;
 };
@@ -42,7 +40,6 @@ cEpgMenuDonesOf::cEpgMenuDonesOf(cMenuDb* mdb, const cDbRow* aRow)
 {
    menuDb = mdb;
    useEventRow = aRow;
-
    refresh();
 }
 
@@ -56,7 +53,7 @@ cEpgMenuDonesOf::~cEpgMenuDonesOf()
 
 int cEpgMenuDonesOf::refresh()
 {
-   cDbStatement* selectDones = 0;
+   cDbStatement* selectDones {};
 
    Clear();
 
@@ -150,7 +147,6 @@ class cEpgMenuSearchTimerEdit : public cOsdMenu
 
       cEpgMenuSearchTimerEdit(cMenuDb* db, long id, bool New = no);
       virtual ~cEpgMenuSearchTimerEdit();
-
       virtual eOSState ProcessKey(eKeys Key);
 
    protected:
@@ -173,7 +169,7 @@ cEpgMenuSearchTimerEdit::cEpgMenuSearchTimerEdit(cMenuDb* db, long id, bool New)
    for (int i = 0; i < def->fieldCount(); i++)
    {
       cDbValue* value = menuDb->searchtimerDb->getValue(def->getField(i)->getName());
-      const char* name = def->getField(i)->getDescription();
+      const char* name {}; //  = def->getField(i)->getDescription();
 
       if (!value || def->getField(i)->hasType(cDBS::ftMeta))
          continue;
@@ -182,8 +178,7 @@ cEpgMenuSearchTimerEdit::cEpgMenuSearchTimerEdit(cMenuDb* db, long id, bool New)
          name = def->getField(i)->getName();
 
       if (def->getField(i)->hasFormat(cDBS::ffAscii))
-         Add(new cMenuEditStrItem(tr(name), (char*)value->getStrValueRef(), def->getField(i)->getSize()));
-
+         Add(new cMenuEditItem(tr(name))); // , (char*)value->getStrValueRef(), def->getField(i)->getSize()));
       else if (def->getField(i)->hasFormat(cDBS::ffInt))
          Add(new cMenuEditIntItem(tr(name), (int*)value->getIntValueRef()));
    }

@@ -17,7 +17,6 @@
 #include "update.h"
 #include "handler.h"
 
-
 //***************************************************************************
 // EPG Sanitizer
 //***************************************************************************
@@ -2006,9 +2005,9 @@ int cUpdate::storePicturesToFs()
 int cUpdate::cleanupPictures()
 {
    const char* ext {".jpg"};
-   struct dirent* dirent {nullptr};
-   DIR* dir {nullptr};
-   char* pdir {nullptr};
+   struct dirent* dirent {};
+   DIR* dir {};
+   char* pdir {};
    int iCount {0};
 
    imageRefDb->countWhere("", iCount);

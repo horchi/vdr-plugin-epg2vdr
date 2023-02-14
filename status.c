@@ -168,7 +168,7 @@ int cUpdate::performRecordingActions()
 
             if (ti->Recording())                     // timer nimmt gerade auf
             {
-               cRunningRecording* recording {nullptr};
+               cRunningRecording* recording {};
 
                // check if already known
 

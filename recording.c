@@ -242,33 +242,32 @@ int cUpdate::storeAllRecordingInfoFiles()
 
       // store the pictures to the filesystem
 
-      recordingImagesDb->clear();
-      recordingImagesDb->setValue("IMGID", recordingListDb->getStrValue("IMGID"));
+      // recordingImagesDb->clear();
+      // recordingImagesDb->setValue("IMGID", recordingListDb->getStrValue("IMGID"));
 
-      for (int i = selectImagesOfRecording->find(); i && dbConnected(); i = selectImagesOfRecording->fetch())
-      {
-         char* imgPath;
-         int lfn = recordingImagesDb->getIntValue("LFN");
-         int size = imageSize.getIntValue();
+      // for (int i = selectImagesOfRecording->find(); i && dbConnected(); i = selectImagesOfRecording->fetch())
+      // {
+      //    char* imgPath {};
+      //    int lfn = recordingImagesDb->getIntValue("LFN");
+      //    int size = imageSize.getIntValue();
 
-         asprintf(&imgPath, "%s/test_%d.jpg", path, lfn);
+      //    asprintf(&imgPath, "%s/epg2vdr_%d.jpg", path, lfn);
 
-         if (!fileExists(imgPath) || fileSize(imgPath) != size)
-         {
-            tell(1, "Storing image of recording '%s'  to '%s'",
-                 recordingListDb->getStrValue("TITLE"), imgPath);
+      //    if (!fileExists(imgPath) || fileSize(imgPath) != size)
+      //    {
+      //       tell(1, "Storing image of recording '%s'  to '%s'", recordingListDb->getStrValue("TITLE"), imgPath);
 
-            if (fileExists(imgPath))
-               removeFile(imgPath);
+      //       if (fileExists(imgPath))
+      //          removeFile(imgPath);
 
-            storeToFile(imgPath, recordingImagesDb->getStrValue("IMAGE"), size);
-            imgCount++;
-         }
+      //       storeToFile(imgPath, recordingImagesDb->getStrValue("IMAGE"), size);
+      //       imgCount++;
+      //    }
 
-         free(imgPath);
-      }
+      //    free(imgPath);
+      // }
 
-      selectImagesOfRecording->freeResult();
+      // selectImagesOfRecording->freeResult();
 
       free(path);
    }
@@ -503,18 +502,24 @@ int cUpdate::updateRecordingTable(int fullReload)
       if (recordingListDb->getValue("VDRUUID")->isNull())
           recordingListDb->setValue("VDRUUID", Epg2VdrConfig.uuid);
 
+      if (recordingListDb->getValue("IMGID")->isEmpty())
+      {
+         md5Buf md5ImgId;
+         std::string s = std::string(title) + std::string(subTitle);
+         createMd5(s.c_str(), md5ImgId);
+         recordingListDb->setValue("IMGID", md5ImgId);
+      }
+
       if (insert || recordingListDb->getChanges())
       {
          insert ? insCnt++ : updCnt++;
-         tell(2, "Info: '%s' recording '%s / %s' due to %d changes [%s]",
-              insert ? "Insert" : "Update", title, subTitle,
-              recordingListDb->getChanges(), recordingListDb->getChangedFields().c_str());
+         tell(2, "Info: '%s' recording '%s / %s' due to %d changes [%s]", insert ? "Insert" : "Update",
+              title, subTitle, recordingListDb->getChanges(), recordingListDb->getChangedFields().c_str());
          recordingListDb->store();
       }
 
       // check recording image table
 
-      if (!recordingListDb->getValue("IMGID")->isEmpty())
       {
          recordingImagesDb->clear();
          recordingImagesDb->setValue("IMGID", recordingListDb->getStrValue("IMGID"));
@@ -524,10 +529,10 @@ int cUpdate::updateRecordingTable(int fullReload)
          {
             const char* ext = ".jpg";
             MemoryStruct data;
-            struct dirent* dirent;
-            DIR* dir;
-            char* recdir;
-            int lfn = 0;
+            struct dirent* dirent {};
+            DIR* dir {};
+            char* recdir {};
+            int lfn {0};
 
             // we don't have a image, check filesystem
 
@@ -549,7 +554,7 @@ int cUpdate::updateRecordingTable(int fullReload)
                if (strncmp(dirent->d_name + strlen(dirent->d_name) - strlen(ext), ext, strlen(ext)) != 0)
                   continue;
 
-               char* imgPath;
+               char* imgPath {};
                asprintf(&imgPath, "%s/%s/%s", videoBasePath, recordingListDb->getStrValue("PATH"), dirent->d_name);
 
                tell(0, "%s'found image for '%s' [%s]", fileExists(imgPath) ? "" : "Don't ",

@@ -25,7 +25,7 @@ const char* logPrefix = LOG_PREFIX;
 // Static global handler Instance
 //***************************************************************************
 
-cEpg2VdrEpgHandler* cEpg2VdrEpgHandler::singleton {nullptr};
+cEpg2VdrEpgHandler* cEpg2VdrEpgHandler::singleton {};
 // cEpg2VdrEpgHandler* cEpg2VdrEpgHandler::singleton = cEpg2VdrEpgHandler::getSingleton();
 
 //***************************************************************************

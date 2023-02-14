@@ -56,7 +56,7 @@ class cRunningRecording : public cListObject
       void setInfo(const char* i) { info = notNull(i); }
 
       int id {0};           // use timer->Id(), timer->Remote and GetById instead of pointer to a timer
-      char* remote {nullptr};
+      char* remote {};
       time_t lastBreak {0};
       int finished {no};
       int failed {no};
@@ -222,8 +222,8 @@ class cUpdate : public cThread, public cStatus, public cParameters
 
       // data
 
-      cDbConnection* connection {nullptr};
-      cPluginEPG2VDR* plugin {nullptr};
+      cDbConnection* connection {};
+      cPluginEPG2VDR* plugin {};
       int handlerMaster {no};
       int loopActive {no};
       time_t nextEpgdUpdateAt {0};
@@ -231,12 +231,12 @@ class cUpdate : public cThread, public cStatus, public cParameters
       time_t lastEventsUpdateAt {0};
       time_t lastRecordingDeleteAt {0};
       int lastRecordingCount {0};
-      char* epgimagedir {nullptr};
+      char* epgimagedir {};
       int withutf8 {no};
       cCondVar waitCondition;
       cMutex mutex;
       int fullreload {no};
-      char imageExtension[3+TB] {""};
+      char imageExtension[3+TB] {};
 
       cMutex timerMutex;
       cMutex swTimerMutex;
@@ -257,44 +257,44 @@ class cUpdate : public cThread, public cStatus, public cParameters
       int epgdBusy {yes};
       int eventsPending {no};
       int mainActPending {yes};
-      const char* videoBasePath {nullptr};
+      const char* videoBasePath {};
       int timersTableMaxUpdsp {0};
 
-      cDbTable* eventsDb {nullptr};
-      cDbTable* useeventsDb {nullptr};
-      cDbTable* fileDb {nullptr};
-      cDbTable* imageDb {nullptr};
-      cDbTable* imageRefDb {nullptr};
-      cDbTable* episodeDb {nullptr};
-      cDbTable* mapDb {nullptr};
-      cDbTable* timerDb {nullptr};
-      cDbTable* timerDoneDb {nullptr};
-      cDbTable* vdrDb {nullptr};
-      cDbTable* compDb {nullptr};
-      cDbTable* recordingDirDb {nullptr};
-      cDbTable* recordingListDb {nullptr};
-      cDbTable* recordingImagesDb {nullptr};
+      cDbTable* eventsDb {};
+      cDbTable* useeventsDb {};
+      cDbTable* fileDb {};
+      cDbTable* imageDb {};
+      cDbTable* imageRefDb {};
+      cDbTable* episodeDb {};
+      cDbTable* mapDb {};
+      cDbTable* timerDb {};
+      cDbTable* timerDoneDb {};
+      cDbTable* vdrDb {};
+      cDbTable* compDb {};
+      cDbTable* recordingDirDb {};
+      cDbTable* recordingListDb {};
+      cDbTable* recordingImagesDb {};
 
-      cDbStatement* selectMasterVdr {nullptr};
-      cDbStatement* selectAllImages {nullptr};
-      cDbStatement* selectUpdEvents {nullptr};
-      cDbStatement* selectAllEvents {nullptr};
-      cDbStatement* selectEventById {nullptr};
-      cDbStatement* selectAllChannels {nullptr};
-      cDbStatement* selectChannelById {nullptr};
-      cDbStatement* markUnknownChannel {nullptr};
-      cDbStatement* selectComponentsOf {nullptr};
-      cDbStatement* deleteTimer {nullptr};
-      cDbStatement* selectMyTimer {nullptr};
-      cDbStatement* selectRecordings {nullptr};
-      cDbStatement* selectImagesOfRecording {nullptr};
-      cDbStatement* selectRecForInfoUpdate {nullptr};
-      cDbStatement* selectPendingTimerActions {nullptr};
-      cDbStatement* selectSwitchTimerActions {nullptr};
-      cDbStatement* selectTimerByEvent {nullptr};
-      cDbStatement* selectTimerById {nullptr};
-      cDbStatement* selectTimerByDoneId {nullptr};
-      cDbStatement* selectMaxUpdSp {nullptr};
+      cDbStatement* selectMasterVdr {};
+      cDbStatement* selectAllImages {};
+      cDbStatement* selectUpdEvents {};
+      cDbStatement* selectAllEvents {};
+      cDbStatement* selectEventById {};
+      cDbStatement* selectAllChannels {};
+      cDbStatement* selectChannelById {};
+      cDbStatement* markUnknownChannel {};
+      cDbStatement* selectComponentsOf {};
+      cDbStatement* deleteTimer {};
+      cDbStatement* selectMyTimer {};
+      cDbStatement* selectRecordings {};
+      cDbStatement* selectImagesOfRecording {};
+      cDbStatement* selectRecForInfoUpdate {};
+      cDbStatement* selectPendingTimerActions {};
+      cDbStatement* selectSwitchTimerActions {};
+      cDbStatement* selectTimerByEvent {};
+      cDbStatement* selectTimerById {};
+      cDbStatement* selectTimerByDoneId {};
+      cDbStatement* selectMaxUpdSp {};
 
       cDbValue vdrEvtId;
       cDbValue extEvtId;
@@ -305,9 +305,9 @@ class cUpdate : public cThread, public cStatus, public cParameters
       cDbValue imageSizeRec;
       cDbValue masterId;
 
-      cDbValue* viewDescription {nullptr};
-      cDbValue* viewMergeSource {nullptr};
-      cDbValue* viewLongDescription {nullptr};
+      cDbValue* viewDescription {};
+      cDbValue* viewMergeSource {};
+      cDbValue* viewLongDescription {};
 
       std::queue<std::string> pendingNewRecordings;        // recordings to store details (obsolete if pendingRecordingActions implemented finally)
       std::queue<RecordingAction> pendingRecordingActions; // recordings actions (start/stop)
