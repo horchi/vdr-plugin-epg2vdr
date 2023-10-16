@@ -5,8 +5,7 @@
  *
  */
 
-#ifndef __PARAMETERS_H
-#define __PARAMETERS_H
+#pragma once
 
 #include "lib/db.h"
 
@@ -46,14 +45,12 @@ class cParameters
       int getParameter(const char* owner, const char* name, long int& value);
       int setParameter(const char* owner, const char* name, const char* value);
       int setParameter(const char* owner, const char* name, long int value);
-      
+
    protected:
 
-      cDbTable* parametersDb;
-      cDbStatement* selectParameters;
+      cDbTable* parametersDb {};
+      cDbStatement* selectParameters {};
 
       static Parameter parameters[];
       static Parameter* getDefinition(const char* owner, const char* name);
 };
-
-#endif // __PARAMETERS_H

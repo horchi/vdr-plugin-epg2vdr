@@ -113,8 +113,6 @@ cParameters::Parameter* cParameters::getDefinition(const char* owner, const char
 
 cParameters::cParameters()
 {
-   parametersDb = 0;
-   selectParameters = 0;
 }
 
 int cParameters::initDb(cDbConnection* connection)

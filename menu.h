@@ -95,46 +95,46 @@ class cMenuDb : public cParameters
 
       // data
 
-      long webLoginEnabled;
-      std::string user;
-      long startWithSched;
+      long webLoginEnabled {0};
+      std::string user {"@"};
+      long startWithSched {0};
 
-      cUserTimes* userTimes;
-      char** vdrList;
-      char** vdrUuidList;
-      int vdrCount;
+      cUserTimes* userTimes {};
+      char** vdrList {};
+      char** vdrUuidList {};
+      int vdrCount {0};
 
       // database
 
-      int dbInitialized;
-      cDbConnection* connection;
+      bool dbInitialized {false};
+      cDbConnection* connection {};
 
-      cDbTable* timerDb;
-      cDbTable* vdrDb;
-      cDbTable* mapDb;
-      cDbTable* timerDoneDb;
-      cDbTable* userDb;
-      cDbTable* searchtimerDb;
-      cDbTable* recordingListDb;
-      cDbTable* useeventsDb;
+      cDbTable* timerDb {};
+      cDbTable* vdrDb {};
+      cDbTable* mapDb {};
+      cDbTable* timerDoneDb {};
+      cDbTable* userDb {};
+      cDbTable* searchtimerDb {};
+      cDbTable* recordingListDb {};
+      cDbTable* useeventsDb {};
 
-      cDbStatement* selectTimers;
-      cDbStatement* selectEventById;
-      cDbStatement* selectMaxUpdSp;
-      cDbStatement* selectTimerById;
-      cDbStatement* selectActiveVdrs;
-      cDbStatement* selectAllVdrs;
-      cDbStatement* selectDoneTimerByState;
-      cDbStatement* selectAllUser;
-      cDbStatement* selectSearchTimers;
-      cDbStatement* selectSearchTimerByName;
-      cDbStatement* selectDoneTimerByStateTitleOrder;
-      cDbStatement* selectDoneTimerByStateTimeOrder;
-      cDbStatement* selectRecordingForEvent;
-      cDbStatement* selectRecordingForEventByLv;
-      cDbStatement* selectChannelFromMap;
+      cDbStatement* selectTimers {};
+      cDbStatement* selectEventById {};
+      cDbStatement* selectMaxUpdSp {};
+      cDbStatement* selectTimerById {};
+      cDbStatement* selectActiveVdrs {};
+      cDbStatement* selectAllVdrs {};
+      cDbStatement* selectDoneTimerByState {};
+      cDbStatement* selectAllUser {};
+      cDbStatement* selectSearchTimers {};
+      cDbStatement* selectSearchTimerByName {};
+      cDbStatement* selectDoneTimerByStateTitleOrder {};
+      cDbStatement* selectDoneTimerByStateTimeOrder {};
+      cDbStatement* selectRecordingForEvent {};
+      cDbStatement* selectRecordingForEventByLv {};
+      cDbStatement* selectChannelFromMap {};
 
-      cSearchTimer* search;
+      cSearchTimer* search {};
 
       cDbValue valueStartTime;
       cDbValue timerState;
@@ -154,7 +154,7 @@ class cMenuDb : public cParameters
       };
 
       cList<cTimerInfo> timers;
-      int timersCacheMaxUpdsp;
+      int timersCacheMaxUpdsp {0};
 };
 
 //***************************************************************************
@@ -182,7 +182,7 @@ class cMenuEpgEditTimer : public cOsdMenu
       {
          public:
 
-            cTimerData(cMenuDb* p)         { memset(this, 0, sizeof(cTimerData)); db = p; }
+            cTimerData(cMenuDb* p)         { db = p; }
             ~cTimerData()                  { free(aux); }
 
             const char* getVdrName()       { return db->vdrList[vdrIndex]; }
@@ -256,40 +256,40 @@ class cMenuEpgEditTimer : public cOsdMenu
                return done;
             }
 
-            long timerid;
-            long eventid;
-            int weekdays;                       // bitmask, lowest bits: SSFTWTM  (the 'M' is the LSB)
-            int start;
-            int stop;
-            int priority;
-            int fskProtection;
-            int lifetime;
-            uint flags;
-            char state;
-            char stateInfo[300+TB];
-            char action;
-            char type;
-            int vdrIndex;
-            int typeIndex;
-            time_t createTime;
-            time_t modTime;
-            const cChannel* channel;
-            mutable time_t day;
-            mutable char file[NAME_MAX*2 + TB]; // *2 to be able to hold 'title' and 'episode', which can each be up to 255 characters long
-            char* aux;
+            long timerid {0};
+            long eventid {0};
+            int weekdays {0};                       // bitmask, lowest bits: SSFTWTM  (the 'M' is the LSB)
+            int start {0};
+            int stop {0};
+            int priority {0};
+            int fskProtection {0};
+            int lifetime {0};
+            uint flags {0};
+            char state {'\0'};
+            char stateInfo[300+TB] {};
+            char action {'\0'};
+            char type {'\0'};
+            int vdrIndex {0};
+            int typeIndex {0};
+            time_t createTime {0};
+            time_t modTime {0};
+            const cChannel* channel {};
+            mutable time_t day {0};
+            mutable char file[NAME_MAX*2 + TB] {}; // *2 to be able to hold 'title' and 'episode', which can each be up to 255 characters long
+            char* aux {};
 
-            cMenuDb* db;
-            char lastVdrUuid[sizeUuid+TB];
+            cMenuDb* db {};
+            char lastVdrUuid[sizeUuid+TB] {};
       };
 
    protected:
 
-      cMenuDb* menuDb;
+      cMenuDb* menuDb {};
       cTimerData data;
-      int channelNr;
-      cMenuEditStrItem* file;
-      cMenuEditDateItem* day;
-      cMenuEditDateItem* firstday;
+      int channelNr {0};
+      cMenuEditStrItem* file {};
+      cMenuEditDateItem* day {};
+      cMenuEditDateItem* firstday {};
 };
 
 //***************************************************************************
@@ -302,9 +302,7 @@ class cEpgMenuTextItem : public cOsdItem
 
       cEpgMenuTextItem(long aId, const char* text)
       {
-         cid = 0;
          id = aId;
-         row = 0;
          SetText(text);
       }
 
@@ -336,9 +334,9 @@ class cEpgMenuTextItem : public cOsdItem
 
    protected:
 
-      long id;
-      cDbRow* row;
-      char* cid;
+      long id {0};
+      cDbRow* row {};
+      char* cid {};
 };
 
 //***************************************************************************
@@ -365,9 +363,9 @@ class cMenuEpgTimers : public cOsdMenu
       cEpgTimer* currentTimer();
       void SetHelpKeys();
 
-      cMenuDb* menuDb;
-      int helpKeys;
-      int timersMaxUpdsp;
+      cMenuDb* menuDb {};
+      int helpKeys {-1};
+      int timersMaxUpdsp {0};
 };
 
 //***************************************************************************
@@ -387,8 +385,7 @@ class cMenuEpgSearchTimers : public cOsdMenu
 
    private:
 
-      cMenuDb* menuDb;
-      // int helpKeys;
+      cMenuDb* menuDb {};
 };
 
 //***************************************************************************
@@ -410,11 +407,11 @@ class cMenuEpgEvent : public cOsdMenu
       const cEvent* getNextPrevEvent(const cEvent* event, int step);
       int setEvent(const cEvent* Event, int timerMatch);
 
-      cMenuDb* menuDb;
-      const cSchedules* schedules;
-      const cEvent* event;
-      bool dispSchedule;
-      bool canSwitch;
+      cMenuDb* menuDb {};
+      const cSchedules* schedules {};
+      const cEvent* event {};
+      bool dispSchedule {false};
+      bool canSwitch {false};
 
       std::string prevTime;
       std::string nextTime;
@@ -441,14 +438,14 @@ class cMenuEpgScheduleItem : public cOsdItem
       virtual bool Update(bool Force = false);
       virtual void SetMenuItem(cSkinDisplayMenu* DisplayMenu, int Index, bool Current, bool Selectable);
 
-      const cEvent* event;
-      const cChannel* channel;
-      bool withDate;
-      int timerMatch;
+      const cEvent* event {};
+      const cChannel* channel {};
+      bool withDate {false};
+      int timerMatch {0};
 
    private:
 
-      cMenuDb* menuDb;
+      cMenuDb* menuDb {};
       static eScheduleSortMode sortMode;
 };
 
@@ -475,25 +472,25 @@ class cMenuEpgWhatsOn : public cOsdMenu
       int LoadSchedule();
       int LoadQuery(const cEvent* searchEvent);
 
-      bool canSwitch;
-      int helpKeys;
-      time_t helpKeyTime;
-      int helpKeyTimeMode;
-      // int timerState;
+      bool canSwitch {false};
+      int helpKeys {0};
+      time_t helpKeyTime {0};
+      int helpKeyTimeMode {na};
+      // int timerState {0};
       eOSState Record();
       eOSState Switch();
       bool Update();
       void SetHelpKeys();
 
-      cMenuDb* menuDb;
-      const cSchedules* schedules;
+      cMenuDb* menuDb {};
+      const cSchedules* schedules {};
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
       cStateKey schedulesKey;
 #else
-      cSchedulesLock* schedulesLock;
+      cSchedulesLock* schedulesLock {};
 #endif
-      const cEvent* searchEvent;
-      int dispSchedule;
+      const cEvent* searchEvent {};
+      int dispSchedule {no};
 
       static int currentChannel;
       static const cEvent* scheduleEvent;
@@ -531,9 +528,9 @@ class cEpgMenuDones : public cOsdMenu
 
       // data
 
-      cMenuDb* menuDb;
-      int journalFilter;
-      int order;
+      cMenuDb* menuDb {};
+      int journalFilter {jfAll};
+      int order {0};
 };
 
 //***************************************************************************

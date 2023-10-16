@@ -17,45 +17,9 @@
 
 cMenuDb::cMenuDb()
 {
-   vdrList = 0;
-   vdrCount = 0;
-   vdrUuidList = 0;
-
-   timersCacheMaxUpdsp = 0;
-   dbInitialized = no;
-   connection = 0;
-
-   timerDb = 0;
-   vdrDb = 0;
-   mapDb = 0;
-   timerDoneDb = 0;
-   userDb = 0;
-   searchtimerDb = 0;
-   recordingListDb = 0;
-   useeventsDb = 0;
-
-   selectTimers = 0;
-   selectEventById = 0;
-   selectMaxUpdSp = 0;
-   selectTimerById = 0;
-   selectActiveVdrs = 0;
-   selectAllVdrs = 0;
-   selectAllUser = 0;
-   selectSearchTimers = 0;
-   selectSearchTimerByName = 0;
-
-   selectDoneTimerByStateTitleOrder = 0;
-   selectDoneTimerByStateTimeOrder = 0;
-   selectRecordingForEvent = 0;
-   selectRecordingForEventByLv = 0;
-   selectChannelFromMap = 0;
-
-   webLoginEnabled = no;
    user = "@";
-   startWithSched = no;
 
    search = new cSearchTimer();
-
    userTimes = new cUserTimes;
    initDb();
 }

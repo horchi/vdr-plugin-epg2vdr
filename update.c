@@ -1334,7 +1334,7 @@ void cUpdate::Action()
 
       isHandlerMaster();
 
-      if (Epg2VdrConfig.shareInWeb)
+      // if (Epg2VdrConfig.shareInWeb)
       {
          // update timer - even when epgd is busy!
 
@@ -1354,7 +1354,7 @@ void cUpdate::Action()
       if (epgdBusy)
          continue;
 
-      if (Epg2VdrConfig.shareInWeb)
+      // if (Epg2VdrConfig.shareInWeb)
       {
          // check timer distribution and take over 'my' timers
 

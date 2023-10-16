@@ -207,7 +207,7 @@ eOSState cMenuEpgMatchRecordings::ProcessKey(eKeys Key)
 // Class cMenuEpgScheduleItem
 //***************************************************************************
 
-cMenuEpgScheduleItem::eScheduleSortMode cMenuEpgScheduleItem::sortMode = ssmAllThis;
+cMenuEpgScheduleItem::eScheduleSortMode cMenuEpgScheduleItem::sortMode {ssmAllThis};
 
 //***************************************************************************
 // Object
@@ -600,8 +600,8 @@ eOSState cMenuEpgEvent::ProcessKey(eKeys Key)
 // cMenuEpgWhatsOn
 //***************************************************************************
 
-int cMenuEpgWhatsOn::currentChannel = 0;
-const cEvent* cMenuEpgWhatsOn::scheduleEvent = 0;
+int cMenuEpgWhatsOn::currentChannel {0};
+const cEvent* cMenuEpgWhatsOn::scheduleEvent {};
 
 //***************************************************************************
 // Object
@@ -610,17 +610,6 @@ const cEvent* cMenuEpgWhatsOn::scheduleEvent = 0;
 cMenuEpgWhatsOn::cMenuEpgWhatsOn(const cEvent* aSearchEvent)
    : cOsdMenu("", CHNUMWIDTH, CHNAMWIDTH, 6, 4)
 {
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-#else
-   schedulesLock = 0;
-#endif
-   schedules = 0;
-   dispSchedule = no;
-   canSwitch = no;
-   helpKeys = 0;
-   helpKeyTime = 0;
-   helpKeyTimeMode = na;
-//   timerState = 0;
    searchEvent = aSearchEvent;
    menuDb = new cMenuDb;
 

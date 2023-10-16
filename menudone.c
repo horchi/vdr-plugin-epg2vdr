@@ -20,11 +20,7 @@
 cEpgMenuDones::cEpgMenuDones()
    : cOsdMenu("", 2, 20, 35, 40)
 {
-   journalFilter = jfAll;
-   order = 0;
-
    menuDb = new cMenuDb;
-
    refresh();
 }
 

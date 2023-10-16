@@ -5,8 +5,7 @@
  *
  */
 
-#ifndef __EPG2VDR_H
-#define __EPG2VDR_H
+#pragma once
 
 #include <list>
 
@@ -69,18 +68,15 @@ class cPluginEPG2VDR : public cPlugin
 
    private:
 
-      int pluginInitialized;
-      cDbConnection* connection;
-      cDbTable* timerDb;
-      cDbTable* vdrDb;
-      cDbTable* useeventsDb;
-      cDbTable* recordingListDb;
-      cDbStatement* selectTimers;
-      cDbStatement* selectTimerByEvent;
-      cDbStatement* selectEventById;
-      cMutex mutexTimerService;
-      cMutex mutexServiceWithDb;
+      int pluginInitialized {false};
+      cDbConnection* connection {};
+      cDbTable* timerDb {};
+      cDbTable* vdrDb {};
+      cDbTable* useeventsDb {};
+      cDbTable* recordingListDb {};
+      cDbStatement* selectTimers {};
+      cDbStatement* selectTimerByEvent {};
+      cDbStatement* selectEventById {};
+      cMutex mutexTimerService {};
+      cMutex mutexServiceWithDb {};
 };
-
-//***************************************************************************
-#endif // EPG2VDR_H

@@ -10,6 +10,8 @@
 #include <vdr/timers.h>
 #include <vdr/epg.h>
 
+#include "lib/common.h"
+
 #include <list>
 #include <map>
 #include <string>
@@ -55,19 +57,19 @@ class cEpgTimer_Interface_V1 : public cTimer
 
    protected:
 
-      long timerid;
-      long eventid;
+      long timerid {na};
+      long eventid {na};
 
       char* vdrName {};
       char* vdrUuid {};
-      int local;
-      int vdrRunning;
+      int local {yes};
+      int vdrRunning {no};
 
-      char state;
+      char state {'\0'};
       char* stateInfo {};
-      char action;
+      char action {'-'};
 
-      char type;
+      char type {ttRecord};
       time_t createTime {0};
       time_t modTime {0};
 };

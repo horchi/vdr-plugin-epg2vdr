@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.2.14"
-#define VERSION_DATE "13.02.2023"
+#define _VERSION     "1.2.15"
+#define VERSION_DATE "15.10.2023"
 
 #define DB_API 8
 
@@ -19,8 +19,12 @@
 /*
  * ------------------------------------
 
+2023-10-15: version 1.2.15 (horchi)
+   - change: Minor code refactoring (c++ init style)
+   - bugfix: Fixed timer handling on deactivated 'shareInWeb'
+
 2023-02-13: version 1.2.14 (horchi)
-   - Added: Fill recording image table
+   - added: Fill recording image table
 
 2023-02-12: version 1.2.13 (horchi)
    - change: Using syslog severity (Tkx to kfb77)

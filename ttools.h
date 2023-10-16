@@ -5,8 +5,7 @@
  *
  */
 
-#ifndef _TTOOLS_H_
-#define _TTOOLS_H_
+#pragma once
 
 #include <vdr/timers.h>
 
@@ -36,7 +35,3 @@ int updateRowByTimer(cDbRow* timerDb, const cTimer* t);
 
 cEpgTimer* newTimerObjectFromRow(cDbRow* timerRow, cDbRow* vdrRow);
 int updateTimerObjectFromRow(cTimer* timer, cDbRow* timerRow, const cEvent* event);
-
-//***************************************************************************
-
-#endif // _TTOOLS_H_

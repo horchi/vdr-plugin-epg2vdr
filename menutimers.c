@@ -28,8 +28,6 @@ cMenuEpgEditTimer::cMenuEpgEditTimer(cMenuDb* db, cEpgTimer* Timer, bool New)
      data(db)
 {
    SetMenuCategory(mcTimerEdit);
-   file = 0;
-   day = firstday = 0;
    menuDb = db;
 
    if (Timer)
@@ -321,11 +319,7 @@ void cMenuEpgTimerItem::SetMenuItem(cSkinDisplayMenu* DisplayMenu, int Index,
 cMenuEpgTimers::cMenuEpgTimers()
    : cOsdMenu(tr("Timers"), 2, CHNUMWIDTH, 10, 6, 6)
 {
-   helpKeys = -1;
-   timersMaxUpdsp = 0;
-
    menuDb = new cMenuDb;
-
    SetMenuCategory(mcTimer);
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)

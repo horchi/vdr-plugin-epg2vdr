@@ -15,15 +15,6 @@
 cEpgTimer::cEpgTimer(bool Instant, bool Pause, const cChannel* Channel)
    : cEpgTimer_Interface_V1(Instant, Pause, Channel)
 {
-   timerid = na; eventid = na;
-   vdrName = 0; vdrUuid = 0;
-   vdrRunning = no;
-   stateInfo = 0;
-   local = yes;
-   type = ttRecord;
-   action = '-';
-   createTime = 0;
-   modTime = 0;
 }
 
 cEpgTimer::~cEpgTimer()

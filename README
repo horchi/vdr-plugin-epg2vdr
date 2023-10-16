@@ -52,7 +52,7 @@ Setup Menu:
         - auto: Normally first VDR will be master - the master transfers the DVB events to the mariadb Server
         - yes: Master mode on
         - no: Master mode off
-      Make sure that only one VDR will be master or you run into DB performance issues. Makes just sense, if you have different channels on your clients.
+      Make sure that only one VDR will be master or you run into DB performance issues or deadlocks.
 
   Show In Main Menu
       Shows entry in main menu to perform update manually

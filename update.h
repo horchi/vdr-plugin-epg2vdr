@@ -77,10 +77,10 @@ class cEventDetails
 {
    public:
 
-      cEventDetails()     { changes = 0; }
-      ~cEventDetails()    {}
+      cEventDetails() {}
+      ~cEventDetails() {}
 
-      int getChanges()    { return changes; }
+      int getChanges() { return changes; }
       void clearChanges() { changes = 0; }
 
       void setValue(const char* name, const char* value);
@@ -95,7 +95,7 @@ class cEventDetails
 
    private:
 
-      int changes;
+      int changes {0};
       std::map<std::string, std::string> values;
 
       static const char* fields[];

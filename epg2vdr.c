@@ -18,8 +18,8 @@
 #  error VDR API versions < 2.2.0 are not supported !
 #endif
 
-cUpdate* oUpdate = 0;
-const char* logPrefix = LOG_PREFIX;
+cUpdate* oUpdate {};
+const char* logPrefix {LOG_PREFIX};
 
 //***************************************************************************
 // Static global handler Instance
@@ -41,7 +41,7 @@ class cMenuEditStrListItem : public cMenuEditIntItem
    protected:
 
       virtual void Set();
-      cStringList* list;
+      cStringList* list {};
 };
 
 cMenuEditStrListItem::cMenuEditStrListItem(const char* Name, int* Value, cStringList* List)
@@ -72,7 +72,7 @@ class cEpgPluginMenu : public cOsdMenu
 
    protected:
 
-      cPluginEPG2VDR* plugin;
+      cPluginEPG2VDR* plugin {};
 };
 
 enum EpgMenuState
@@ -169,7 +169,7 @@ class cMenuSetupEPG2VDR : public cMenuSetupPage
    public:
 
       cMenuSetupEPG2VDR();
-      ~cMenuSetupEPG2VDR() ;
+      ~cMenuSetupEPG2VDR();
 
    protected:
 
@@ -180,23 +180,18 @@ class cMenuSetupEPG2VDR : public cMenuSetupPage
    private:
 
       cEpg2VdrConfig data;
-      cMenuDb* menuDb;
-      long int webLoginEnabled;
-      char** userList;
-      int userCount;
+      cMenuDb* menuDb {};
+      long int webLoginEnabled {0};
+      char** userList {};
+      int userCount {0};
       cStringList interfaceList;
-      int interfaceIndex;
+      int interfaceIndex {0};
 };
 
 cMenuSetupEPG2VDR::cMenuSetupEPG2VDR()
 {
    data = Epg2VdrConfig;
    menuDb = new cMenuDb;
-   webLoginEnabled = no;
-   userList = 0;
-   userCount = 0;
-   interfaceIndex = 0;
-
    Setup();
 }
 
@@ -420,16 +415,6 @@ void cMenuSetupEPG2VDR::Store()
 
 cPluginEPG2VDR::cPluginEPG2VDR()
 {
-   pluginInitialized = no;
-   oUpdate = 0;
-   connection = 0;
-   timerDb = 0;
-   vdrDb = 0;
-   useeventsDb = 0;
-   selectTimers = 0;
-   selectTimerByEvent = 0;
-   selectEventById = 0;
-   recordingListDb = 0;
 }
 
 cPluginEPG2VDR::~cPluginEPG2VDR()

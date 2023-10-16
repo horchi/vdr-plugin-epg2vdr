@@ -28,8 +28,6 @@ class cMutexTry
 
       cMutexTry()
       {
-         locked = 0;
-
          pthread_mutexattr_t attr;
          pthread_mutexattr_init(&attr);
          pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
@@ -75,7 +73,7 @@ class cMutexTry
    private:
 
       pthread_mutex_t mutex;
-      int locked;
+      int locked {0};
 };
 
 //***************************************************************************
@@ -88,19 +86,6 @@ class cEpgHandlerInstance
 
       cEpgHandlerInstance()
       {
-         initialized = no;
-         connection = 0;
-         eventsDb = 0;
-         compDb = 0;
-         mapDb = 0;
-         vdrDb = 0;
-         endTime = 0;
-         updateDelFlg = 0;
-         selectDelFlg = 0;
-         delCompOf = 0;
-         selectMergeSp = 0;
-         selectEventByStarttime = 0;
-
          tell(0, "Handler: Init handler instance for thread %d", cThread::ThreadId());
       }
 
@@ -877,20 +862,20 @@ class cEpgHandlerInstance
       std::map<std::string,std::string> externIdMap;
       tChannelID channelId;
 
-      int initialized;
-      cDbConnection* connection;
+      int initialized {false};
+      cDbConnection* connection {};
 
-      cDbTable* eventsDb;
-      cDbTable* mapDb;
-      cDbTable* vdrDb;
-      cDbTable* compDb;
+      cDbTable* eventsDb {};
+      cDbTable* mapDb {};
+      cDbTable* vdrDb {};
+      cDbTable* compDb {};
 
-      cDbValue* endTime;
-      cDbStatement* updateDelFlg;
-      cDbStatement* selectDelFlg;
-      cDbStatement* delCompOf;
-      cDbStatement* selectMergeSp;
-      cDbStatement* selectEventByStarttime;
+      cDbValue* endTime {};
+      cDbStatement* updateDelFlg {};
+      cDbStatement* selectDelFlg {};
+      cDbStatement* delCompOf {};
+      cDbStatement* selectMergeSp {};
+      cDbStatement* selectEventByStarttime {};
 
       // cUpdate* update;
 };
@@ -903,7 +888,7 @@ class cEpg2VdrEpgHandler : public cEpgHandler
 {
    public:
 
-      cEpg2VdrEpgHandler() : cEpgHandler() { active = no; }
+      cEpg2VdrEpgHandler() : cEpgHandler() {}
 
       ~cEpg2VdrEpgHandler()
       {
@@ -1123,7 +1108,7 @@ class cEpg2VdrEpgHandler : public cEpgHandler
 
       std::map<std::string,std::string> externIdMap;
       std::map<tThreadId,cEpgHandlerInstance*> handler;
-      int active;
+      int active {false};
       cMutex mapMutex;
       cMutexTry handlerMutex;
 

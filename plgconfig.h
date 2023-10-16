@@ -18,27 +18,27 @@ struct cEpg2VdrConfig : public cEpgConfig
 {
    public:
 
-      cEpg2VdrConfig();
+      cEpg2VdrConfig() : cEpgConfig() {};
 
-      int mainmenuVisible;
-      int mainmenuFullupdate;
-      int activeOnEpgd;
-      int scheduleBoot;
-      int blacklist;            // to enable noepg feature
-      int masterMode;
-      int shareInWeb;           // 'am verbund teilnehmen'
-      int createTimerLocal;
-      int useCommonRecFolder;   // NAS
-      int xchgOkBlue;
+      int mainmenuVisible {true};
+      int mainmenuFullupdate {0};
+      int activeOnEpgd {false};
+      int scheduleBoot {false};
+      int blacklist {false};            // to enable noepg feature
+      int masterMode {0};
+      int shareInWeb {true};            // 'am verbund teilnehmen'
+      int createTimerLocal {false};
+      int useCommonRecFolder {true};    // NAS
+      int xchgOkBlue {false};
 
-      int replaceScheduleMenu;
-      int replaceTimerMenu;
-      int userIndex;
-      char user[100+TB];
-      int showEmptyChannels;
-      int extendedEpgData2Aux;
-      int switchTimerNotifyTime;
-      int closeOnSwith {yes};
+      int replaceScheduleMenu {false};
+      int replaceTimerMenu {false};
+      int userIndex {0};
+      char user[100+TB] {};
+      int showEmptyChannels {false};
+      int extendedEpgData2Aux {false};
+      int switchTimerNotifyTime {0};
+      int closeOnSwith {false};
 };
 
 extern cEpg2VdrConfig Epg2VdrConfig;
