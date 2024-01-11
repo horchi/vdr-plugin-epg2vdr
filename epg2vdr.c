@@ -742,8 +742,8 @@ cString cPluginEPG2VDR::SVDRPCommand(const char* cmd, const char* Option, int &R
       cReplayControl::SetRecording(recording->FileName());
       cControl::Launch(new cReplayControl);
       cControl::Attach();
-      free(opt);
       tell(0, "Playing recording '%s'", name);
+      free(opt);
       return "Playing recording";
    }
 

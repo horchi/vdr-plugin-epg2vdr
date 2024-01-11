@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.2.15"
-#define VERSION_DATE "15.10.2023"
+#define _VERSION     "1.2.16"
+#define VERSION_DATE "11.01.2024"
 
 #define DB_API 8
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2024-01-11: version 1.2.16 (horchi)
+   - bugfix: Fixed memory issue
 
 2023-10-15: version 1.2.15 (horchi)
    - change: Minor code refactoring (c++ init style)
