@@ -432,7 +432,12 @@ int cUpdate::updateRecordingTable(int fullReload)
                cStateKey schedulesKey;
                const cSchedules* schedules = cSchedules::GetSchedulesRead(schedulesKey, 500/*ms*/);
                const cSchedule* s = schedules ? (cSchedule*)schedules->GetSchedule(channel) : 0;
+
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20501))
+               const cEvent* event = s ? s->GetEventById(eventId) : 0;
+#else
                const cEvent* event = s ? s->GetEvent(eventId) : 0;
+#endif
 
                if (event && !isEmpty(event->Aux()) && xml.set(event->Aux()) == success)
                {

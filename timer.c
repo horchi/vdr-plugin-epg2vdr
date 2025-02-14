@@ -300,8 +300,11 @@ int cUpdate::performTimerJobs()
             markUnknownChannel->freeResult();
             continue;
          }
-
+#if APIVERSNUM > 20501
+         if (eventid > 0 && !(event = s->GetEventById(eventid)))
+#else
          if (eventid > 0 && !(event = s->GetEvent(eventid)))
+#endif
          {
             const cChannel* channel = channels->GetByChannelID(channelId);
 

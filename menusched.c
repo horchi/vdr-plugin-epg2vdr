@@ -781,7 +781,12 @@ int cMenuEpgWhatsOn::LoadSearch(const cUserTimes::UserTime* userTime)
       const char* strChannelId = menuDb->useeventsDb->getStrValue("CHANNELID");
       const cChannel* channel = channels->GetByChannelID(tChannelID::FromString(strChannelId));
       const cSchedule* schedule = schedules->GetSchedule(channel);
+
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20501))
+      const cEvent* event = !schedule ? 0 :  schedule->GetEventById(menuDb->useeventsDb->getIntValue("USEID"));
+#else
       const cEvent* event = !schedule ? 0 :  schedule->GetEvent(menuDb->useeventsDb->getIntValue("USEID"));
+#endif
 
       if (event)
          Add(new cMenuEpgScheduleItem(menuDb, event, channel, yes));

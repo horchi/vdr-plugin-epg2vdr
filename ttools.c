@@ -466,7 +466,13 @@ cEpgTimer* newTimerObjectFromRow(cDbRow* timerRow, cDbRow* vdrRow)
          const cSchedule* schedule = schedules->GetSchedule(channel);
 
          if (schedule)
+         {
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20501))
+            event = schedule->GetEventById(timerRow->getIntValue("EVENTID"));
+#else
             event = schedule->GetEvent(timerRow->getIntValue("EVENTID"));
+#endif
+         }
       }
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)

@@ -1646,7 +1646,11 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
 
             // get event / timer
 
+#if APIVERSNUM > 20501
+            if ((event = s->GetEventById(eventsDb->getIntValue("USEID"))))
+#else
             if ((event = s->GetEvent(eventsDb->getIntValue("USEID"))))
+#endif
             {
                if (Us::isRemove(updFlg))
                   tell(2, "Remove event %uld of channel '%s' due to updflg %c",

@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.2.16"
-#define VERSION_DATE "11.01.2024"
+#define _VERSION     "1.2.17"
+#define VERSION_DATE "12.02.2025"
 
 #define DB_API 8
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2025-02-12: version 1.2.17 (horchi)
+   - change: Porting to vdr API version > 20501
 
 2024-01-11: version 1.2.16 (horchi)
    - bugfix: Fixed memory issue
