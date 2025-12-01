@@ -235,6 +235,9 @@ class cMenuEpgEditTimer : public cOsdMenu
 
             int toRow(cDbRow* timerRow)
             {
+               char directory[512+TB] {};
+               char epgaux[512+TB] {};
+
                timerRow->clear();
 
                timerRow->setValue("ID", timerid);
@@ -242,7 +245,36 @@ class cMenuEpgEditTimer : public cOsdMenu
                timerRow->setValue("ACTIVE", (int)flags & tfActive);
                timerRow->setValue("CHILDLOCK", fskProtection);
                timerRow->setValue("CHANNELID", channel->GetChannelID().ToString());
-               timerRow->setValue("FILE", file);
+
+               // Extract directory from aux tags if present
+               if (aux && contentOfTag("epgd", aux, epgaux, 512) == success)
+                  contentOfTag("directory", epgaux, directory, 512);
+
+               // If directory is set and file starts with it, strip the directory prefix
+               // to avoid duplication when timer is moved between VDRs
+               if (!isEmpty(directory))
+               {
+                  int len = strlen(directory);
+
+                  if (strncmp(file, directory, len) == 0 && file[len] == '~')
+                  {
+                     // File contains directory prefix - strip it
+                     timerRow->setValue("FILE", file + len + 1);  // +1 to skip the '~'
+                     timerRow->setValue("DIRECTORY", directory);
+                  }
+                  else
+                  {
+                     // File doesn't contain directory prefix - store as-is
+                     timerRow->setValue("FILE", file);
+                     timerRow->setValue("DIRECTORY", directory);
+                  }
+               }
+               else
+               {
+                  // No directory in aux - store file as-is
+                  timerRow->setValue("FILE", file);
+               }
+
                timerRow->setValue("VPS", (int)flags & tfVps);
                timerRow->setValue("DAY", day);
                timerRow->setValue("WEEKDAYS", weekdays);
