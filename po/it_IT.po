@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2026-11-09 16:37+0100\n"
+"POT-Creation-Date: 2026-11-09 17:00+0100\n"
 "PO-Revision-Date: 2009-08-27 21:45+0100\n"
 "Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
 "Language-Team:  <vdr@linuxtv.org>\n"
@@ -31,6 +31,9 @@ msgid "Timer Journal"
 msgstr ""
 
 msgid "Program"
+msgstr ""
+
+msgid "Duplicate recordings"
 msgstr ""
 
 #, fuzzy
@@ -193,6 +196,9 @@ msgid "Switch Timer"
 msgstr ""
 
 msgid "Matching recordings"
+msgstr ""
+
+msgid "No database connection"
 msgstr ""
 
 msgid "Direct Matches:"

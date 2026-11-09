@@ -133,6 +133,7 @@ class cMenuDb : public cParameters
       cDbStatement* selectDoneTimerByStateTimeOrder {};
       cDbStatement* selectRecordingForEvent {};
       cDbStatement* selectRecordingForEventByLv {};
+      cDbStatement* selectDoubleRecordings {};
       cDbStatement* selectChannelFromMap {};
 
       cSearchTimer* search {};
@@ -574,11 +575,35 @@ class cMenuEpgMatchRecordings : public cOsdMenu
 {
    public:
 
+      enum Mode
+      {
+         rmMatch,      // recordings matching a event
+         rmDoubles     // duplicate recordings (same title and short text)
+      };
+
       cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* event);
-      virtual ~cMenuEpgMatchRecordings() {};
+      cMenuEpgMatchRecordings(cMenuDb* db, const char* title, const char* shortText);
+      cMenuEpgMatchRecordings(cMenuDb* db, Mode aMode);
+      virtual ~cMenuEpgMatchRecordings() { delete ownDb; }
       virtual eOSState ProcessKey(eKeys Key);
 
+      // return to this menu after a replay started here is stopped by 'Back'
+      //   (VDR opens the recordings menu in this case - we hook in via MainMenuHooksPatch)
+
+      static bool isReturnPending()   { return returnPending; }
+      static cOsdMenu* createAfterReplay();
+      static void checkReturnPending();     // call from MainThreadHook
+
    protected:
+
+      void init();
+      void initMatches();
+      void initDoubles();
+
+      static bool returnPending;
+      static Mode returnMode;
+      static std::string returnTitle;
+      static std::string returnShortText;
 
       class cRecordingItem : public cOsdItem
       {
@@ -620,4 +645,8 @@ class cMenuEpgMatchRecordings : public cOsdMenu
       eOSState info();
 
       cMenuDb* menuDb {};
+      cMenuDb* ownDb {};
+      Mode mode {rmMatch};
+      std::string title;
+      std::string shortText;
 };

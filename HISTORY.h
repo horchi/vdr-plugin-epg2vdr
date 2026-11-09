@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.2.18"
+#define _VERSION     "1.2.19"
 #define VERSION_DATE "09.11.2026"
 
 #define DB_API 8
@@ -18,6 +18,11 @@
 
 /*
  * ------------------------------------
+
+2026-11-09: version 1.2.19 (horchi)
+   - added: Plugin menu 'Duplicate recordings' (same title and short text), with play, delete and info
+   - change: Return to the recordings list after replay started there is stopped by 'Back'
+   - bugfix: Recordings lists: same recording registered by several VDRs is listed only once
 
 2026-11-09: version 1.2.18 (horchi)
    - added: Matching recordings menu (key 2): play, rewind, delete and info of recordings

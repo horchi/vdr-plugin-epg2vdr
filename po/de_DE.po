@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2026-11-09 16:37+0100\n"
+"POT-Creation-Date: 2026-11-09 17:00+0100\n"
 "PO-Revision-Date: 2009-08-27 21:40+0200\n"
 "Last-Translator: Klaus Schmidinger <kls@cadsoft.de>\n"
 "Language-Team: <vdr@linuxtv.org>\n"
@@ -27,6 +27,9 @@ msgstr "Timerhistorie"
 
 msgid "Program"
 msgstr "Programm"
+
+msgid "Duplicate recordings"
+msgstr "Doppelte Aufnahmen"
 
 #, fuzzy
 msgid "Update"
@@ -189,6 +192,9 @@ msgstr "Umschalttimer"
 
 msgid "Matching recordings"
 msgstr "Vorhandene Aufnahmen"
+
+msgid "No database connection"
+msgstr "Keine Datenbankverbindung"
 
 msgid "Direct Matches:"
 msgstr "Direkte Übereinstimmungen:"

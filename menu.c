@@ -332,6 +332,29 @@ int cMenuDb::initDb()
 
    status += selectRecordingForEventByLv->prepare();
 
+   // select r.*   (same recording may be listed by several VDRs -> count distinct md5path)
+   //   from recordinglist r
+   //     join (select title t, ifnull(shorttext,'') s from recordinglist
+   //             where (state <> 'D' or state is null)
+   //             group by t, s having count(distinct md5path) > 1) d
+   //       on r.title = d.t and ifnull(r.shorttext,'') = d.s
+   //   where (r.state <> 'D' or r.state is null)
+   //   order by r.title, r.shorttext, r.starttime
+
+   selectDoubleRecordings = new cDbStatement(recordingListDb);
+
+   selectDoubleRecordings->build("select ");
+   selectDoubleRecordings->bindAllOut();
+   selectDoubleRecordings->build(" from %s r join (select title dbl_t, ifnull(shorttext,'') dbl_s from %s"
+                                 " where (state <> 'D' or state is null)"
+                                 " group by dbl_t, dbl_s having count(distinct md5path) > 1) d"
+                                 " on r.title = d.dbl_t and ifnull(r.shorttext,'') = d.dbl_s"
+                                 " where (r.state <> 'D' or r.state is null)"
+                                 " order by r.title, r.shorttext, r.starttime",
+                                 recordingListDb->TableName(), recordingListDb->TableName());
+
+   status += selectDoubleRecordings->prepare();
+
    // ----------
    // select channelname
    //   from channelmap
@@ -428,6 +451,7 @@ int cMenuDb::exitDb()
       delete selectDoneTimerByStateTimeOrder;  selectDoneTimerByStateTimeOrder = 0;
       delete selectRecordingForEvent;          selectRecordingForEvent = 0;
       delete selectRecordingForEventByLv;      selectRecordingForEventByLv = 0;
+      delete selectDoubleRecordings;           selectDoubleRecordings = 0;
       delete selectChannelFromMap;             selectChannelFromMap = 0;
 
       delete connection;           connection = 0;

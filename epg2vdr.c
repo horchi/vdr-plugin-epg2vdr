@@ -81,6 +81,7 @@ enum EpgMenuState
    emsSearchtimer,
    emsDones,
    emsProgram,
+   emsDoubleRecordings,
    emsUpdate,
    emsReload
 };
@@ -102,6 +103,7 @@ cEpgPluginMenu::cEpgPluginMenu(const char* title, cPluginEPG2VDR* aPlugin)
    }
 
    cOsdMenu::Add(new cOsdItem(hk(tr("Program")), (eOSState)emsProgram));
+   cOsdMenu::Add(new cOsdItem(hk(tr("Duplicate recordings")), (eOSState)emsDoubleRecordings));
    cOsdMenu::Add(new cOsdItem(hk(tr("Update")), (eOSState)emsUpdate));
    cOsdMenu::Add(new cOsdItem(hk(tr("Reload")), (eOSState)emsReload));
 
@@ -137,6 +139,12 @@ eOSState cEpgPluginMenu::ProcessKey(eKeys key)
       case emsProgram:
       {
          state = AddSubMenu(new cMenuEpgWhatsOn());
+         break;
+      }
+
+      case emsDoubleRecordings:
+      {
+         state = AddSubMenu(new cMenuEpgMatchRecordings(nullptr, cMenuEpgMatchRecordings::rmDoubles));
          break;
       }
 
@@ -873,6 +881,18 @@ bool cPluginEPG2VDR::Service(const char* id, void* data)
       return true;
    }
 
+   else if (strcmp(id, "MainMenuHooksPatch-v1.0::osRecordings") == 0 && cMenuEpgMatchRecordings::isReturnPending())
+   {
+      // replay was started from the 'matching recordings' menu, return to it
+
+      cOsdMenu** menu = (cOsdMenu**)data;
+
+      if (menu)
+         *menu = cMenuEpgMatchRecordings::createAfterReplay();
+
+      return true;
+   }
+
    else if (strcmp(id, "MainMenuHooksPatch-v1.0::osTimers") == 0 && Epg2VdrConfig.replaceTimerMenu && Epg2VdrConfig.shareInWeb)
    {
       cOsdMenu** menu = (cOsdMenu**)data;
@@ -1096,6 +1116,15 @@ cString cPluginEPG2VDR::Active()
 
    return 0;
 }
+
+void cPluginEPG2VDR::MainThreadHook()
+{
+   cMenuEpgMatchRecordings::checkReturnPending();
+}
+
+//***************************************************************************
+// Wakeup Time
+//***************************************************************************
 
 time_t cPluginEPG2VDR::WakeupTime()
 {

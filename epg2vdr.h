@@ -56,6 +56,7 @@ class cPluginEPG2VDR : public cPlugin
       virtual void Stop();
       virtual void DisplayMessage(const char* s);
       virtual time_t WakeupTime(void);
+      virtual void MainThreadHook(void);
 
    protected:
 

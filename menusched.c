@@ -6,6 +6,7 @@
  */
 
 #include <string>
+#include <set>
 
 #include <vdr/menuitems.h>
 #include <vdr/status.h>
@@ -108,9 +109,153 @@ eOSState cEpgCommandMenu::ProcessKey(eKeys key)
 // Class cMenuEpgMatchRecordings
 //***************************************************************************
 
+bool cMenuEpgMatchRecordings::returnPending {false};
+cMenuEpgMatchRecordings::Mode cMenuEpgMatchRecordings::returnMode {rmMatch};
+std::string cMenuEpgMatchRecordings::returnTitle;
+std::string cMenuEpgMatchRecordings::returnShortText;
+
 cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* event)
    : cOsdMenu(tr("Matching recordings"), 11, 6, 12, 30),
-     menuDb(db)
+     menuDb(db),
+     title(notNull(event->Title(), "")),
+     shortText(notNull(event->ShortText(), ""))
+{
+   init();
+}
+
+cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const char* aTitle, const char* aShortText)
+   : cOsdMenu(tr("Matching recordings"), 11, 6, 12, 30),
+     menuDb(db),
+     title(notNull(aTitle, "")),
+     shortText(notNull(aShortText, ""))
+{
+   if (!menuDb)
+      menuDb = ownDb = new cMenuDb;
+
+   init();
+}
+
+cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, Mode aMode)
+   : cOsdMenu(aMode == rmDoubles ? tr("Duplicate recordings") : tr("Matching recordings"), 11, 6, 12, 30),
+     menuDb(db),
+     mode(aMode)
+{
+   if (!menuDb)
+      menuDb = ownDb = new cMenuDb;
+
+   init();
+}
+
+//***************************************************************************
+// Return to this menu after replay
+//***************************************************************************
+
+cOsdMenu* cMenuEpgMatchRecordings::createAfterReplay()
+{
+   returnPending = false;
+
+   if (returnMode == rmDoubles)
+      return new cMenuEpgMatchRecordings(nullptr, rmDoubles);
+
+   return new cMenuEpgMatchRecordings(nullptr, returnTitle.c_str(), returnShortText.c_str());
+}
+
+void cMenuEpgMatchRecordings::checkReturnPending()
+{
+   // replay ended in any other way than 'Back' (e.g. 'Stop' or end of recording)
+
+   if (returnPending && !cReplayControl::NowReplaying())
+      returnPending = false;
+}
+
+//***************************************************************************
+// Init
+//***************************************************************************
+
+void cMenuEpgMatchRecordings::init()
+{
+   if (!menuDb->dbConnected())
+   {
+      Skins.Message(mtError, tr("No database connection"));
+      return;
+   }
+
+   if (mode == rmDoubles)
+      initDoubles();
+   else
+      initMatches();
+
+   setHelpKeys();
+   Display();
+}
+
+//***************************************************************************
+// Init Doubles
+//***************************************************************************
+
+void cMenuEpgMatchRecordings::initDoubles()
+{
+   std::string lastTitle;
+   std::string lastShortText;
+   std::set<std::string> files;   // same recording may be registered by several VDRs, list it only once
+   cOsdItem* header {};
+   int groups {0};
+   int count {0};
+
+   tell(0, "Search duplicate recordings");
+
+   menuDb->recordingListDb->clear();
+
+   for (int f = menuDb->selectDoubleRecordings->find(); f; f = menuDb->selectDoubleRecordings->fetch())
+   {
+#ifdef WITH_PIN
+      if (!cOsd::pinValid && menuDb->recordingListDb->getIntValue("FSK"))
+         continue;
+#endif
+
+      const char* t = menuDb->recordingListDb->getStrValue("TITLE");
+      const char* st = menuDb->recordingListDb->getStrValue("SHORTTEXT");
+
+      // new group? (compare case insensitive like the database does)
+
+      if (!header || strcasecmp(lastTitle.c_str(), t) != 0 || strcasecmp(lastShortText.c_str(), st) != 0)
+      {
+         if (header)
+            header->SetText(cString::sprintf("%s (%d)", header->Text(), count));
+
+         lastTitle = t;
+         lastShortText = st;
+         files.clear();
+         count = 0;
+         groups++;
+
+         Add(header = new cOsdItem(cString::sprintf("%s%s%s", t, isEmpty(st) ? "" : " - ", st)));
+         header->SetSelectable(no);
+      }
+
+      if (!files.insert(menuDb->recordingListDb->getStrValue("MD5PATH")).second)
+         continue;
+
+      addRecording(menuDb);
+      count++;
+   }
+
+   menuDb->selectDoubleRecordings->freeResult();
+
+   if (header)
+      header->SetText(cString::sprintf("%s (%d)", header->Text(), count));
+
+   if (!groups)
+      addNone();
+
+   tell(0, "Found %d duplicate recordings groups", groups);
+}
+
+//***************************************************************************
+// Init Matches
+//***************************************************************************
+
+void cMenuEpgMatchRecordings::initMatches()
 {
    std::map<std::string,bool> directMatches;
    int count {0};
@@ -118,11 +263,11 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
    Add(new cOsdItem(tr("Direct Matches:")));
    cList<cOsdItem>::Last()->SetSelectable(no);
 
-   tell(0, "Search recordings for '%s' '%s'", event->Title(), event->ShortText());
+   tell(0, "Search recordings for '%s' '%s'", title.c_str(), shortText.c_str());
 
    menuDb->recordingListDb->clear();
-   menuDb->recordingListDb->setValue("TITLE", event->Title());
-   menuDb->recordingListDb->setValue("SHORTTEXT", event->ShortText());
+   menuDb->recordingListDb->setValue("TITLE", title.c_str());
+   menuDb->recordingListDb->setValue("SHORTTEXT", shortText.c_str());
 
    for (int f = menuDb->selectRecordingForEvent->find(); f; f = menuDb->selectRecordingForEvent->fetch())
    {
@@ -131,7 +276,9 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
          continue;
 #endif
 
-      directMatches[menuDb->recordingListDb->getStrValue("MD5PATH")] = yes;
+      if (!directMatches.emplace(menuDb->recordingListDb->getStrValue("MD5PATH"), yes).second)
+         continue;   // same recording registered by several VDRs
+
       addRecording(menuDb);
       count++;
    }
@@ -145,7 +292,7 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
    cList<cOsdItem>::Last()->SetSelectable(no);
 
    menuDb->recordingListDb->clear();
-   menuDb->recordingListDb->setValue("TITLE", event->Title());
+   menuDb->recordingListDb->setValue("TITLE", title.c_str());
    count = 0;
 
    for (int f = menuDb->selectRecordingForEventByLv->find(); f; f = menuDb->selectRecordingForEventByLv->fetch())
@@ -155,7 +302,7 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
          continue;
 #endif
 
-      if (directMatches.find(menuDb->recordingListDb->getStrValue("MD5PATH")) == directMatches.end())
+      if (directMatches.emplace(menuDb->recordingListDb->getStrValue("MD5PATH"), yes).second)
       {
          addRecording(menuDb);
          count++;
@@ -166,9 +313,6 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
 
    if (!count)
       addNone();
-
-   setHelpKeys();
-   Display();
 }
 
 //***************************************************************************
@@ -375,6 +519,11 @@ eOSState cMenuEpgMatchRecordings::play(bool fromStart)
    }
 
    cReplayControl::SetRecording(item->fileName.c_str());
+
+   returnPending = true;
+   returnMode = mode;
+   returnTitle = title;
+   returnShortText = shortText;
 
    return osReplay;
 }
