@@ -954,3 +954,67 @@ int cMenuDb::triggerVdr(const char* uuid, const char* trg, const char* options)
 
    return success;
 }
+
+//***************************************************************************
+// SVDRP Plugin Command
+//   send 'PLUG epg2vdr <cmd> <options>' to the VDR with 'uuid' and wait for the reply
+//   returns the SVDRP reply code (0 on connection/communication errors)
+//***************************************************************************
+
+int cMenuDb::svdrpPluginCommand(const char* uuid, const char* cmd, const char* options, std::string& reply)
+{
+   reply = "";
+
+   if (isEmpty(uuid) || strcmp(uuid, Epg2VdrConfig.uuid) == 0)  // SVDRP to myself will lock vdr!!
+   {
+      reply = "can't send SVDRP command to myself";
+      return 0;
+   }
+
+   if (!dbConnected())
+   {
+      reply = "lost database connection";
+      return 0;
+   }
+
+   vdrDb->clear();
+   vdrDb->setValue("UUID", uuid);
+
+   if (!vdrDb->find())
+   {
+      tell(0, "Error: Can't lookup VDR with uuid '%s'", uuid);
+      reply = "unknown VDR";
+      return 0;
+   }
+
+   std::string ip = vdrDb->getStrValue("IP");
+   unsigned int port = vdrDb->getIntValue("SVDRP");
+
+   vdrDb->reset();
+
+   cSvdrpClient cl(ip.c_str(), port);
+
+   if (cl.open() != success)
+   {
+      tell(0, "Error: Can't connect to VDR '%s' at '%s:%d'", uuid, ip.c_str(), port);
+      reply = "VDR not reachable";
+      return 0;
+   }
+
+   cString command = cString::sprintf("PLUG epg2vdr %s %s", cmd, notNull(options, ""));
+   cList<cLine> result;
+   int code {0};
+
+   tell(0, "Send '%s' to '%s:%d'", *command, ip.c_str(), port);
+
+   if (!cl.send(command))
+      reply = "send failed";
+   else if (!(code = cl.receive(&result, 30 * 1000)))
+      reply = "no reply";
+   else if (result.First() && result.First()->Text())
+      reply = result.First()->Text();
+
+   cl.close();
+
+   return code;
+}

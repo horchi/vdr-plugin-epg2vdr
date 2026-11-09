@@ -10,12 +10,17 @@
 #include <vdr/menuitems.h>
 #include <vdr/status.h>
 #include <vdr/menu.h>
+#include <vdr/recording.h>
+#include <vdr/videodir.h>
+#include <vdr/interface.h>
 
 #include "lib/xml.h"
 
 #include "plgconfig.h"
 #include "menu.h"
 #include "ttools.h"
+#include "epg2vdr.h"
+#include "update.h"
 
 class cMenuEpgScheduleItem;
 
@@ -104,10 +109,11 @@ eOSState cEpgCommandMenu::ProcessKey(eKeys key)
 //***************************************************************************
 
 cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* event)
-   : cOsdMenu(tr("Matching recordings"), 30, 30, 30, 40)
+   : cOsdMenu(tr("Matching recordings"), 11, 6, 12, 30),
+     menuDb(db)
 {
-   cMenuDb* menuDb = db;
    std::map<std::string,bool> directMatches;
+   int count {0};
 
    Add(new cOsdItem(tr("Direct Matches:")));
    cList<cOsdItem>::Last()->SetSelectable(no);
@@ -120,84 +126,438 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
 
    for (int f = menuDb->selectRecordingForEvent->find(); f; f = menuDb->selectRecordingForEvent->fetch())
    {
-      const char* vdr = 0;
-
 #ifdef WITH_PIN
       if (!cOsd::pinValid && menuDb->recordingListDb->getIntValue("FSK"))
          continue;
 #endif
 
-      if (!menuDb->recordingListDb->getValue("OWNER")->isEmpty())
-      {
-         menuDb->vdrDb->clear();
-         menuDb->vdrDb->setValue("UUID", menuDb->recordingListDb->getStrValue("OWNER"));
-
-         if (menuDb->vdrDb->find())
-            vdr = menuDb->vdrDb->getStrValue("NAME");
-      }
-
-      directMatches[menuDb->vdrDb->getStrValue("MD5PATH")] = yes;
-
-      Add(new cEpgMenuTextItem(menuDb->recordingListDb->getStrValue("MD5PATH"),
-                               cString::sprintf("%s%s%s\t%s\t%s/%s", vdr ? vdr : "", vdr ? "\t" : "",
-                                                menuDb->recordingListDb->getStrValue("TITLE"),
-                                                menuDb->recordingListDb->getStrValue("SHORTTEXT"),
-                                                menuDb->recordingListDb->getStrValue("FOLDER"),
-                                                menuDb->recordingListDb->getStrValue("NAME"))));
+      directMatches[menuDb->recordingListDb->getStrValue("MD5PATH")] = yes;
+      addRecording(menuDb);
+      count++;
    }
 
    menuDb->selectRecordingForEvent->freeResult();
+
+   if (!count)
+      addNone();
 
    Add(new cOsdItem(tr("Similar Matches:")));
    cList<cOsdItem>::Last()->SetSelectable(no);
 
    menuDb->recordingListDb->clear();
    menuDb->recordingListDb->setValue("TITLE", event->Title());
+   count = 0;
 
    for (int f = menuDb->selectRecordingForEventByLv->find(); f; f = menuDb->selectRecordingForEventByLv->fetch())
    {
-      const char* vdr = 0;
-
 #ifdef WITH_PIN
       if (!cOsd::pinValid && menuDb->recordingListDb->getIntValue("FSK"))
          continue;
 #endif
 
-      if (!menuDb->recordingListDb->getValue("OWNER")->isEmpty())
+      if (directMatches.find(menuDb->recordingListDb->getStrValue("MD5PATH")) == directMatches.end())
       {
-         menuDb->vdrDb->clear();
-         menuDb->vdrDb->setValue("UUID", menuDb->recordingListDb->getStrValue("OWNER"));
-
-         if (menuDb->vdrDb->find())
-            vdr = menuDb->vdrDb->getStrValue("NAME");
-      }
-
-      auto it = directMatches.find(menuDb->vdrDb->getStrValue("MD5PATH"));
-
-      if (it == directMatches.end())
-      {
-         Add(new cEpgMenuTextItem(menuDb->recordingListDb->getStrValue("MD5PATH"),
-                                  cString::sprintf("%s%s%s\t%s\t%s/%s", vdr ? vdr : "", vdr ? "\t" : "",
-                                                   menuDb->recordingListDb->getStrValue("TITLE"),
-                                                   menuDb->recordingListDb->getStrValue("SHORTTEXT"),
-                                                   menuDb->recordingListDb->getStrValue("FOLDER"),
-                                                   menuDb->recordingListDb->getStrValue("NAME"))));
+         addRecording(menuDb);
+         count++;
       }
    }
 
    menuDb->selectRecordingForEventByLv->freeResult();
 
+   if (!count)
+      addNone();
+
+   setHelpKeys();
    Display();
 }
+
+//***************************************************************************
+// Recording Item
+//***************************************************************************
+
+cMenuEpgMatchRecordings::cRecordingItem::cRecordingItem(cDbTable* db, const char* aVdrName, const char* aVideoDir, const char* aFileName)
+{
+   fileName = notNull(aFileName, "");
+   vdrName = notNull(aVdrName, "");
+   vdrVideoDir = notNull(aVideoDir, "");
+   vdrUuid = db->getStrValue("VDRUUID");
+   path = db->getStrValue("PATH");
+   title = db->getStrValue("TITLE");
+   shortText = db->getStrValue("SHORTTEXT");
+   folder = db->getStrValue("FOLDER");
+   name = db->getStrValue("NAME");
+   channelName = db->getStrValue("CHANNELNAME");
+   genre = db->getStrValue("GENRE");
+   category = db->getStrValue("CATEGORY");
+   country = db->getStrValue("COUNTRY");
+   year = db->getStrValue("YEAR");
+   state = db->getStrValue("STATE");
+   startTime = db->getIntValue("STARTTIME");
+   duration = db->getIntValue("DURATION");
+
+   description = !db->getValue("LONGDESCRIPTION")->isEmpty()
+      ? db->getStrValue("LONGDESCRIPTION") : db->getStrValue("DESCRIPTION");
+
+   // columns: [>]date | length | vdr | title | shorttext
+
+   SetText(cString::sprintf("%s%s\t%s\t%s\t%s\t%s",
+                            isLocal() ? ">" : " ",
+                            *ShortDateString(startTime),
+                            isRunning() ? "REC" : *cString::sprintf("%d'", duration / 60),
+                            vdrName.c_str(),
+                            title.c_str(),
+                            shortText.c_str()));
+}
+
+//***************************************************************************
+// Add Recording (from current row of recordingListDb)
+//***************************************************************************
+
+void cMenuEpgMatchRecordings::addRecording(cMenuDb* menuDb)
+{
+   std::string vdr;
+   std::string videoDir;
+   std::string fileName;
+   const char* uuid = menuDb->recordingListDb->getStrValue("VDRUUID");
+
+   if (!isEmpty(uuid))
+   {
+      menuDb->vdrDb->clear();
+      menuDb->vdrDb->setValue("UUID", uuid);
+
+      if (menuDb->vdrDb->find())
+      {
+         vdr = menuDb->vdrDb->getStrValue("NAME");
+         videoDir = menuDb->vdrDb->getStrValue("VIDEODIR");
+      }
+
+      menuDb->vdrDb->reset();
+   }
+
+   // PATH is relative to the video directory, check if the recording is available locally
+   //  (own recording or common recording folder)
+
+   const char* path = menuDb->recordingListDb->getStrValue("PATH");
+
+   if (!isEmpty(path))
+   {
+      cString name = cString::sprintf("%s/%s", cVideoDirectory::Name(), path);
+
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+      LOCK_RECORDINGS_READ;
+      const cRecording* recording = Recordings->GetByName(name);
+#else
+      const cRecording* recording = Recordings.GetByName(name);
+#endif
+
+      if (recording)
+         fileName = recording->FileName();
+   }
+
+   Add(new cRecordingItem(menuDb->recordingListDb, vdr.c_str(), videoDir.c_str(), fileName.c_str()));
+}
+
+void cMenuEpgMatchRecordings::addNone()
+{
+   Add(new cOsdItem(cString::sprintf("   %s", tr("no recordings found"))));
+   cList<cOsdItem>::Last()->SetSelectable(no);
+}
+
+cMenuEpgMatchRecordings::cRecordingItem* cMenuEpgMatchRecordings::currentRecording()
+{
+   return dynamic_cast<cRecordingItem*>(Get(Current()));
+}
+
+void cMenuEpgMatchRecordings::setHelpKeys()
+{
+   cRecordingItem* item = currentRecording();
+   bool local = item && item->isLocal();
+
+   SetHelp(local ? trVDR("Button$Play") : 0,
+           local ? trVDR("Button$Rewind") : 0,
+           item ? trVDR("Button$Delete") : 0,
+           item ? trVDR("Button$Info") : 0);
+}
+
+//***************************************************************************
+// Info
+//***************************************************************************
+
+eOSState cMenuEpgMatchRecordings::info()
+{
+   cRecordingItem* item = currentRecording();
+
+   if (!item)
+      return osContinue;
+
+   std::string text;
+   char date[50] {};
+   struct tm tmStart {};
+
+   localtime_r(&item->startTime, &tmStart);
+   strftime(date, sizeof(date), "%a %d.%m.%Y %H:%M", &tmStart);
+
+   text = item->title + "\n";
+
+   if (!item->shortText.empty())
+      text += item->shortText + "\n";
+
+   text += "\n";
+   text += std::string(date) + "  (" + std::to_string(item->duration / 60) + " min)";
+
+   if (item->isRunning())
+      text += std::string("  - ") + tr("recording is running");
+
+   text += "\n";
+
+   if (!item->channelName.empty())
+      text += std::string(tr("Channel")) + ": " + item->channelName + "\n";
+
+   std::string details;
+
+   for (const auto& s : { item->genre, item->category, item->country, item->year })
+   {
+      if (!s.empty())
+         details += (details.empty() ? "" : " / ") + s;
+   }
+
+   if (!details.empty())
+      text += details + "\n";
+
+   text += "\n";
+   text += std::string("VDR: ") + (item->vdrName.empty() ? "-" : item->vdrName)
+      + (item->isLocal() ? std::string(" (") + tr("available locally") + ")" : "") + "\n";
+   text += std::string(tr("File")) + ": "
+      + (item->folder.empty() ? item->name : item->folder + "/" + item->name) + "\n";
+
+   if (!item->description.empty())
+      text += "\n" + item->description + "\n";
+
+   return AddSubMenu(new cMenuText(item->title.c_str(), text.c_str()));
+}
+
+//***************************************************************************
+// Play
+//***************************************************************************
+
+eOSState cMenuEpgMatchRecordings::play(bool fromStart)
+{
+   cRecordingItem* item = currentRecording();
+
+   if (!item)
+      return osContinue;
+
+   if (!item->isLocal())
+   {
+      Skins.Message(mtError, tr("Recording not available on this VDR"));
+      return osContinue;
+   }
+
+   {
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+      LOCK_RECORDINGS_READ;
+      const cRecording* recording = Recordings->GetByName(item->fileName.c_str());
+#else
+      const cRecording* recording = Recordings.GetByName(item->fileName.c_str());
+#endif
+
+      if (!recording)
+      {
+         Skins.Message(mtError, tr("Recording not found"));
+         return osContinue;
+      }
+
+      if (fromStart)
+      {
+         cResumeFile resumeFile(recording->FileName(), recording->IsPesRecording());
+         resumeFile.Delete();
+      }
+   }
+
+   cReplayControl::SetRecording(item->fileName.c_str());
+
+   return osReplay;
+}
+
+//***************************************************************************
+// Remove (delete recording)
+//***************************************************************************
+
+eOSState cMenuEpgMatchRecordings::remove()
+{
+   cRecordingItem* item = currentRecording();
+
+   if (!item)
+      return osContinue;
+
+   if (item->isRunning())
+   {
+      Skins.Message(mtError, tr("Recording is still running, delete the timer first"));
+      return osContinue;
+   }
+
+   if (!Interface->Confirm(trVDR("Delete recording?")))
+      return osContinue;
+
+   eOSState state = item->isLocal() ? removeLocal(item) : removeRemote(item);
+
+   if (state != osUser1)   // osUser1 -> deleted
+      return state;
+
+   if (oUpdate)
+      oUpdate->triggerRecUpdate();     // update recordinglist table in the database
+
+   cOsdMenu::Del(Current());
+   setHelpKeys();
+   Display();
+
+   return osContinue;
+}
+
+eOSState cMenuEpgMatchRecordings::removeLocal(cRecordingItem* item)
+{
+   cString fileName = item->fileName.c_str();
+
+   // we don't touch the timer here, timers are managed by the epg database
+
+   if (cRecordControls::GetRecordControl(fileName))
+   {
+      Skins.Message(mtError, tr("Recording is still running, delete the timer first"));
+      return osContinue;
+   }
+
+   {
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+      LOCK_RECORDINGS_READ;
+      const cRecording* recording = Recordings->GetByName(fileName);
+#else
+      const cRecording* recording = Recordings.GetByName(fileName);
+#endif
+
+      if (recording && RecordingsHandler.GetUsage(fileName))
+      {
+         if (!Interface->Confirm(trVDR("Recording is being edited - really delete?")))
+            return osContinue;
+      }
+   }
+
+   // must be done without holding a lock (see VDR's cMenuRecordings::Delete)
+
+   RecordingsHandler.Del(fileName);
+
+   if (cReplayControl::NowReplaying() && strcmp(cReplayControl::NowReplaying(), fileName) == 0)
+      cControl::Shutdown();
+
+   bool deleted {false};
+
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+   cStateKey stateKey;
+   cRecordings* recordings = cRecordings::GetRecordingsWrite(stateKey);
+   recordings->SetExplicitModify();
+   cRecording* recording = recordings->GetByName(fileName);
+
+   if (!recording || recording->Delete())
+   {
+      cReplayControl::ClearLastReplayed(fileName);
+      recordings->DelByName(fileName);
+      cVideoDiskUsage::ForceCheck();
+      recordings->SetModified();
+      deleted = true;
+   }
+
+   stateKey.Remove();
+#else
+   cRecording* recording = Recordings.GetByName(fileName);
+
+   if (!recording || recording->Delete())
+   {
+      cReplayControl::ClearLastReplayed(fileName);
+      Recordings.DelByName(fileName);
+      cVideoDiskUsage::ForceCheck();
+      deleted = true;
+   }
+#endif
+
+   if (!deleted)
+   {
+      Skins.Message(mtError, trVDR("Error while deleting recording!"));
+      return osContinue;
+   }
+
+   tell(0, "Deleted recording '%s'", *fileName);
+
+   return osUser1;
+}
+
+eOSState cMenuEpgMatchRecordings::removeRemote(cRecordingItem* item)
+{
+   // the recording is located at another VDR, ask him (via SVDRP) to delete it
+   //   same way as the web interface (epghttpd) does: DELREC with <videodir of that vdr>/<path>
+
+   if (item->vdrUuid.empty() || item->path.empty() || item->vdrVideoDir.empty()
+       || item->vdrUuid == Epg2VdrConfig.uuid)
+   {
+      Skins.Message(mtError, tr("Recording not found"));
+      return osContinue;
+   }
+
+   std::string reply;
+
+   Skins.Message(mtStatus, cString::sprintf(tr("Deleting recording at '%s' ..."),
+                                            item->vdrName.empty() ? item->vdrUuid.c_str() : item->vdrName.c_str()));
+   Skins.Flush();
+
+   std::string fileName = item->vdrVideoDir + "/" + item->path;
+   int code = menuDb->svdrpPluginCommand(item->vdrUuid.c_str(), "DELREC", fileName.c_str(), reply);
+
+   Skins.Message(mtStatus, 0);
+
+   if (code != 900)
+   {
+      tell(0, "Error: Remote delete of '%s' at '%s' failed (%d) '%s'",
+           item->path.c_str(), item->vdrUuid.c_str(), code, reply.c_str());
+      Skins.Message(mtError, cString::sprintf("%s: %s", trVDR("Error while deleting recording!"), reply.c_str()));
+      return osContinue;
+   }
+
+   tell(0, "Deleted recording '%s' at '%s'", item->path.c_str(), item->vdrUuid.c_str());
+
+   return osUser1;
+}
+
+//***************************************************************************
+// Process Key
+//***************************************************************************
 
 eOSState cMenuEpgMatchRecordings::ProcessKey(eKeys Key)
 {
    eOSState state = cOsdMenu::ProcessKey(Key);
 
+   if (HasSubMenu())
+      return state;
+
    if (state == osUnknown)
    {
-      return osContinue;
+      switch (Key)
+      {
+         case kOk:     // play if local, otherwise show info
+         {
+            cRecordingItem* item = currentRecording();
+            return item && !item->isLocal() ? info() : play(false);
+         }
+         case kPlay:
+         case kRed:    return play(false);
+         case kGreen:  return play(true);
+         case kYellow: return remove();
+         case kInfo:
+         case kBlue:   return info();
+         default:      break;
+      }
+
+      state = osContinue;
    }
+
+   setHelpKeys();
 
    return state;
 }

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2019-10-28 16:00+0100\n"
+"POT-Creation-Date: 2026-11-09 16:37+0100\n"
 "PO-Revision-Date: 2009-08-27 21:40+0200\n"
 "Last-Translator: Klaus Schmidinger <kls@cadsoft.de>\n"
 "Language-Team: <vdr@linuxtv.org>\n"
@@ -196,6 +196,34 @@ msgstr "Direkte Übereinstimmungen:"
 msgid "Similar Matches:"
 msgstr "Ähnliche Aufnahmen:"
 
+msgid "no recordings found"
+msgstr "keine Aufnahmen gefunden"
+
+msgid "recording is running"
+msgstr "Aufnahme läuft"
+
+msgid "Channel"
+msgstr "Kanal"
+
+msgid "available locally"
+msgstr "lokal verfügbar"
+
+msgid "File"
+msgstr "Datei"
+
+msgid "Recording not available on this VDR"
+msgstr "Aufnahme auf diesem VDR nicht verfügbar"
+
+msgid "Recording not found"
+msgstr "Aufnahme nicht gefunden"
+
+msgid "Recording is still running, delete the timer first"
+msgstr "Aufnahme läuft noch, zuerst den Timer löschen"
+
+#, c-format
+msgid "Deleting recording at '%s' ..."
+msgstr "Lösche Aufnahme auf '%s' ..."
+
 msgid "Event"
 msgstr "Sendung"
 
@@ -268,9 +296,6 @@ msgstr "Typ"
 msgid "VDR"
 msgstr ""
 
-msgid "Channel"
-msgstr "Kanal"
-
 msgid "Day"
 msgstr "Tag"
 
@@ -291,9 +316,6 @@ msgstr "Lebensdauer"
 
 msgid "Childlock"
 msgstr "Kindersperre"
-
-msgid "File"
-msgstr "Datei"
 
 msgid "Information"
 msgstr ""

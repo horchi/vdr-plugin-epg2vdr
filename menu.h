@@ -83,6 +83,7 @@ class cMenuDb : public cParameters
 
       int triggerVdrs(const char* trg, const char* uuid = "", const char* options = "");
       int triggerVdr(const char* uuid, const char* trg, const char* options = "");
+      int svdrpPluginCommand(const char* uuid, const char* cmd, const char* options, std::string& reply);
 
    protected:
 
@@ -576,4 +577,47 @@ class cMenuEpgMatchRecordings : public cOsdMenu
       cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* event);
       virtual ~cMenuEpgMatchRecordings() {};
       virtual eOSState ProcessKey(eKeys Key);
+
+   protected:
+
+      class cRecordingItem : public cOsdItem
+      {
+         public:
+
+            cRecordingItem(cDbTable* db, const char* aVdrName, const char* aVideoDir, const char* aFileName);
+
+            bool isLocal() const    { return !fileName.empty(); }
+            bool isRunning() const  { return state == "R"; }
+
+            std::string fileName;   // full path of the local recording, empty if not available here
+            std::string vdrUuid;    // VDR which holds the recording
+            std::string vdrName;
+            std::string vdrVideoDir; // video directory of 'vdrUuid'
+            std::string path;       // path relative to the video directory of 'vdrUuid'
+            std::string title;
+            std::string shortText;
+            std::string folder;
+            std::string name;
+            std::string channelName;
+            std::string description;
+            std::string genre;
+            std::string category;
+            std::string country;
+            std::string year;
+            std::string state;
+            time_t startTime {0};
+            int duration {0};
+      };
+
+      void addRecording(cMenuDb* menuDb);
+      void addNone();
+      cRecordingItem* currentRecording();
+      void setHelpKeys();
+      eOSState play(bool fromStart);
+      eOSState remove();
+      eOSState removeLocal(cRecordingItem* item);
+      eOSState removeRemote(cRecordingItem* item);
+      eOSState info();
+
+      cMenuDb* menuDb {};
 };

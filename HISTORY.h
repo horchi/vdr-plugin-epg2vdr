@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.2.17"
-#define VERSION_DATE "12.02.2025"
+#define _VERSION     "1.2.18"
+#define VERSION_DATE "09.11.2026"
 
 #define DB_API 8
 
@@ -18,6 +18,12 @@
 
 /*
  * ------------------------------------
+
+2026-11-09: version 1.2.18 (horchi)
+   - added: Matching recordings menu (key 2): play, rewind, delete and info of recordings
+   - added: Matching recordings menu: delete recordings located at other VDRs (via SVDRP DELREC)
+   - change: Matching recordings menu: show date, length and vdr of recordings, hint if nothing found
+   - bugfix: Matching recordings menu: similar matches were hidden if a direct match exists
 
 2025-02-12: version 1.2.17 (horchi)
    - change: Porting to vdr API version > 20501
