@@ -7,6 +7,7 @@
 
 #include <string>
 #include <set>
+#include <algorithm>
 
 #include <vdr/menuitems.h>
 #include <vdr/status.h>
@@ -113,9 +114,10 @@ bool cMenuEpgMatchRecordings::returnPending {false};
 cMenuEpgMatchRecordings::Mode cMenuEpgMatchRecordings::returnMode {rmMatch};
 std::string cMenuEpgMatchRecordings::returnTitle;
 std::string cMenuEpgMatchRecordings::returnShortText;
+std::string cMenuEpgMatchRecordings::returnMd5;
 
 cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* event)
-   : cOsdMenu(tr("Matching recordings"), 11, 6, 12, 30),
+   : cOsdMenu(tr("Matching recordings"), 11, 6, 8, 12, 30),
      menuDb(db),
      title(notNull(event->Title(), "")),
      shortText(notNull(event->ShortText(), ""))
@@ -123,9 +125,10 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* even
    init();
 }
 
-cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const char* aTitle, const char* aShortText)
-   : cOsdMenu(tr("Matching recordings"), 11, 6, 12, 30),
+cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const char* aTitle, const char* aShortText, const char* aSelectMd5)
+   : cOsdMenu(tr("Matching recordings"), 11, 6, 8, 12, 30),
      menuDb(db),
+     selectMd5(notNull(aSelectMd5, "")),
      title(notNull(aTitle, "")),
      shortText(notNull(aShortText, ""))
 {
@@ -135,10 +138,11 @@ cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const char* aTitle
    init();
 }
 
-cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, Mode aMode)
-   : cOsdMenu(aMode == rmDoubles ? tr("Duplicate recordings") : tr("Matching recordings"), 11, 6, 12, 30),
+cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, Mode aMode, const char* aSelectMd5)
+   : cOsdMenu(aMode == rmDoubles ? tr("Duplicate recordings") : tr("Matching recordings"), 11, 6, 8, 12, 30),
      menuDb(db),
-     mode(aMode)
+     mode(aMode),
+     selectMd5(notNull(aSelectMd5, ""))
 {
    if (!menuDb)
       menuDb = ownDb = new cMenuDb;
@@ -155,9 +159,9 @@ cOsdMenu* cMenuEpgMatchRecordings::createAfterReplay()
    returnPending = false;
 
    if (returnMode == rmDoubles)
-      return new cMenuEpgMatchRecordings(nullptr, rmDoubles);
+      return new cMenuEpgMatchRecordings(nullptr, rmDoubles, returnMd5.c_str());
 
-   return new cMenuEpgMatchRecordings(nullptr, returnTitle.c_str(), returnShortText.c_str());
+   return new cMenuEpgMatchRecordings(nullptr, returnTitle.c_str(), returnShortText.c_str(), returnMd5.c_str());
 }
 
 void cMenuEpgMatchRecordings::checkReturnPending()
@@ -184,6 +188,22 @@ void cMenuEpgMatchRecordings::init()
       initDoubles();
    else
       initMatches();
+
+   // select the recording (e.g. the last replayed one, like VDR's recordings menu does)
+
+   if (!selectMd5.empty())
+   {
+      for (cOsdItem* i = First(); i; i = Next(i))
+      {
+         cRecordingItem* item = dynamic_cast<cRecordingItem*>(i);
+
+         if (item && item->md5path == selectMd5)
+         {
+            SetCurrent(item);
+            break;
+         }
+      }
+   }
 
    setHelpKeys();
    Display();
@@ -319,9 +339,10 @@ void cMenuEpgMatchRecordings::initMatches()
 // Recording Item
 //***************************************************************************
 
-cMenuEpgMatchRecordings::cRecordingItem::cRecordingItem(cDbTable* db, const char* aVdrName, const char* aVideoDir, const char* aFileName)
+cMenuEpgMatchRecordings::cRecordingItem::cRecordingItem(cDbTable* db, const char* aVdrName, const char* aVideoDir, const char* aFileName, bool showPath)
 {
    fileName = notNull(aFileName, "");
+   md5path = db->getStrValue("MD5PATH");
    vdrName = notNull(aVdrName, "");
    vdrVideoDir = notNull(aVideoDir, "");
    vdrUuid = db->getStrValue("VDRUUID");
@@ -342,15 +363,32 @@ cMenuEpgMatchRecordings::cRecordingItem::cRecordingItem(cDbTable* db, const char
    description = !db->getValue("LONGDESCRIPTION")->isEmpty()
       ? db->getStrValue("LONGDESCRIPTION") : db->getStrValue("DESCRIPTION");
 
-   // columns: [>]date | length | vdr | title | shorttext
+   // columns: [>]date | length | cut | vdr | title - shorttext (or path)
+
+   std::string text;
+
+   if (showPath)
+      text = displayPath();
+   else
+      text = title + (shortText.empty() ? "" : " - " + shortText);
 
    SetText(cString::sprintf("%s%s\t%s\t%s\t%s\t%s",
                             isLocal() ? ">" : " ",
                             *ShortDateString(startTime),
                             isRunning() ? "REC" : *cString::sprintf("%d'", duration / 60),
+                            isEdited() ? tr("cut") : "",
                             vdrName.c_str(),
-                            title.c_str(),
-                            shortText.c_str()));
+                            text.c_str()));
+}
+
+std::string cMenuEpgMatchRecordings::cRecordingItem::displayPath() const
+{
+   // VDR uses '~' as folder delimiter in the recording name
+
+   std::string p = folder.empty() ? name : folder + "/" + name;
+   std::replace(p.begin(), p.end(), FOLDERDELIMCHAR, '/');
+
+   return p;
 }
 
 //***************************************************************************
@@ -398,7 +436,7 @@ void cMenuEpgMatchRecordings::addRecording(cMenuDb* menuDb)
          fileName = recording->FileName();
    }
 
-   Add(new cRecordingItem(menuDb->recordingListDb, vdr.c_str(), videoDir.c_str(), fileName.c_str()));
+   Add(new cRecordingItem(menuDb->recordingListDb, vdr.c_str(), videoDir.c_str(), fileName.c_str(), mode == rmDoubles));
 }
 
 void cMenuEpgMatchRecordings::addNone()
@@ -471,8 +509,10 @@ eOSState cMenuEpgMatchRecordings::info()
    text += "\n";
    text += std::string("VDR: ") + (item->vdrName.empty() ? "-" : item->vdrName)
       + (item->isLocal() ? std::string(" (") + tr("available locally") + ")" : "") + "\n";
-   text += std::string(tr("File")) + ": "
-      + (item->folder.empty() ? item->name : item->folder + "/" + item->name) + "\n";
+   text += std::string(tr("File")) + ": " + item->displayPath() + "\n";
+
+   if (item->isEdited())
+      text += std::string(tr("Recording is cut")) + "\n";
 
    if (!item->description.empty())
       text += "\n" + item->description + "\n";
@@ -524,6 +564,7 @@ eOSState cMenuEpgMatchRecordings::play(bool fromStart)
    returnMode = mode;
    returnTitle = title;
    returnShortText = shortText;
+   returnMd5 = item->md5path;
 
    return osReplay;
 }

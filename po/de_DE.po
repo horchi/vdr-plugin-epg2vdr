@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2026-11-09 17:00+0100\n"
+"POT-Creation-Date: 2026-11-09 17:55+0100\n"
 "PO-Revision-Date: 2009-08-27 21:40+0200\n"
 "Last-Translator: Klaus Schmidinger <kls@cadsoft.de>\n"
 "Language-Team: <vdr@linuxtv.org>\n"
@@ -202,6 +202,9 @@ msgstr "Direkte Übereinstimmungen:"
 msgid "Similar Matches:"
 msgstr "Ähnliche Aufnahmen:"
 
+msgid "cut"
+msgstr "geschn."
+
 msgid "no recordings found"
 msgstr "keine Aufnahmen gefunden"
 
@@ -216,6 +219,9 @@ msgstr "lokal verfügbar"
 
 msgid "File"
 msgstr "Datei"
+
+msgid "Recording is cut"
+msgstr "Aufnahme ist geschnitten"
 
 msgid "Recording not available on this VDR"
 msgstr "Aufnahme auf diesem VDR nicht verfügbar"

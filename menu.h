@@ -582,8 +582,8 @@ class cMenuEpgMatchRecordings : public cOsdMenu
       };
 
       cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* event);
-      cMenuEpgMatchRecordings(cMenuDb* db, const char* title, const char* shortText);
-      cMenuEpgMatchRecordings(cMenuDb* db, Mode aMode);
+      cMenuEpgMatchRecordings(cMenuDb* db, const char* title, const char* shortText, const char* aSelectMd5 = nullptr);
+      cMenuEpgMatchRecordings(cMenuDb* db, Mode aMode, const char* aSelectMd5 = nullptr);
       virtual ~cMenuEpgMatchRecordings() { delete ownDb; }
       virtual eOSState ProcessKey(eKeys Key);
 
@@ -604,15 +604,20 @@ class cMenuEpgMatchRecordings : public cOsdMenu
       static Mode returnMode;
       static std::string returnTitle;
       static std::string returnShortText;
+      static std::string returnMd5;          // recording to select after return
 
       class cRecordingItem : public cOsdItem
       {
          public:
 
-            cRecordingItem(cDbTable* db, const char* aVdrName, const char* aVideoDir, const char* aFileName);
+            cRecordingItem(cDbTable* db, const char* aVdrName, const char* aVideoDir, const char* aFileName, bool showPath);
 
             bool isLocal() const    { return !fileName.empty(); }
             bool isRunning() const  { return state == "R"; }
+            bool isEdited() const   { return !name.empty() && name[0] == '%'; }   // VDR marks edited recordings with '%'
+            std::string displayPath() const;
+
+            std::string md5path;
 
             std::string fileName;   // full path of the local recording, empty if not available here
             std::string vdrUuid;    // VDR which holds the recording
@@ -647,6 +652,7 @@ class cMenuEpgMatchRecordings : public cOsdMenu
       cMenuDb* menuDb {};
       cMenuDb* ownDb {};
       Mode mode {rmMatch};
+      std::string selectMd5;
       std::string title;
       std::string shortText;
 };

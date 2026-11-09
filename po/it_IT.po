@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDR 1.5.7\n"
 "Report-Msgid-Bugs-To: <vdr@jwendel.de>\n"
-"POT-Creation-Date: 2026-11-09 17:00+0100\n"
+"POT-Creation-Date: 2026-11-09 17:55+0100\n"
 "PO-Revision-Date: 2009-08-27 21:45+0100\n"
 "Last-Translator: Diego Pierotto <vdr-italian@tiscali.it>\n"
 "Language-Team:  <vdr@linuxtv.org>\n"
@@ -207,6 +207,9 @@ msgstr ""
 msgid "Similar Matches:"
 msgstr ""
 
+msgid "cut"
+msgstr ""
+
 msgid "no recordings found"
 msgstr ""
 
@@ -220,6 +223,9 @@ msgid "available locally"
 msgstr ""
 
 msgid "File"
+msgstr ""
+
+msgid "Recording is cut"
 msgstr ""
 
 msgid "Recording not available on this VDR"
