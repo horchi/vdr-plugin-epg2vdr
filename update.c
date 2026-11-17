@@ -7,6 +7,7 @@
 
 #include <locale.h>
 #include <unordered_set>
+#include <vector>
 
 #include <vdr/videodir.h>
 #include <vdr/tools.h>
@@ -1315,10 +1316,21 @@ void cUpdate::Action()
             recordingChanged();            // update timer state
 
          updateVdrData();                  // update video disk size/free, ...
-         updateRecordingTable(recordingFullReloadTrigger);
 
-         recordingFullReloadTrigger = no;
-         recordingStateChangedTrigger = no;
+         if (recordingsScanActive())
+         {
+            // VDR is still reading the video directory (e.g. at startup), the recordings
+            //   list is incomplete -> update the table later, keep the trigger
+
+            tell(1, "Video directory scan in progress, recording table update postponed");
+         }
+         else
+         {
+            updateRecordingTable(recordingFullReloadTrigger);
+
+            recordingFullReloadTrigger = no;
+            recordingStateChangedTrigger = no;
+         }
       }
       else if (dbConnected() && lastRecordingDeleteAt+5*tmeSecondsPerMinute < time(0))
       {
@@ -1498,7 +1510,6 @@ void clearEpg()
 
 int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
 {
-   const cEvent* event;
    int tries = 0;
    int timerChanges = 0;
    int total = 0;
@@ -1549,181 +1560,218 @@ int cUpdate::refreshEpg(const char* forChannelId, int maxTries)
 
    for (int f = select->find(); f && dbConnected(yes); f = select->fetch())
    {
+      struct EventUpdate
+      {
+         tEventID useId {0};
+         char updFlg {0};
+         bool remove {false};
+         cEvent* event {};      // new event, null for remove
+      };
+
       int count = 0;
-      cSchedule* s = 0;
-      cChannel* channel = 0;
+      int applied = no;
       tChannelID channelId = tChannelID::FromString(mapDb->getStrValue("ChannelId"));
+      std::vector<EventUpdate> updates;
 
       channels++;
+
+      // #0 channel known by this VDR? (short channels lock)
+
+      {
+         GET_CHANNELS_READ(vdrChannels);
+
+         if (!vdrChannels->GetByChannelID(channelId, true))
+         {
+            tell(mainActPending ? 0 : 4, "Error: Channel with ID '%s' don't exist on this VDR", mapDb->getStrValue("ChannelId"));
+            continue;
+         }
+      }
+
+      // #1 fetch the changes of this channel from the database, without holding a VDR lock
 
       eventsDb->clear();
       eventsDb->setValue("UPDSP", forChannelId ? 0 : lastEventsUpdateAt);
       eventsDb->setValue("CHANNELID", mapDb->getStrValue("CHANNELID"));
 
-      // #1 get timers lock
-
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-      cStateKey timersKey;
-      tell(3, "-> Try to get timers lock");
-      cTimers* timers = cTimers::GetTimersWrite(timersKey, 500/*ms*/);
-#else
-      cTimers* timers = &Timers;
-#endif
-
-      // #2 get channels lock
-
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-      cStateKey channelsKey;
-      cChannels* channels = cChannels::GetChannelsWrite(channelsKey, 500);
-#else
-      cChannels* channels = &Channels;
-#endif
-
-      // #3 get schedules lock
-
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-      cStateKey schedulesKey;
-      tell(3, "-> Try to get schedules lock");
-      cSchedules* schedules = cSchedules::GetSchedulesWrite(schedulesKey, 500/*ms*/);
-#else
-      cSchedulesLock* schedulesLock = new cSchedulesLock(true, 500/*ms*/);
-      cSchedules* schedules = (cSchedules*)cSchedules::Schedules(*schedulesLock);
-      tell(3, "LOCK (refreshEpg)");
-#endif
-
-      // get channel and schedule of channel
-
-      if (channels && schedules && (channel = channels->GetByChannelID(channelId, true)))
-         s = (cSchedule*)schedules->GetSchedule(channel, true);
-      else if (channels && schedules)
-         tell(mainActPending ? 0 : 4, "Error: Channel with ID '%s' don't exist on this VDR", mapDb->getStrValue("ChannelId"));
-
-      if (!schedules || !channels || !timers)
+      for (int found = selectUpdEvents->find(); found && dbConnected(); found = selectUpdEvents->fetch())
       {
-         tell(3, "Info: Can't get write lock on '%s'", !schedules ? "schedules" : !timers ? "timers" : "channels");
+         char updFlg = toupper(eventsDb->getStrValue("UPDFLG")[0]);
+
+         updFlg = updFlg == 0 ? 'P' : updFlg;               // fix missing flag
+
+         // ignore unneded event rows ..
+
+         if (!Us::isNeeded(updFlg))
+            continue;
+
+         EventUpdate upd;
+
+         upd.useId = eventsDb->getIntValue("USEID");
+         upd.updFlg = updFlg;
+         upd.remove = Us::isRemove(updFlg);
+         upd.event = upd.remove ? nullptr : createEventFromRow(eventsDb->getRow());
+
+         updates.push_back(upd);
+      }
+
+      selectUpdEvents->freeResult();
+
+      if (updates.empty())
+         continue;
+
+      // #2 apply the changes, lock sequence: Timers (write) -> Channels (read) -> Schedules (write)
+
+      while (!applied)
+      {
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+         cStateKey timersKey;
+         cStateKey channelsKey;
+         cStateKey schedulesKey;
+
+         tell(3, "-> Try to get timers lock");
+         cTimers* timers = cTimers::GetTimersWrite(timersKey, 500/*ms*/);
+
+         if (timers)
+            timers->SetExplicitModify();      // modified only by SetModified() below
+
+         const cChannels* vdrChannels = timers ? cChannels::GetChannelsRead(channelsKey, 500/*ms*/) : nullptr;
+         tell(3, "-> Try to get schedules lock");
+         cSchedules* schedules = vdrChannels ? cSchedules::GetSchedulesWrite(schedulesKey, 500/*ms*/) : nullptr;
+#else
+         cTimers* timers = &Timers;
+         cChannels* vdrChannels = &Channels;
+         cSchedulesLock* schedulesLock = new cSchedulesLock(true, 500/*ms*/);
+         cSchedules* schedules = (cSchedules*)cSchedules::Schedules(*schedulesLock);
+         tell(3, "LOCK (refreshEpg)");
+#endif
+
+         if (!schedules || !vdrChannels || !timers)
+         {
+            tell(3, "Info: Can't get write lock on '%s'", !timers ? "timers" : !vdrChannels ? "channels" : "schedules");
 
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-         if (schedules) schedulesKey.Remove();
-         if (timers)    timersKey.Remove();
-         if (channels) channelsKey.Remove();
+            if (schedules)   schedulesKey.Remove();
+            if (vdrChannels) channelsKey.Remove();
+            if (timers)      timersKey.Remove();
 #else
+            delete schedulesLock;
+#endif
+
+            if (tries++ > maxTries)
+               break;
+
+            tell(1, "Retrying in 1 seconds");
+            sleep(1);
+
+            continue;
+         }
+
+         tries = 0;
+
+         if (const cChannel* channel = vdrChannels->GetByChannelID(channelId, true))
+         {
+            cSchedule* s = (cSchedule*)schedules->GetSchedule(channel, true);
+
+            for (auto& upd : updates)
+            {
+               const cEvent* event;
+               cTimer* timer = 0;
+
+               // get event / timer
+
+#if APIVERSNUM > 20501
+               if ((event = s->GetEventById(upd.useId)))
+#else
+               if ((event = s->GetEvent(upd.useId)))
+#endif
+               {
+                  if (upd.remove)
+                     tell(2, "Remove event %uld of channel '%s' due to updflg %c",
+                          event->EventID(), (const char*)event->ChannelID().ToString(), upd.updFlg);
+
+                  if (event->HasTimer())
+                  {
+                     for (timer = timers->First(); timer; timer = timers->Next(timer))
+                     {
+                        if (!timer->Local())
+                           continue;
+
+                        if (timer->Event() == event)
+                           break;
+                     }
+                  }
+
+                  if (timer)
+                     timer->SetEvent(0);
+
+                  s->DelEvent((cEvent*)event);
+               }
+
+               if (!upd.remove)
+               {
+                  event = s->AddEvent(upd.event);
+                  upd.event = nullptr;            // now owned by the schedule
+               }
+               else if (event)
+               {
+                  event = 0;
+                  dels++;
+               }
+
+               if (timer && event)
+               {
+                  timer->SetEvent(event);
+                  timer->Matches(event);
+                  timerChanges++;
+               }
+               else if (timer)
+               {
+                  tell(0, "Info: Timer '%s', has no event anymore", *timer->ToDescr());
+               }
+
+               count++;
+            }
+
+            // Kanal fertig machen ..
+
+            s->Sort();
+            s->SetModified();
+
+            tell(2, "Processed channel '%s' - '%s' with %d updates",
+                 eventsDb->getStrValue("CHANNELID"),
+                 mapDb->getStrValue("CHANNELNAME"),
+                 count);
+
+            total += count;
+         }
+
+         // locks freigeben
+
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+         schedulesKey.Remove();
+         tell(3, "-> Released schedules lock");
+         channelsKey.Remove();
+         tell(3, "-> Released channels lock");
+         timersKey.Remove();
+         tell(3, "-> Released timers lock");
+#else
+         tell(3, "LOCK free (refreshEpg)");
          delete schedulesLock;
 #endif
 
-         if (tries++ > maxTries)
-         {
-            select->freeResult();
-            tell(3, "Warning: Aborting refresh after %d tries", tries);
-            break;
-         }
-
-         tell(1, "Retrying in 1 seconds");
-         sleep(1);
-
-         continue;
+         applied = yes;
       }
 
-      tries = 0;
+      // events not added to a schedule (channel vanished or lock failed)
 
-      // lookup schedules object
+      for (auto& upd : updates)
+         delete upd.event;
 
-      if (s)
+      if (!applied)
       {
-         // -----------------------------------------
-         // iterate over all events of this schedule
-
-         for (int found = selectUpdEvents->find(); found && dbConnected(); found = selectUpdEvents->fetch())
-         {
-            cTimer* timer = 0;
-            char updFlg = toupper(eventsDb->getStrValue("UPDFLG")[0]);
-
-            updFlg = updFlg == 0 ? 'P' : updFlg;               // fix missing flag
-
-            // ignore unneded event rows ..
-
-            if (!Us::isNeeded(updFlg))
-               continue;
-
-            // get event / timer
-
-#if APIVERSNUM > 20501
-            if ((event = s->GetEventById(eventsDb->getIntValue("USEID"))))
-#else
-            if ((event = s->GetEvent(eventsDb->getIntValue("USEID"))))
-#endif
-            {
-               if (Us::isRemove(updFlg))
-                  tell(2, "Remove event %uld of channel '%s' due to updflg %c",
-                       event->EventID(), (const char*)event->ChannelID().ToString(), updFlg);
-
-               if (event->HasTimer())
-               {
-                  for (timer = timers->First(); timer; timer = timers->Next(timer))
-                  {
-                     if (!timer->Local())
-                        continue;
-
-                     if (timer->Event() == event)
-                        break;
-                  }
-               }
-
-               if (timer)
-                  timer->SetEvent(0);
-
-               s->DelEvent((cEvent*)event);
-            }
-
-            if (!Us::isRemove(updFlg))
-               event = s->AddEvent(createEventFromRow(eventsDb->getRow()));
-            else if (event)
-            {
-               event = 0;
-               dels++;
-            }
-
-            if (timer && event)
-            {
-               timer->SetEvent(event);
-               timer->Matches(event);
-               timerChanges++;
-            }
-            else if (timer)
-            {
-               tell(0, "Info: Timer '%s', has no event anymore", *timer->ToDescr());
-            }
-
-            count++;
-         }
-
-         selectUpdEvents->freeResult();
-
-         // Kanal fertig machen ..
-
-         s->Sort();
-         s->SetModified();
-
-         tell(2, "Processed channel '%s' - '%s' with %d updates",
-              eventsDb->getStrValue("CHANNELID"),
-              mapDb->getStrValue("CHANNELNAME"),
-              count);
-
-         total += count;
+         tell(3, "Warning: Aborting refresh after %d tries", tries);
+         break;
       }
-
-      // schedules lock freigeben
-
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-      schedulesKey.Remove();
-      tell(3, "-> Released schedules lock");
-      channelsKey.Remove();
-      tell(3, "-> Released channels lock");
-      timersKey.Remove();
-      tell(3, "-> Released timers lock");
-#else
-      tell(3, "LOCK free (refreshEpg)");
-      delete schedulesLock;
-#endif
    }
 
    select->freeResult();

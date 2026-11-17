@@ -654,6 +654,7 @@ cString cPluginEPG2VDR::SVDRPCommand(const char* cmd, const char* Option, int &R
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
       LOCK_RECORDINGS_WRITE;
       cRecordings* recordings = Recordings;
+      recordings->SetExplicitModify();   // modified only on success (SetModified() below)
 #else
       cRecordings* recordings = &Recordings;
 #endif
@@ -674,7 +675,16 @@ cString cPluginEPG2VDR::SVDRPCommand(const char* cmd, const char* Option, int &R
             return "Error: Delete of recording failed";
          }
 
+#if defined (APIVERSNUM) && (APIVERSNUM >= 30011)
+         {
+            LOCK_DELETEDRECORDINGS_WRITE;
+            recordings->Del(rec, false);
+            DeletedRecordings->Add(rec);
+         }
+         cRecordings::TouchUpdate();
+#else
          recordings->DelByName(rec->FileName());
+#endif
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
          recordings->SetModified();
 #endif
@@ -715,19 +725,34 @@ cString cPluginEPG2VDR::SVDRPCommand(const char* cmd, const char* Option, int &R
          position++;
       }
 
+      std::string fileName;
+      double framesPerSecond {0};
+      bool isPesRecording {false};
+
+      {
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-      LOCK_RECORDINGS_READ;
-      const cRecording* recording = Recordings->GetByName(name);
+         LOCK_RECORDINGS_READ;
+         const cRecording* recording = Recordings->GetByName(name);
 #else
-      const cRecording* recording = Recordings.GetByName(name);
+         const cRecording* recording = Recordings.GetByName(name);
 #endif
 
-      if (!recording)
+         if (recording)
+         {
+            fileName = recording->FileName();
+            framesPerSecond = recording->FramesPerSecond();
+            isPesRecording = recording->IsPesRecording();
+         }
+      }
+
+      if (fileName.empty())
       {
          free(opt);
          ReplyCode = 901;
          return "Recording not found";
       }
+
+      // must give up the lock for the call to cControl::Shutdown() (see VDR's CmdPLAY)
 
       cReplayControl::SetRecording(0);
       cControl::Shutdown();
@@ -737,9 +762,9 @@ cString cPluginEPG2VDR::SVDRPCommand(const char* cmd, const char* Option, int &R
          int pos = 0;
 
          if (strcasecmp(position, "BEGIN") != 0)
-            pos = HMSFToIndex(position, recording->FramesPerSecond());
+            pos = HMSFToIndex(position, framesPerSecond);
 
-         cResumeFile Resume(recording->FileName(), recording->IsPesRecording());
+         cResumeFile Resume(fileName.c_str(), isPesRecording);
 
          if (pos <= 0)
             Resume.Delete();
@@ -747,7 +772,7 @@ cString cPluginEPG2VDR::SVDRPCommand(const char* cmd, const char* Option, int &R
             Resume.Save(pos);
       }
 
-      cReplayControl::SetRecording(recording->FileName());
+      cReplayControl::SetRecording(fileName.c_str());
       cControl::Launch(new cReplayControl);
       cControl::Attach();
       tell(0, "Playing recording '%s'", name);
@@ -1017,29 +1042,34 @@ int cPluginEPG2VDR::recordingDetails(cEpgRecording_Details_Service_V1* rd)
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
    const char* videoBasePath = cVideoDirectory::Name();
    md5Buf md5path;
-   const cRecording* recording;
+   time_t startTime {0};
    int pathOffset = 0;
 
-   LOCK_RECORDINGS_READ;
-   const cRecordings* recordings = Recordings;
-
-   if (!(recording = recordings->GetById(rd->id)))
-      return false;
-
-   if (strncmp(recording->FileName(), videoBasePath, strlen(videoBasePath)) == 0)
    {
-      pathOffset = strlen(videoBasePath);
+      // lock only for the lookup, not during the database access
 
-      if (*(recording->FileName()+pathOffset) == '/')
-         pathOffset++;
+      LOCK_RECORDINGS_READ;
+      const cRecording* recording = Recordings->GetById(rd->id);
+
+      if (!recording)
+         return false;
+
+      if (strncmp(recording->FileName(), videoBasePath, strlen(videoBasePath)) == 0)
+      {
+         pathOffset = strlen(videoBasePath);
+
+         if (*(recording->FileName()+pathOffset) == '/')
+            pathOffset++;
+      }
+
+      createMd5(recording->FileName()+pathOffset, md5path);
+      startTime = recording->Start();
    }
-
-   createMd5(recording->FileName()+pathOffset, md5path);
 
    recordingListDb->clear();
 
    recordingListDb->setValue("MD5PATH", md5path);
-   recordingListDb->setValue("STARTTIME", recording->Start());
+   recordingListDb->setValue("STARTTIME", startTime);
    recordingListDb->setValue("OWNER", Epg2VdrConfig.useCommonRecFolder ? "" : Epg2VdrConfig.uuid);
 
    cXml xml;

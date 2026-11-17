@@ -430,7 +430,7 @@ class cMenuEpgEvent : public cOsdMenu
 {
    public:
 
-      cMenuEpgEvent(cMenuDb* db, const cEvent* Event, const cSchedules* schedules,
+      cMenuEpgEvent(cMenuDb* db, const cEvent* Event,
                     int timerMatch, bool DispSchedule, bool CanSwitch = false);
       virtual void Display(void);
       virtual eOSState ProcessKey(eKeys Key);
@@ -438,17 +438,17 @@ class cMenuEpgEvent : public cOsdMenu
 
    private:
 
-      const cEvent* getNextPrevEvent(const cEvent* event, int step);
+      const cEvent* getNextPrevEvent(const cChannels* channels, const cSchedules* schedules,
+                                     const cEvent* event, int step);
       int setEvent(const cEvent* Event, int timerMatch);
 
       cMenuDb* menuDb {};
-      const cSchedules* schedules {};
       const cEvent* event {};
       bool dispSchedule {false};
       bool canSwitch {false};
 
-      std::string prevTime;
-      std::string nextTime;
+      std::string prevHelp;     // help key text (time or channel name)
+      std::string nextHelp;
 };
 
 //***************************************************************************
@@ -517,12 +517,6 @@ class cMenuEpgWhatsOn : public cOsdMenu
       void SetHelpKeys();
 
       cMenuDb* menuDb {};
-      const cSchedules* schedules {};
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-      cStateKey schedulesKey;
-#else
-      cSchedulesLock* schedulesLock {};
-#endif
       const cEvent* searchEvent {};
       int dispSchedule {no};
 

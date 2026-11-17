@@ -27,6 +27,51 @@
 class cMenuEpgScheduleItem;
 
 //***************************************************************************
+// VDR List Locks
+//
+//   The lists are locked only while they are accessed, never while a menu
+//   is open or the user is asked something. Sequence (see VDR's tools.h):
+//      Timers -> Channels -> Recordings -> Schedules
+//   Events / channels referenced by menu items are kept as pointers like VDR
+//   does it (they are protected by VDR's ListGarbageCollector) but only
+//   accessed while holding the lock.
+//***************************************************************************
+
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+#  define MENU_LOCK_CHANNELS_READ                                                     \
+      LOCK_CHANNELS_READ;                                                             \
+      const cChannels* channels = Channels; (void)channels
+#  define MENU_LOCK_SCHEDULES_READ                                                    \
+      LOCK_SCHEDULES_READ;                                                            \
+      const cSchedules* schedules = Schedules; (void)schedules
+#  define MENU_LOCK_EPG_READ                                                          \
+      LOCK_CHANNELS_READ;                                                             \
+      LOCK_SCHEDULES_READ;                                                            \
+      const cChannels* channels = Channels; (void)channels;                           \
+      const cSchedules* schedules = Schedules; (void)schedules
+#else
+#  define MENU_LOCK_CHANNELS_READ                                                     \
+      cChannels* channels = &Channels; (void)channels
+#  define MENU_LOCK_SCHEDULES_READ                                                    \
+      cSchedulesLock schedulesLock;                                                   \
+      const cSchedules* schedules = cSchedules::Schedules(schedulesLock); (void)schedules
+#  define MENU_LOCK_EPG_READ                                                          \
+      cChannels* channels = &Channels; (void)channels;                                \
+      cSchedulesLock schedulesLock;                                                   \
+      const cSchedules* schedules = cSchedules::Schedules(schedulesLock); (void)schedules
+#endif
+
+static int channelNumberOf(const cChannel* channel)
+{
+   if (!channel)
+      return 0;
+
+   MENU_LOCK_CHANNELS_READ;
+
+   return channel->Number();
+}
+
+//***************************************************************************
 // Class cEpgCommandMenu
 //***************************************************************************
 
@@ -73,7 +118,7 @@ eOSState cEpgCommandMenu::ProcessKey(eKeys key)
    {
       case osUser1:
       {
-         if (item)
+         if (item && item->event)
             return AddSubMenu(new cMenuEpgWhatsOn(item->event));
 
          break;
@@ -81,7 +126,7 @@ eOSState cEpgCommandMenu::ProcessKey(eKeys key)
 
       case osUser2:
       {
-         if (item)
+         if (item && item->event)
             return AddSubMenu(new cMenuEpgMatchRecordings(menuDb, item->event));
 
          break;
@@ -94,8 +139,11 @@ eOSState cEpgCommandMenu::ProcessKey(eKeys key)
 
       case osUser4:
       {
-         if (item)
+         if (item && item->event)
+         {
+            MENU_LOCK_EPG_READ;
             menuDb->createSwitchTimer(item->event);
+         }
 
          return osBack;
       }
@@ -118,10 +166,14 @@ std::string cMenuEpgMatchRecordings::returnMd5;
 
 cMenuEpgMatchRecordings::cMenuEpgMatchRecordings(cMenuDb* db, const cEvent* event)
    : cOsdMenu(tr("Matching recordings"), 11, 6, 8, 12, 30),
-     menuDb(db),
-     title(notNull(event->Title(), "")),
-     shortText(notNull(event->ShortText(), ""))
+     menuDb(db)
 {
+   {
+      MENU_LOCK_SCHEDULES_READ;
+      title = notNull(event->Title(), "");
+      shortText = notNull(event->ShortText(), "");
+   }
+
    init();
 }
 
@@ -537,6 +589,9 @@ eOSState cMenuEpgMatchRecordings::play(bool fromStart)
       return osContinue;
    }
 
+   bool found {false};
+   bool isPesRecording {false};
+
    {
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
       LOCK_RECORDINGS_READ;
@@ -545,17 +600,26 @@ eOSState cMenuEpgMatchRecordings::play(bool fromStart)
       const cRecording* recording = Recordings.GetByName(item->fileName.c_str());
 #endif
 
-      if (!recording)
+      if (recording)
       {
-         Skins.Message(mtError, tr("Recording not found"));
-         return osContinue;
+         found = true;
+         isPesRecording = recording->IsPesRecording();
       }
+   }
 
-      if (fromStart)
-      {
-         cResumeFile resumeFile(recording->FileName(), recording->IsPesRecording());
-         resumeFile.Delete();
-      }
+   // cResumeFile::Delete() requests a write lock on the recordings,
+   //   must be done without holding a lock (see VDR's cMenuRecordings::Rewind)
+
+   if (found && fromStart)
+   {
+      cResumeFile resumeFile(item->fileName.c_str(), isPesRecording);
+      resumeFile.Delete();
+   }
+
+   if (!found)    // message only without holding a lock
+   {
+      Skins.Message(mtError, tr("Recording not found"));
+      return osContinue;
    }
 
    cReplayControl::SetRecording(item->fileName.c_str());
@@ -616,19 +680,12 @@ eOSState cMenuEpgMatchRecordings::removeLocal(cRecordingItem* item)
       return osContinue;
    }
 
-   {
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-      LOCK_RECORDINGS_READ;
-      const cRecording* recording = Recordings->GetByName(fileName);
-#else
-      const cRecording* recording = Recordings.GetByName(fileName);
-#endif
+   // ask without holding a lock (see VDR's cMenuRecordings::Delete)
 
-      if (recording && RecordingsHandler.GetUsage(fileName))
-      {
-         if (!Interface->Confirm(trVDR("Recording is being edited - really delete?")))
-            return osContinue;
-      }
+   if (RecordingsHandler.GetUsage(fileName))
+   {
+      if (!Interface->Confirm(trVDR("Recording is being edited - really delete?")))
+         return osContinue;
    }
 
    // must be done without holding a lock (see VDR's cMenuRecordings::Delete)
@@ -649,7 +706,17 @@ eOSState cMenuEpgMatchRecordings::removeLocal(cRecordingItem* item)
    if (!recording || recording->Delete())
    {
       cReplayControl::ClearLastReplayed(fileName);
+#  if (APIVERSNUM >= 30011)
+      if (recording)
+      {
+         LOCK_DELETEDRECORDINGS_WRITE;
+         recordings->Del(recording, false);
+         DeletedRecordings->Add(recording);
+      }
+      cRecordings::TouchUpdate();
+#  else
       recordings->DelByName(fileName);
+#  endif
       cVideoDiskUsage::ForceCheck();
       recordings->SetModified();
       deleted = true;
@@ -931,7 +998,7 @@ bool cMenuEpgScheduleSepItem::Update(bool Force)
 
 void cMenuEpgScheduleSepItem::SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Index, bool Current, bool Selectable)
 {
-   tell(0, "calling SetMenuItem with '%s'", tmpEvent ? tmpEvent->Title() : "<null>");
+   tell(4, "calling SetMenuItem with '%s'", tmpEvent ? tmpEvent->Title() : "<null>");
 
    if (!DisplayMenu->SetItemEvent(tmpEvent, Index, Current, Selectable, channel, no, tmNone, false))
       DisplayMenu->SetItem(Text(), Index, Current, Selectable);
@@ -941,13 +1008,12 @@ void cMenuEpgScheduleSepItem::SetMenuItem(cSkinDisplayMenu *DisplayMenu, int Ind
 // cMenuEpgEvent
 //***************************************************************************
 
-cMenuEpgEvent::cMenuEpgEvent(cMenuDb* db, const cEvent* Event, const cSchedules* Schedules,
+cMenuEpgEvent::cMenuEpgEvent(cMenuDb* db, const cEvent* Event,
                              int timerMatch, bool DispSchedule, bool CanSwitch)
    : cOsdMenu(tr("Event"))
 {
    menuDb = db;
    dispSchedule = DispSchedule;
-   schedules = Schedules;
    canSwitch = CanSwitch;
    SetMenuCategory(mcEvent);
    setEvent(Event, timerMatch);
@@ -959,58 +1025,53 @@ cMenuEpgEvent::cMenuEpgEvent(cMenuDb* db, const cEvent* Event, const cSchedules*
 
 int cMenuEpgEvent::setEvent(const cEvent* Event, int timerMatch)
 {
-   if (Event)
+   if (!Event)
+      return success;
+
+   bool haveChannel {false};
+
+   event = Event;
+   prevHelp = "";
+   nextHelp = "";
+
    {
-      event = Event;
+      MENU_LOCK_EPG_READ;
 
-#if APIVERSNUM >= 20301
-      LOCK_CHANNELS_READ;
-      const cChannels* channels = Channels;
-      const cChannel* channel = channels->GetByChannelID(event->ChannelID(), true);
-#else
-      cChannels* channels = &Channels;
-      cChannel* channel = channels->GetByChannelID(event->ChannelID(), true);
-#endif
-
-      if (channel)
+      if (const cChannel* channel = channels->GetByChannelID(event->ChannelID(), true))
       {
-         const cChannel* prevChannel = 0;
-         const cChannel* nextChannel = 0;
-
-         prevTime = "";
-         nextTime = "";
-
+         haveChannel = true;
          SetTitle(channel->Name());
 
-         if (menuDb->userTimes->current()->getMode() != cUserTimes::mSearch)
+         if (schedules && menuDb->userTimes->current()->getMode() != cUserTimes::mSearch)
          {
             const cEvent* e;
 
-            if ((e = getNextPrevEvent(event, -1)))
+            if ((e = getNextPrevEvent(channels, schedules, event, -1)))
             {
                if (dispSchedule)
-                  prevTime = l2pTime(e->StartTime(), "%H:%M");
-               else
-                  prevChannel = channels->GetByChannelID(e->ChannelID(), true);
+                  prevHelp = l2pTime(e->StartTime(), "%H:%M");
+               else if (const cChannel* c = channels->GetByChannelID(e->ChannelID(), true))
+                  prevHelp = c->Name();
             }
 
-            if ((e = getNextPrevEvent(event, +1)))
+            if ((e = getNextPrevEvent(channels, schedules, event, +1)))
             {
                if (dispSchedule)
-                  nextTime = l2pTime(e->StartTime(), "%H:%M");
-               else
-                  nextChannel = channels->GetByChannelID(e->ChannelID(), true);
+                  nextHelp = l2pTime(e->StartTime(), "%H:%M");
+               else if (const cChannel* c = channels->GetByChannelID(e->ChannelID(), true))
+                  nextHelp = c->Name();
             }
          }
-
-         SetHelp(timerMatch == tmFull ? tr("Button$Timer") : tr("Button$Record"),
-                 dispSchedule ? prevTime.c_str() : (prevChannel ? prevChannel->Name() : 0),
-                 dispSchedule ? nextTime.c_str() : (nextChannel ? nextChannel->Name() : 0),
-                 canSwitch ? tr("Button$Switch") : 0);
       }
-
-      Display();
    }
+
+   if (haveChannel)
+      SetHelp(timerMatch == tmFull ? tr("Button$Timer") : tr("Button$Record"),
+              prevHelp.empty() ? 0 : prevHelp.c_str(),
+              nextHelp.empty() ? 0 : nextHelp.c_str(),
+              canSwitch ? tr("Button$Switch") : 0);
+
+   Display();
 
    return success;
 }
@@ -1030,20 +1091,17 @@ void cMenuEpgEvent::Display()
 
 //***************************************************************************
 // Get Next Prev Event (related to current)
+//   - caller has to hold the channels and schedules lock
 //***************************************************************************
 
-const cEvent* cMenuEpgEvent::getNextPrevEvent(const cEvent* event, int step)
+const cEvent* cMenuEpgEvent::getNextPrevEvent(const cChannels* channels, const cSchedules* schedules,
+                                              const cEvent* event, int step)
 {
-#if APIVERSNUM >= 20301
-   LOCK_CHANNELS_READ;
-   const cChannels* channels = Channels;
    const cChannel* channel = channels->GetByChannelID(event->ChannelID(), true);
-#else
-   cChannels* channels = &Channels;
-   cChannel* channel = channels->GetByChannelID(event->ChannelID(), true);
-#endif
-
    const cEvent* e = 0;
+
+   if (!channel)
+      return 0;
 
    if (dispSchedule)
    {
@@ -1056,13 +1114,15 @@ const cEvent* cMenuEpgEvent::getNextPrevEvent(const cEvent* event, int step)
    }
    else
    {
-      while (!e)
+      int maxNumber = channels->MaxNumber();
+
+      for (int n = 0; !e && n < maxNumber; n++)   // at most one round over all channels
       {
          int cn = channel->Number() + step;
 
          if (cn < 1)
-            cn = channels->MaxNumber();
-         else if (cn > channels->MaxNumber())
+            cn = maxNumber;
+         else if (cn > maxNumber)
             cn = 1;
 
          if (!(channel = channels->GetByNumber(cn)))
@@ -1118,14 +1178,20 @@ eOSState cMenuEpgEvent::ProcessKey(eKeys Key)
      if (menuDb->userTimes->current()->getMode() == cUserTimes::mSearch)
          return osContinue;
 
-      const cEvent* e = getNextPrevEvent(event, Key == kGreen ? -1 : +1);
+      const cEvent* e {};
       int remote = no;
       int timerMatch = tmNone;
       char type;
 
-      // get remote and timerMatch info
+      {
+         MENU_LOCK_EPG_READ;
 
-      menuDb->lookupTimer(e, timerMatch, remote, type);
+         // get remote and timerMatch info
+
+         if (schedules && (e = getNextPrevEvent(channels, schedules, event, Key == kGreen ? -1 : +1)))
+            menuDb->lookupTimer(e, timerMatch, remote, type);
+      }
+
       setEvent(e, timerMatch);
 
       return osContinue;
@@ -1163,27 +1229,14 @@ cMenuEpgWhatsOn::cMenuEpgWhatsOn(const cEvent* aSearchEvent)
    searchEvent = aSearchEvent;
    menuDb = new cMenuDb;
 
-#if APIVERSNUM >= 20301
-   LOCK_CHANNELS_READ;
-   const cChannels* channels = Channels;
-   const cChannel* channel = channels->GetByNumber(cDevice::CurrentChannel());
-#else
-   cChannels* channels = &Channels;
-   const cChannel* channel = channels->GetByNumber(cDevice::CurrentChannel());
-#endif
+   // the VDR lists are locked only while they are accessed, never as long as the menu is open!
 
-   if (channel)
    {
-      currentChannel = channel->Number();
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-      schedules = cSchedules::GetSchedulesRead(schedulesKey);
-#else
-      schedulesLock = new cSchedulesLock(false);
-      schedules = (cSchedules*)cSchedules::Schedules(*schedulesLock);
-#endif
-   }
+      MENU_LOCK_CHANNELS_READ;
 
-//   Timers.Modified(timerState);
+      if (const cChannel* channel = channels->GetByNumber(cDevice::CurrentChannel()))
+         currentChannel = channel->Number();
+   }
 
    if (menuDb->dbConnected())
    {
@@ -1201,14 +1254,6 @@ cMenuEpgWhatsOn::cMenuEpgWhatsOn(const cEvent* aSearchEvent)
 cMenuEpgWhatsOn::~cMenuEpgWhatsOn()
 {
    delete menuDb;
-
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   if (schedules)
-      schedulesKey.Remove();
-#else
-   tell(3, "LOCK free (cMenuEpgWhatsOn)");
-   delete schedulesLock;
-#endif
 }
 
 //***************************************************************************
@@ -1226,14 +1271,13 @@ int cMenuEpgWhatsOn::LoadAt()
       scheduleEvent = item->event;
 
       if (item->channel)
-         currentChannel = item->channel->Number();
+         currentChannel = channelNumberOf(item->channel);
    }
 
    if (userTime->getMode() == cUserTimes::mSearch)
       return LoadSearch(userTime);
 
    Clear();
-   // Timers.Modified(timerState);
 
    SetMenuCategory(userTime->getMode() == cUserTimes::mNow ? mcScheduleNow : mcScheduleNext);
 
@@ -1244,41 +1288,38 @@ int cMenuEpgWhatsOn::LoadAt()
 
    tell(2, "DEBUG: Loading events for '%s' %s", userTime->getTitle(), !isEmpty(userTime->getHHMMStr()) ? userTime->getHHMMStr() : "");
 
-#if APIVERSNUM >= 20301
-   LOCK_CHANNELS_READ;
-   const cChannels* channels = Channels;
-#else
-   const cChannels* channels = &Channels;
-#endif
-
-   // events
-
-   for (const cChannel* Channel = channels->First(); Channel; Channel = channels->Next(Channel))
    {
-      if (!Channel->GroupSep())
-      {
-         const cSchedule* Schedule = schedules->GetSchedule(Channel);
-         const cEvent* Event = 0;
+      MENU_LOCK_EPG_READ;
 
-         if (Schedule)
+      // events
+
+      for (const cChannel* Channel = channels->First(); schedules && Channel; Channel = channels->Next(Channel))
+      {
+         if (!Channel->GroupSep())
          {
-            switch (userTime->getMode())
+            const cSchedule* Schedule = schedules->GetSchedule(Channel);
+            const cEvent* Event = 0;
+
+            if (Schedule)
             {
-               case cUserTimes::mNow:  Event = Schedule->GetPresentEvent();                    break;
-               case cUserTimes::mNext: Event = Schedule->GetFollowingEvent();                  break;
-               case cUserTimes::mTime: Event = Schedule->GetEventAround(userTime->getTime());  break;
+               switch (userTime->getMode())
+               {
+                  case cUserTimes::mNow:  Event = Schedule->GetPresentEvent();                    break;
+                  case cUserTimes::mNext: Event = Schedule->GetFollowingEvent();                  break;
+                  case cUserTimes::mTime: Event = Schedule->GetEventAround(userTime->getTime());  break;
+               }
             }
+
+            if (!Event && !Epg2VdrConfig.showEmptyChannels)
+               continue;
+
+            Add(new cMenuEpgScheduleItem(menuDb, Event, Channel), Channel->Number() == currentChannel);
          }
-
-         if (!Event && !Epg2VdrConfig.showEmptyChannels)
-            continue;
-
-         Add(new cMenuEpgScheduleItem(menuDb, Event, Channel), Channel->Number() == currentChannel);
-      }
-      else
-      {
-         if (strlen(Channel->Name()))
-            Add(new cMenuEpgScheduleSepItem(Channel, 0));
+         else
+         {
+            if (strlen(Channel->Name()))
+               Add(new cMenuEpgScheduleSepItem(Channel, 0));
+         }
       }
    }
 
@@ -1310,13 +1351,6 @@ int cMenuEpgWhatsOn::LoadSearch(const cUserTimes::UserTime* userTime)
    if (!(select = menuDb->search->prepareSearchStatement(menuDb->searchtimerDb->getRow(), menuDb->useeventsDb)))
       return fail;
 
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   LOCK_CHANNELS_READ;
-   const cChannels* channels = Channels;
-#else
-   cChannels* channels = &Channels;
-#endif
-
    menuDb->useeventsDb->clear();
 
    for (int res = select->find(); res; res = select->fetch())
@@ -1326,11 +1360,13 @@ int cMenuEpgWhatsOn::LoadSearch(const cUserTimes::UserTime* userTime)
       if (!menuDb->search->matchCriterias(menuDb->searchtimerDb->getRow(), menuDb->useeventsDb->getRow()))
          continue;
 
-      //
+      // lock only for the lookup of this event, not while fetching from the database
+
+      MENU_LOCK_EPG_READ;
 
       const char* strChannelId = menuDb->useeventsDb->getStrValue("CHANNELID");
       const cChannel* channel = channels->GetByChannelID(tChannelID::FromString(strChannelId));
-      const cSchedule* schedule = schedules->GetSchedule(channel);
+      const cSchedule* schedule = schedules && channel ? schedules->GetSchedule(channel) : 0;
 
 #if (defined (APIVERSNUM) && (APIVERSNUM >= 20501))
       const cEvent* event = !schedule ? 0 :  schedule->GetEventById(menuDb->useeventsDb->getIntValue("USEID"));
@@ -1361,42 +1397,40 @@ int cMenuEpgWhatsOn::LoadSchedule()
    SetCols(7, 6, 4);
    dispSchedule = yes;
 
-#if APIVERSNUM >= 20301
-   LOCK_CHANNELS_READ;
-   const cChannels* channels = Channels;
-   const cChannel* channel = channels->GetByNumber(currentChannel);
-#else
-   cChannels* channels = &Channels;
-   const cChannel* channel = channels->GetByNumber(currentChannel);
-#endif
-
    cMenuEpgScheduleItem::SetSortMode(cMenuEpgScheduleItem::ssmAllThis);
    SetMenuCategory(mcSchedule);
-   SetTitle(cString::sprintf(tr("Schedule - %s"), channel->Name()));
 
-   if (schedules && channel)
    {
-      const cSchedule* Schedule = schedules->GetSchedule(channel);
+      MENU_LOCK_EPG_READ;
 
-      if (Schedule)
+      const cChannel* channel = channels->GetByNumber(currentChannel);
+
+      SetTitle(cString::sprintf(tr("Schedule - %s"), channel ? channel->Name() : ""));
+
+      if (schedules && channel)
       {
-         int lastDay = 0;
-         const cEvent* PresentEvent = scheduleEvent ? scheduleEvent : Schedule->GetPresentEvent();
-         time_t now = time(0) - Setup.EPGLinger * 60;
+         const cSchedule* Schedule = schedules->GetSchedule(channel);
 
-         for (const cEvent* ev = Schedule->Events()->First(); ev; ev = Schedule->Events()->Next(ev))
+         if (Schedule)
          {
-            time_t stime = ev->StartTime();
-            struct tm tmSTime;
-            localtime_r(&stime, &tmSTime);
+            int lastDay = 0;
+            const cEvent* PresentEvent = scheduleEvent ? scheduleEvent : Schedule->GetPresentEvent();
+            time_t now = time(0) - Setup.EPGLinger * 60;
 
-            if (lastDay != 0 && tmSTime.tm_mday != lastDay)
-               Add(new cMenuEpgScheduleSepItem(0, ev));
+            for (const cEvent* ev = Schedule->Events()->First(); ev; ev = Schedule->Events()->Next(ev))
+            {
+               time_t stime = ev->StartTime();
+               struct tm tmSTime;
+               localtime_r(&stime, &tmSTime);
 
-            if (ev->EndTime() > now || ev == PresentEvent)
-               Add(new cMenuEpgScheduleItem(menuDb, ev), ev == PresentEvent);
+               if (lastDay != 0 && tmSTime.tm_mday != lastDay)
+                  Add(new cMenuEpgScheduleSepItem(0, ev));
 
-            lastDay = tmSTime.tm_mday;
+               if (ev->EndTime() > now || ev == PresentEvent)
+                  Add(new cMenuEpgScheduleItem(menuDb, ev), ev == PresentEvent);
+
+               lastDay = tmSTime.tm_mday;
+            }
          }
       }
    }
@@ -1417,32 +1451,29 @@ int cMenuEpgWhatsOn::LoadQuery(const cEvent* searchEvent)
    SetMenuCategory(mcSchedule);
    cMenuEpgScheduleItem::SetSortMode(cMenuEpgScheduleItem::ssmAllThis);
 
-#if APIVERSNUM >= 20301
-   LOCK_CHANNELS_READ;
-   const cChannels* channels = Channels;
-#else
-   const cChannels* channels = &Channels;
-#endif
-
-   tell(1, "Lookup events with title '%s'", searchEvent->Title());
-
-   for (const cChannel* channel = channels->First(); channel; channel = channels->Next(channel))
    {
-      const cSchedule* schedule = schedules->GetSchedule(channel);
+      MENU_LOCK_EPG_READ;
 
-      if (schedule)
+      tell(1, "Lookup events with title '%s'", searchEvent->Title());
+
+      for (const cChannel* channel = channels->First(); schedules && channel; channel = channels->Next(channel))
       {
-         for (const cEvent* event = schedule->Events()->First(); event; event = schedule->Events()->Next(event))
+         const cSchedule* schedule = schedules->GetSchedule(channel);
+
+         if (schedule)
          {
-            if (strcasecmp(event->Title(), searchEvent->Title()) == 0 &&
-                event->StartTime() > time(0))
-               Add(new cMenuEpgScheduleItem(menuDb, event, channel, yes));
+            for (const cEvent* event = schedule->Events()->First(); event; event = schedule->Events()->Next(event))
+            {
+               if (strcasecmp(event->Title(), searchEvent->Title()) == 0 &&
+                   event->StartTime() > time(0))
+                  Add(new cMenuEpgScheduleItem(menuDb, event, channel, yes));
+            }
          }
       }
-   }
 
-   Sort();
-   SetTitle(cString::sprintf("%d %s - %s", Count(), tr("Search results"), searchEvent->Title()));
+      Sort();    // compares the events, therefore inside the lock
+      SetTitle(cString::sprintf("%d %s - %s", Count(), tr("Search results"), searchEvent->Title()));
+   }
 
    Display();
    SetHelpKeys();
@@ -1477,6 +1508,8 @@ bool cMenuEpgWhatsOn::Update()
 {
    bool result = false;
 
+   MENU_LOCK_EPG_READ;   // the items access their event and channel
+
    for (cOsdItem* item = First(); item; item = Next(item))
    {
       if (((cMenuEpgScheduleItem*)item)->Update())
@@ -1508,7 +1541,7 @@ void cMenuEpgWhatsOn::SetHelpKeys()
 
       if (item->channel)
       {
-         if (item->channel->Number() != cDevice::CurrentChannel())
+         if (channelNumberOf(item->channel) != cDevice::CurrentChannel())
          {
             NewHelpKeys |= 0x10; // "Switch"
             canSwitch = yes;
@@ -1555,11 +1588,18 @@ void cMenuEpgWhatsOn::SetHelpKeys()
 eOSState cMenuEpgWhatsOn::Switch()
 {
    cMenuEpgScheduleItem* item = (cMenuEpgScheduleItem*)Get(Current());
+   bool switched {false};
 
-   if (cDevice::PrimaryDevice()->SwitchChannel(item->channel, true))
+   if (item && item->channel)
+   {
+      MENU_LOCK_CHANNELS_READ;
+      switched = cDevice::PrimaryDevice()->SwitchChannel(item->channel, true);
+   }
+
+   if (switched)
       return Epg2VdrConfig.closeOnSwith ? osEnd : osContinue;
 
-   Skins.Message(mtError, tr("Can't switch channel!"));
+   Skins.Message(mtError, tr("Can't switch channel!"));   // without holding a lock
 
    return osContinue;
 }
@@ -1577,10 +1617,15 @@ eOSState cMenuEpgWhatsOn::Record()
    char type;
    cMenuEpgScheduleItem* item = (cMenuEpgScheduleItem*)Get(Current());
 
-   if (!item)
+   if (!item || !item->event)
       return osContinue;
 
-   if ((timerid = menuDb->lookupTimer(item->event, timerMatch, remote, type))) // -> loads timerDb and vdrDb
+   {
+      MENU_LOCK_EPG_READ;
+      timerid = menuDb->lookupTimer(item->event, timerMatch, remote, type); // -> loads timerDb and vdrDb
+   }
+
+   if (timerid)
    {
       menuDb->timerDb->clear();
       menuDb->timerDb->setValue("ID", timerid);
@@ -1599,7 +1644,13 @@ eOSState cMenuEpgWhatsOn::Record()
 
    // neuen Timer anlegen
 
-   cDbRow* timerRow = newTimerRowFromEvent(item->event);
+   cDbRow* timerRow {};
+
+   {
+      MENU_LOCK_EPG_READ;      // cTimer(event) needs the channels lock, take it before the schedules lock
+      timerRow = newTimerRowFromEvent(item->event);
+   }
+
    char timerDefaultVDRuuid[150+TB] = "";
 
    menuDb->getParameter(menuDb->user.c_str(), "timerDefaultVDRuuid", timerDefaultVDRuuid);
@@ -1660,7 +1711,7 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
             {
                cMenuEpgScheduleItem* item = (cMenuEpgScheduleItem*)Get(Current());
 
-               if (item)
+               if (item && item->event)
                   return AddSubMenu(new cMenuEpgWhatsOn(item->event));
             }
 
@@ -1673,7 +1724,7 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
             {
                cMenuEpgScheduleItem* item = (cMenuEpgScheduleItem*)Get(Current());
 
-               if (item)
+               if (item && item->event)
                   return AddSubMenu(new cMenuEpgMatchRecordings(menuDb, item->event));
             }
 
@@ -1689,7 +1740,12 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
          {
             if (cMenuEpgScheduleItem* mi = (cMenuEpgScheduleItem*)Get(Current()))
             {
-               menuDb->createSwitchTimer(mi->event);
+               if (mi->event)
+               {
+                  MENU_LOCK_EPG_READ;
+                  menuDb->createSwitchTimer(mi->event);
+               }
+
                sleep(1);
 
                if (Update())
@@ -1709,10 +1765,10 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
             {
                cMenuEpgScheduleItem* mi = (cMenuEpgScheduleItem*)Get(Current());
 
-               if (mi)
+               if (mi && mi->channel)
                {
                   scheduleEvent = mi->event;
-                  currentChannel = mi->channel->Number();
+                  currentChannel = channelNumberOf(mi->channel);
                   LoadSchedule();
                }
             }
@@ -1756,7 +1812,7 @@ eOSState cMenuEpgWhatsOn::ProcessKey(eKeys Key)
                if (Count() && item)
                {
                   if (const cEvent* event = item->event)
-                     return AddSubMenu(new cMenuEpgEvent(menuDb, event, schedules, item->timerMatch, dispSchedule, canSwitch));
+                     return AddSubMenu(new cMenuEpgEvent(menuDb, event, item->timerMatch, dispSchedule, canSwitch));
                }
             }
 

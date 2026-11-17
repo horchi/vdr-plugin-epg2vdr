@@ -535,9 +535,10 @@ int updateTimerObjectFromRow(cTimer* timer, cDbRow* timerRow, const cEvent* even
 
       tChannelID channelId = tChannelID::FromString(timerRow->getStrValue("CHANNELID"));
       const cChannel* channel = channels->GetByChannelID(channelId);
+      const char* name = channel ? channel->Name() : timerRow->getStrValue("CHANNELID");
 
-      timer->SetFile(channel->Name());
-      tell(0, "Missing file, using channel name instead '%s'", channel->Name());
+      timer->SetFile(name);
+      tell(0, "Missing file, using channel name instead '%s'", name);
    }
 
    if (!timerRow->getValue("DAY")->isNull())

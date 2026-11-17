@@ -6,6 +6,8 @@
  */
 
 #include <set>
+#include <dirent.h>
+#include <vector>
 
 #include <vdr/videodir.h>
 
@@ -53,46 +55,102 @@ int isProtected(const char* path)
 // Cleanup Deleted Recordings from Table
 //***************************************************************************
 
+//***************************************************************************
+// Recordings Scan Active
+//   VDR reads the video directory by the thread 'video directory scanner',
+//   as long as it is running (e.g. at startup) the recordings list is incomplete!
+//   The kernel truncates the thread name to 15 characters -> 'video directory'
+//***************************************************************************
+
+bool cUpdate::recordingsScanActive()
+{
+   DIR* dir = opendir("/proc/self/task");
+
+   if (!dir)
+      return false;
+
+   bool active {false};
+
+   while (dirent* entry = readdir(dir))
+   {
+      if (entry->d_name[0] == '.')
+         continue;
+
+      char comm[100] {};
+      std::string path = std::string("/proc/self/task/") + entry->d_name + "/comm";
+      FILE* fp = fopen(path.c_str(), "r");
+
+      if (!fp)
+         continue;
+
+      if (fgets(comm, sizeof(comm), fp) && strncmp(comm, "video directory", 15) == 0)
+         active = true;
+
+      fclose(fp);
+
+      if (active)
+         break;
+   }
+
+   closedir(dir);
+
+   return active;
+}
+
 int cUpdate::cleanupDeletedRecordings(int force)
 {
    int delCnt = 0;
    md5Buf md5path;
    std::set<std::string> recMd5List;
 
-   // --------------------------
-   // get recordings lock
+   int recordingCount = 0;
 
+   // don't check against an incomplete recordings list,
+   //   all recordings not read yet would be marked as deleted
+
+   if (recordingsScanActive())
+   {
+      tell(1, "Video directory scan in progress, cleanup of deleted recordings postponed");
+      return done;
+   }
+
+   // --------------------------
+   // create set of existing recordings (to improve speed),
+   //   lock the recordings only for this, not during the database access
+
+   {
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   LOCK_RECORDINGS_READ;
-   const cRecordings* recordings = Recordings;
+      LOCK_RECORDINGS_READ;
+      const cRecordings* recordings = Recordings;
 #else
-   const cRecordings* recordings = &Recordings;
+      const cRecordings* recordings = &Recordings;
 #endif
 
-   if (recordings->Count() == lastRecordingCount && !force)
-      return done;
+      recordingCount = recordings->Count();
 
-   tell(0, "Cleanup deleted recordings at database%s", force ? " (forced)" : "");
+      if (recordingCount == lastRecordingCount && !force)
+         return done;
 
-   // create set of existing recordings (to improve speed)
+      tell(0, "Cleanup deleted recordings at database%s", force ? " (forced)" : "");
 
-   for (const cRecording* rec = recordings->First(); rec; rec = recordings->Next(rec))
-   {
-      int pathOffset = 0;
-
-      if (strncmp(rec->FileName(), videoBasePath, strlen(videoBasePath)) == 0)
+      for (const cRecording* rec = recordings->First(); rec; rec = recordings->Next(rec))
       {
-         pathOffset = strlen(videoBasePath);
+         int pathOffset = 0;
 
-         if (*(rec->FileName()+pathOffset) == '/')
-            pathOffset++;
+         if (strncmp(rec->FileName(), videoBasePath, strlen(videoBasePath)) == 0)
+         {
+            pathOffset = strlen(videoBasePath);
+
+            if (*(rec->FileName()+pathOffset) == '/')
+               pathOffset++;
+         }
+
+         createMd5(rec->FileName()+pathOffset, md5path);
+
+         tell(5, "DEBUG: Recording: '%s' [%s]", rec->Title(), rec->FileName());
+         recMd5List.insert(md5path);
       }
-
-      createMd5(rec->FileName()+pathOffset, md5path);
-
-      tell(5, "DEBUG: Recording: '%s' [%s]", rec->Title(), rec->FileName());
-      recMd5List.insert(md5path);
-   }
+   }  // release recordings lock
 
    connection->startTransaction();
 
@@ -127,7 +185,7 @@ int cUpdate::cleanupDeletedRecordings(int force)
    selectRecordings->freeResult();
 
    connection->commit();
-   lastRecordingCount = recordings->Count();
+   lastRecordingCount = recordingCount;
 
    tell(0, "Info: Marked %d recordings as deleted", delCnt);
 
@@ -138,34 +196,54 @@ int cUpdate::cleanupDeletedRecordings(int force)
 // Update Pending Recording Info Files
 //***************************************************************************
 
-int cUpdate::updatePendingRecordingInfoFiles(const cRecordings* recordings)
+int cUpdate::updatePendingRecordingInfoFiles()
 {
    cEventDetails evd;
    int count = 0;
+   std::vector<std::pair<std::string,tEventID>> pending;   // path, event id
 
    if (pendingNewRecordings.empty())
       return done;
 
    tell(1, "Updating recording info in info.epg2vdr");
 
-   // iterate over pending recordings
+   // lookup the pending recordings, lock only for the lookup
 
-   while (!pendingNewRecordings.empty())
    {
-      std::string path = pendingNewRecordings.front();
-      const cRecording* rec = ((cRecordings*)recordings)->GetByName(path.c_str());
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+      LOCK_RECORDINGS_READ;
+      const cRecordings* recordings = Recordings;
+#else
+      const cRecordings* recordings = &Recordings;
+#endif
 
-      pendingNewRecordings.pop();
-
-      if (!rec || !rec->Info() || !rec->Info()->GetEvent())
+      while (!pendingNewRecordings.empty())
       {
-         tell(0, "Warning: Recording '%s' not found or missin recording info,"
-              " can't create info.epg2vdr", path.c_str());
-         continue;
+         std::string path = pendingNewRecordings.front();
+         const cRecording* rec = ((cRecordings*)recordings)->GetByName(path.c_str());
+
+         pendingNewRecordings.pop();
+
+         if (!rec || !rec->Info() || !rec->Info()->GetEvent())
+         {
+            tell(0, "Warning: Recording '%s' not found or missin recording info,"
+                 " can't create info.epg2vdr", path.c_str());
+            continue;
+         }
+
+         pending.push_back(std::make_pair(path, rec->Info()->GetEvent()->EventID()));
       }
+   }
+
+   // iterate over pending recordings, without holding a VDR lock
+
+   for (const auto& p : pending)
+   {
+      const std::string& path = p.first;
+      tEventID eventId = p.second;
 
       useeventsDb->clear();
-      useeventsDb->setValue("USEID", (int)rec->Info()->GetEvent()->EventID());
+      useeventsDb->setValue("USEID", (int)eventId);
 
       if (selectEventById->find())
       {
@@ -178,11 +256,11 @@ int cUpdate::updatePendingRecordingInfoFiles(const cRecordings* recordings)
             evd.storeToFs(path.c_str());
 
             tell(1, "Updated/Created recording info for %d in info.epg2vdr with %d changes",
-                 rec->Info()->GetEvent()->EventID(), evd.getChanges());
+                 eventId, evd.getChanges());
          }
       }
       else
-         tell(0, "Warning: Event %d not found in table", rec->Info()->GetEvent()->EventID());
+         tell(0, "Warning: Event %d not found in table", eventId);
 
       selectEventById->freeResult();
    }
@@ -344,6 +422,28 @@ int cUpdate::updateRecordingTable(int fullReload)
 {
    int count = 0, insCnt = 0, updCnt = 0, dirCnt = 0;
 
+   struct RecInfo
+   {
+      std::string name;
+      int hierarchyLevels {0};
+      std::string fileName;
+      std::string baseName;
+      std::string folder;
+      time_t start {0};
+      int inUse {0};
+      int length {0};
+      std::string title;
+      std::string subTitle;
+      std::string description;
+      std::string longdescription;
+      std::string channelId;
+      std::string channelName;
+      int hasChannel {no};
+      int eventId {0};
+   };
+
+   std::vector<RecInfo> recInfos;
+
    // first cleanup, at least to adjust count in 'lastRecordingCount'
 
    if (fullReload)
@@ -351,23 +451,96 @@ int cUpdate::updateRecordingTable(int fullReload)
    else
       cleanupDeletedRecordings(yes);
 
-   // get channel and recordings lock
+   // ----------------
+   // snapshot of the recordings, the VDR lists are locked only while copying
+   //   (read lock is sufficient, sequence: Channels -> Recordings -> Schedules)
 
+   {
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   LOCK_CHANNELS_READ;
-   const cChannels* channels = Channels;
+      LOCK_CHANNELS_READ;
+      const cChannels* channels = Channels;
+      LOCK_RECORDINGS_READ;
+      const cRecordings* recordings = Recordings;
 #else
-   cChannels* channels = &Channels;
+      cChannels* channels = &Channels;
+      const cRecordings* recordings = &Recordings;
 #endif
 
-#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
-   LOCK_RECORDINGS_WRITE;
-   cRecordings* recordings = Recordings;
-#else
-   const cRecordings* recordings = &Recordings;
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20304))
+      cStateKey schedulesKey;
+      const cSchedules* schedules = cSchedules::GetSchedulesRead(schedulesKey, 500/*ms*/);
 #endif
 
-   // update
+      for (const cRecording* rec = recordings->First(); rec; rec = recordings->Next(rec))
+      {
+         RecInfo ri;
+         const cRecordingInfo* recInfo = rec->Info();
+
+         ri.name = notNull(rec->Name(), "");
+         ri.hierarchyLevels = rec->HierarchyLevels();
+         ri.fileName = rec->FileName();
+         ri.baseName = notNull(rec->BaseName(), "");
+         ri.folder = notNull(rec->Folder(), "");
+         ri.start = rec->Start();
+         ri.inUse = rec->IsInUse();
+         ri.length = rec->LengthInSeconds() > 0 ? rec->LengthInSeconds() : 0;
+         ri.title = ri.name;
+
+         if (recInfo)
+         {
+            ri.channelId = *(recInfo->ChannelID().ToString());
+            ri.subTitle = notNull(recInfo->ShortText(), "");
+            ri.description = notNull(recInfo->Description(), "");
+
+            if (const cChannel* channel = channels->GetByChannelID(recInfo->ChannelID()))
+            {
+               ri.hasChannel = yes;
+               ri.channelName = notNull(channel->Name(), "");
+            }
+
+            if (recInfo->Title())
+               ri.title = recInfo->Title();
+
+            if (recInfo->GetEvent())
+            {
+               ri.eventId = recInfo->GetEvent()->EventID();
+
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20304))
+               const cChannel* channel = channels->GetByChannelID(recInfo->ChannelID());
+
+               if (channel && schedules)
+               {
+                  cXml xml;
+                  const cSchedule* s = (cSchedule*)schedules->GetSchedule(channel);
+
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20501))
+                  const cEvent* event = s ? s->GetEventById(ri.eventId) : 0;
+#else
+                  const cEvent* event = s ? s->GetEvent(ri.eventId) : 0;
+#endif
+
+                  if (event && !isEmpty(event->Aux()) && xml.set(event->Aux()) == success)
+                  {
+                     if (XMLElement* element = xml.getElementByName("longdescription"))
+                        if (!isEmpty(element->GetText()))
+                           ri.longdescription = element->GetText();
+                  }
+               }
+#endif
+            }
+         }
+
+         recInfos.push_back(ri);
+      }
+
+#if (defined (APIVERSNUM) && (APIVERSNUM >= 20304))
+      if (schedules)
+         schedulesKey.Remove();
+#endif
+   }
+
+   // ----------------
+   // update the database, without holding a VDR lock
 
    tell(0, "Updating recording list table");
 
@@ -375,90 +548,42 @@ int cUpdate::updateRecordingTable(int fullReload)
 
    recordingDirDb->deleteWhere("vdruuid = '%s'", Epg2VdrConfig.uuid);
 
-   // ----------------
-   // update ...
-
-   for (cRecording* rec = recordings->First(); rec; rec = recordings->Next(rec))
+   for (const auto& ri : recInfos)
    {
       int insert;
       int fsk;
       md5Buf md5path;
-      const char* subTitle = "";
-      int eventId = 0;
-      std::string channelId = "";
-      const char* description = "";
-      std::string longdescription = "";
-      const char* title = rec->Name();
-      const cRecordingInfo* recInfo = rec->Info();
+      const char* title = ri.title.c_str();
+      const char* subTitle = ri.subTitle.c_str();
       int pathOffset = 0;
-      const cChannel* channel = 0;
       int baseChanges = 0;
+
+      if (!dbConnected())
+         break;
 
       // check if directory is registered
 
-      if (rec->HierarchyLevels() > 0)
-         dirCnt += updateRecordingDirectory(rec);
+      if (ri.hierarchyLevels > 0)
+         dirCnt += updateRecordingDirectory(ri.name.c_str(), ri.hierarchyLevels);
 
       // check if recording is registered
 
-      if (strncmp(rec->FileName(), videoBasePath, strlen(videoBasePath)) == 0)
+      if (strncmp(ri.fileName.c_str(), videoBasePath, strlen(videoBasePath)) == 0)
       {
          pathOffset = strlen(videoBasePath);
 
-         if (*(rec->FileName()+pathOffset) == '/')
+         if (ri.fileName.c_str()[pathOffset] == '/')
             pathOffset++;
       }
 
-      createMd5(rec->FileName()+pathOffset, md5path);
+      createMd5(ri.fileName.c_str()+pathOffset, md5path);
 
-      if (recInfo)
-      {
-         channelId = *(recInfo->ChannelID().ToString());
-         subTitle = recInfo->ShortText() ? recInfo->ShortText() : "";
-         description = recInfo->Description() ? recInfo->Description() : "";
-         channel = channels->GetByChannelID(recInfo->ChannelID());
-
-         if (recInfo->Title())
-            title = recInfo->Title();
-
-         if (recInfo->GetEvent())
-         {
-            eventId = recInfo->GetEvent()->EventID();
-
-#if (defined (APIVERSNUM) && (APIVERSNUM >= 20304))
-            if (channel)
-            {
-               cXml xml;
-               cStateKey schedulesKey;
-               const cSchedules* schedules = cSchedules::GetSchedulesRead(schedulesKey, 500/*ms*/);
-               const cSchedule* s = schedules ? (cSchedule*)schedules->GetSchedule(channel) : 0;
-
-#if (defined (APIVERSNUM) && (APIVERSNUM >= 20501))
-               const cEvent* event = s ? s->GetEventById(eventId) : 0;
-#else
-               const cEvent* event = s ? s->GetEvent(eventId) : 0;
-#endif
-
-               if (event && !isEmpty(event->Aux()) && xml.set(event->Aux()) == success)
-               {
-                  if (XMLElement* element = xml.getElementByName("longdescription"))
-                     if (!isEmpty(element->GetText()))
-                        longdescription = element->GetText();
-               }
-
-               if (schedules)
-                  schedulesKey.Remove();
-            }
-#endif
-         }
-      }
-
-      fsk = isProtected(rec->FileName());
+      fsk = isProtected(ri.fileName.c_str());
 
       recordingListDb->clear();
 
       recordingListDb->setValue("MD5PATH", md5path);
-      recordingListDb->setValue("STARTTIME", rec->Start());
+      recordingListDb->setValue("STARTTIME", ri.start);
       recordingListDb->setValue("OWNER", Epg2VdrConfig.useCommonRecFolder ? "" : Epg2VdrConfig.uuid);
 
       insert = !recordingListDb->find();
@@ -466,19 +591,19 @@ int cUpdate::updateRecordingTable(int fullReload)
 
       // base data ..
 
-      recordingListDb->setValue("STATE", rec->IsInUse() == ruTimer ? "R" : "F");
-      recordingListDb->setValue("INUSE", rec->IsInUse());
-      recordingListDb->setValue("PATH", rec->FileName()+pathOffset);
-      recordingListDb->setValue("NAME", rec->BaseName());
-      recordingListDb->setValue("FOLDER", rec->Folder());
-      recordingListDb->setValue("DESCRIPTION", description);
-      recordingListDb->setValue("DURATION", rec->LengthInSeconds() > 0 ? rec->LengthInSeconds() : 0);
-      recordingListDb->setValue("EVENTID", eventId);
-      recordingListDb->setValue("CHANNELID", channelId.c_str());
+      recordingListDb->setValue("STATE", ri.inUse == ruTimer ? "R" : "F");
+      recordingListDb->setValue("INUSE", ri.inUse);
+      recordingListDb->setValue("PATH", ri.fileName.c_str()+pathOffset);
+      recordingListDb->setValue("NAME", ri.baseName.c_str());
+      recordingListDb->setValue("FOLDER", ri.folder.c_str());
+      recordingListDb->setValue("DESCRIPTION", ri.description.c_str());
+      recordingListDb->setValue("DURATION", ri.length);
+      recordingListDb->setValue("EVENTID", ri.eventId);
+      recordingListDb->setValue("CHANNELID", ri.channelId.c_str());
       recordingListDb->setValue("FSK", fsk);
 
-      if (longdescription.length())
-         recordingListDb->setValue("LONGDESCRIPTION", longdescription.c_str());
+      if (ri.longdescription.length())
+         recordingListDb->setValue("LONGDESCRIPTION", ri.longdescription.c_str());
 
       // scraping relevand data ..
 
@@ -490,8 +615,8 @@ int cUpdate::updateRecordingTable(int fullReload)
       // load event details
 
       cEventDetails evd;
-      if (channel) evd.setValue("CHANNELNAME", channel->Name());
-      evd.loadFromFs(rec->FileName(), recordingListDb->getRow(), no);
+      if (ri.hasChannel) evd.setValue("CHANNELNAME", ri.channelName.c_str());
+      evd.loadFromFs(ri.fileName.c_str(), recordingListDb->getRow(), no);
       evd.updateToRow(recordingListDb->getRow());
 
       // any scrap relevand data changed?
@@ -597,7 +722,7 @@ int cUpdate::updateRecordingTable(int fullReload)
 
    // create info files for new recordings
 
-   updatePendingRecordingInfoFiles(recordings);
+   updatePendingRecordingInfoFiles();
 
    return success;
 }
@@ -606,17 +731,17 @@ int cUpdate::updateRecordingTable(int fullReload)
 // Update Recording Directory
 //***************************************************************************
 
-int cUpdate::updateRecordingDirectory(const cRecording* recording)
+int cUpdate::updateRecordingDirectory(const char* name, int hierarchyLevels)
 {
    int cnt = 0;
-   char* dir = strdup(recording->Name());
+   char* dir = strdup(name);
    char* pos = strrchr(dir, '~');
 
    if (pos)
    {
       *pos = 0;
 
-      for (int level = 0; level < recording->HierarchyLevels(); level++)
+      for (int level = 0; level < hierarchyLevels; level++)
       {
          recordingDirDb->clear();
          recordingDirDb->setValue("VDRUUID", Epg2VdrConfig.uuid);

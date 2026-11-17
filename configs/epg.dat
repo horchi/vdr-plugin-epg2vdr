@@ -122,7 +122,7 @@ Table fileref
    SOURCE               ""  source               Ascii       10 Primary,
    INSSP                ""  inssp                Int          0 Meta,
    UPDSP                ""  updsp                Int          0 Meta,
-   EXTERNALID           ""  extid                Ascii       10 Data,
+   EXTERNALID           ""  extid                Ascii       50 Data,
    FILEREF              ""  fileref              Ascii      100 Data,
    TAG                  ""  tag                  Ascii      100 Data,
 }
@@ -189,6 +189,8 @@ Table episodes
    INSSP                ""  inssp                Int          0 Meta,
    UPDSP                ""  updsp                Int          0 Meta,
 
+   COMBINEDCOMP         ""  combinedcomp         MText      300 Data,
+   STATE                ""  state                Ascii        1 Data,
    LINK                 ""  link                 Int          0 Data,
    SHORTNAME            ""  shortname            Ascii      100 Data,
    COMPSHORTNAME        ""  compshortname        Ascii      100 Data,
@@ -211,6 +213,7 @@ Table episodes
 Index episodes
 {
    updsp                ""  UPDSP,
+   combinedComp         ""  COMBINEDCOMP,
 }
 
 // ----------------------------------------------------------------
@@ -219,7 +222,7 @@ Index episodes
 
 Table channelmap
 {
-   EXTERNALID           ""  extid                Ascii       10 Primary,
+   EXTERNALID           ""  extid                Ascii       50 Primary,
    CHANNELID            ""  channelid            Ascii       50 Primary,
    SOURCE               ""  source               Ascii       20 Primary,
 
@@ -398,7 +401,7 @@ Table useevents
 {
    CNTSOURCE               ""                                               cnt_source                    Ascii     10 Primary,
    CHANNELID               ""                                               cnt_channelid                 Ascii     50 Primary,
-   CNTEVENTID              ""                                               cnt_eventid                   UBigInt    0 Primary,
+   CNTEVENTID              ""                                               cnt_eventid                   UBigInt    0 Primary|Meta,
 
    MASTERID                ""                                               cnt_masterid                  UInt       0 Data|Meta,
    USEID                   ""                                               cnt_useid                     UInt       0 Data,
@@ -517,6 +520,9 @@ Table recordinglist
    INUSE                ""                        inuse            UInt         1 Data,
    JOB                  ""                        job              Ascii        1 Data,
 
+   GROUP                "category/genre group (for menu)"  recgroup   Ascii      100 Data,
+   NGENRE               "normalized genre (for menu)"      ngenre     Ascii      50  Data,
+
    // enriched by 'external' data of events
 
    ACTOR                ""                        actor           MText     5000 Data,
@@ -612,7 +618,7 @@ Table timers
    EVENTID              "useid"                                  eventid              UInt         0 Data,
    CHANNELID            ""                                       channelid            Ascii       50 Data,
    EVTSTARTTIME         "start time of the event, if any"        evtstarttime         Int         10 Data,
-   _STARTTIME           "pre filled start timer for trigger"     _starttime           Int         10 Data,
+   _STARTTIME           "pre filled start time for trigger"      _starttime           Int         10 Data,
    _ENDTIME             "pre filled end time"                    _endtime             Int         10 Data,
 
    SOURCE               "like  osd, webif, epgd"                 source               Ascii       40 Data,
@@ -674,7 +680,8 @@ Table searchtimers
    CHANNELIDS           "comma separated list of channleids or empty"          channelids           Ascii      500 Data,
    CHEXCLUDE            ""                                                     chexclude            UInt         0 Data,
    CHFORMAT             "HD,SD"                                                chformat             Ascii       50 Data,
-
+   CHNUMMIN             "min channel number"                                   chnummin             UInt         0 Data,
+   CHNUMMAX             "max channel number"                                   chnummax             UInt         0 Data,
    NAME                 "Bezeichung des Suchtimers"                            name                 Ascii      100 Data,
    EXPRESSION           ""                                                     expression           Ascii      200 Data,
    EXPRESSION1          ""                                                     expression1          Ascii      200 Data,
@@ -863,6 +870,7 @@ Table series_media
    EPISODEID            ""  episode_id           UInt         0 Primary,
    ACTORID              ""  actor_id             UInt         0 Primary,
    MEDIATYPE            ""  media_type           UInt         0 Primary,
+   LFN                  ""  lfn                  UInt         0 Primary,
 
    INSSP                ""  inssp                Int          0 Meta filter epgd|httpd|epg2vdr,
    UPDSP                ""  updsp                Int          0 Meta filter epgd|httpd|epg2vdr,

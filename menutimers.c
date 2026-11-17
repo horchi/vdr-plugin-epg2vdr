@@ -503,6 +503,7 @@ eOSState cMenuEpgTimers::info()
 #if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
       LOCK_TIMERS_READ;
       LOCK_CHANNELS_READ;
+      LOCK_SCHEDULES_READ;     // like VDR's cMenuTimers::Info(), the event is accessed
       return AddSubMenu(new cMenuEvent(Timers, Channels, ti->Event()));
 #else
       return AddSubMenu(new cMenuEvent(ti->Event()));

@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.2.19"
-#define VERSION_DATE "09.11.2026"
+#define _VERSION     "1.2.20"
+#define VERSION_DATE "17.11.2026"
 
 #define DB_API 8
 
@@ -18,6 +18,18 @@
 
 /*
  * ------------------------------------
+
+2026-11-17: version 1.2.20 (horchi)
+   - change: Adapted deletion of recordings to VDR >= 2.7.9 (deprecated cRecordings::DelByName())
+   - bugfix: EPG menu held the schedules lock as long as it was open (invalid lock sequence, possible deadlock)
+   - bugfix: Write locks without explicit modify triggered timer table updates and timers.conf/channels.conf saves in a loop
+   - change: VDR lists are no longer locked during database access (timer jobs, timer/recording table, EPG refresh)
+   - change: Recording table update uses a read lock instead of a write lock on the recordings
+   - bugfix: No OSD messages, confirmations or replay start/stop while holding a VDR list lock
+   - bugfix: Possible crash on timers without file name for an unknown channel
+   - bugfix: Recordings were marked as deleted if the recording table update ran while VDR was still
+             scanning the video directory (e.g. directly after a restart)
+   - bugfix: Matching/duplicate recordings menu: 'Rewind' locked up VDR (resume file deleted while holding the recordings lock)
 
 2026-11-09: version 1.2.19 (horchi)
    - added: Plugin menu 'Duplicate recordings' (same title and short text), with play, delete and info

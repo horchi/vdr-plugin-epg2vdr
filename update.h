@@ -214,8 +214,9 @@ class cUpdate : public cThread, public cStatus, public cParameters
 
       int updateRecordingTable(int fullReload = no);
       int cleanupDeletedRecordings(int force = no);
-      int updateRecordingDirectory(const cRecording* recording);
-      int updatePendingRecordingInfoFiles(const cRecordings* recordings);
+      static bool recordingsScanActive();
+      int updateRecordingDirectory(const char* name, int hierarchyLevels);
+      int updatePendingRecordingInfoFiles();
       int performRecordingActions();
       int storeAllRecordingInfoFiles();
       int updateRecordingInfoFiles();
