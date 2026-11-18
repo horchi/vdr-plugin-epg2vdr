@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.2.20"
-#define VERSION_DATE "17.11.2026"
+#define _VERSION     "1.2.21"
+#define VERSION_DATE "18.11.2026"
 
 #define DB_API 8
 
@@ -18,6 +18,19 @@
 
 /*
  * ------------------------------------
+
+2026-11-18: version 1.2.21 (horchi)
+   - added: The master (active EPG handler) takes name and group of the VDR channels to the channelmap
+            (new column channelgroup, needs epgd >= 1.4.2), channels unknown at the VDR are not touched
+            decoration prefixes of the group names like '->' are removed
+   - added: Limits of the recording complete check configurable (epgd parameters, web front end)
+   - added: Option to check late started manual timers only from the recording start on
+   - added: Reason of failed recordings and timers stored at the done entry (timersdone.info)
+   - bugfix: Timer table update overwrote the event id of the database with the one of an other event
+             VDR assigned the timer to (e.g. DVB EIT, same start time) -> epgd rejected the timer in a loop
+   - bugfix: EIT events of channels managed by the database could get into the VDR schedule if the handler
+             instance could not handle the channel at that moment (e.g. no db connection), now they are dropped
+   - bugfix: Parameter 'manualTimer2Done' was unknown to the plugin (warning, OSD timers missing in the timer history)
 
 2026-11-17: version 1.2.20 (horchi)
    - change: Adapted deletion of recordings to VDR >= 2.7.9 (deprecated cRecordings::DelByName())

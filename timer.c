@@ -284,7 +284,7 @@ int cUpdate::performTimerJobs()
                timerDb->setCharValue("ACTION", taFailed);
                timerDb->setCharValue("STATE", tsError);
                timerDb->update();
-               updateTimerDone(timerid, doneid, tdsTimerCreateFailed);
+               updateTimerDone(timerid, doneid, tdsTimerCreateFailed, timerDb->getStrValue("INFO"));
                continue;
             }
 
@@ -330,7 +330,7 @@ int cUpdate::performTimerJobs()
                timerDb->setCharValue("ACTION", taFailed);
                timerDb->setCharValue("STATE", tsError);
                timerDb->update();
-               updateTimerDone(timerid, doneid, tdsTimerCreateFailed);
+               updateTimerDone(timerid, doneid, tdsTimerCreateFailed, timerDb->getStrValue("INFO"));
                continue;
             }
 
@@ -348,7 +348,7 @@ int cUpdate::performTimerJobs()
                timerDb->setCharValue("ACTION", taFailed);
                timerDb->setCharValue("STATE", tsError);
                timerDb->update();
-               updateTimerDone(timerid, doneid, tdsTimerCreateFailed);
+               updateTimerDone(timerid, doneid, tdsTimerCreateFailed, timerDb->getStrValue("INFO"));
 
                // mark this channel as 'unknown'
 
@@ -374,7 +374,7 @@ int cUpdate::performTimerJobs()
                timerDb->setCharValue("ACTION", taFailed);
                timerDb->setCharValue("STATE", tsError);
                timerDb->update();
-               updateTimerDone(timerid, doneid, tdsTimerCreateFailed);
+               updateTimerDone(timerid, doneid, tdsTimerCreateFailed, timerDb->getStrValue("INFO"));
 
                // force reload of events
 
@@ -405,7 +405,7 @@ int cUpdate::performTimerJobs()
                      timerDb->setCharValue("ACTION", taFailed);
                      timerDb->setCharValue("STATE", tsError);
                      timerDb->update();
-                     updateTimerDone(timerid, doneid, tdsTimerCreateFailed);
+                     updateTimerDone(timerid, doneid, tdsTimerCreateFailed, timerDb->getStrValue("INFO"));
                      continue;
                   }
 
@@ -459,7 +459,7 @@ int cUpdate::performTimerJobs()
                   timerDb->setCharValue("ACTION", taFailed);
                   timerDb->setCharValue("STATE", tsError);
                   timerDb->update();
-                  updateTimerDone(timerid, doneid, tdsTimerCreateFailed);
+                  updateTimerDone(timerid, doneid, tdsTimerCreateFailed, timerDb->getStrValue("INFO"));
                   continue;
                }
 
@@ -636,7 +636,7 @@ int cUpdate::takeSwitchTimer()
 // Timer Done to Failed
 //***************************************************************************
 
-int cUpdate::updateTimerDone(int timerid, int doneid, char state)
+int cUpdate::updateTimerDone(int timerid, int doneid, char state, const char* info)
 {
    if (doneid == na)
       return done;
@@ -653,6 +653,10 @@ int cUpdate::updateTimerDone(int timerid, int doneid, char state)
 
       timerDoneDb->setValue("TIMERID", timerid);
       timerDoneDb->setCharValue("STATE", state);
+
+      if (!isEmpty(info))
+         timerDoneDb->setValue("INFO", info);
+
       timerDoneDb->update();
    }
    else
@@ -844,7 +848,25 @@ int cUpdate::updateTimerTable()
             continue;
       }
 
+      long dbEventId = insert ? 0 : timerDb->getIntValue("EVENTID");
+      long dbEvtStart = insert ? 0 : timerDb->getIntValue("EVTSTARTTIME");
+      std::string dbChannelId = insert ? "" : notNull(timerDb->getStrValue("CHANNELID"));
+
       timerDb->getRow()->copyValues(info.row, cDBS::ftAll);   // like updateRowByTimer() on the timer
+
+      // VDR may assign the timer to an other event with (nearly) the same start time on the same channel,
+      // e.g. one of the DVB EIT, keep the event of the database in this case - otherwise epgd don't find
+      // the event anymore, rejects the timer and the search timer creates it again and again
+
+      if (dbEventId > 0 && timerDb->getIntValue("EVENTID") != dbEventId
+          && dbChannelId == notNull(timerDb->getStrValue("CHANNELID"))
+          && std::abs(timerDb->getIntValue("EVTSTARTTIME") - dbEvtStart) <= 5 * tmeSecondsPerMinute)
+      {
+         tell(2, "Info: Timer (%d) assigned by VDR to event %ld, keeping event %ld of the database",
+              timerId, timerDb->getIntValue("EVENTID"), dbEventId);
+         timerDb->setValue("EVENTID", dbEventId);
+         timerDb->setValue("EVTSTARTTIME", dbEvtStart);
+      }
 
       if (insert)
       {
@@ -979,6 +1001,9 @@ int cUpdate::recordingChanged()
                   timerDoneDb->setCharValue("STATE", tdsRecordingFailed);  // -> Recording failed
                else
                   timerDoneDb->setCharValue("STATE", tdsRecordingDone);    // -> Recording done
+
+               if (!timerWasDeleted && !rr->info.empty())
+                  timerDoneDb->setValue("INFO", rr->info.c_str());          // e.g. "... NOT complete (63%)"
 
                tell(1, "Update 'done state' for doneid %ld to %s", rr->doneid, timerDoneDb->getStrValue("STATE"));
 

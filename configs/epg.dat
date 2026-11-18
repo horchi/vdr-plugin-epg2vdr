@@ -229,6 +229,7 @@ Table channelmap
    ORDER                ""  ord                  Int          0 Data,
    VISIBLE              ""  visible              Int          0 Data,
    CHANNELNAME          ""  channelname          Ascii      100 Data,
+   CHANNELGROUP         ""  channelgroup         Ascii      100 Data,
    VPS                  ""  vps                  Int          0 Data,
    FORMAT               ""  format               Ascii       50 Data,
    UNKNOWNATVDR         ""  unknownatvdr         UInt         1 Data,
@@ -773,6 +774,7 @@ Table timersdone
    STARTTIME            ""                                    starttime            Int         10 Data,
    DURATION             ""                                    duration             Int          5 Data,
    AUX                  ""                                    aux                  Ascii      512 Data,
+   INFO                 "reason of failed/rejected"           info                 Ascii      255 Data,
 }
 
 // ----------------------------------------------------------------

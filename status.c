@@ -148,6 +148,17 @@ void cUpdate::Recording(const cDevice* Device, const char* Name, const char* Fil
 int cUpdate::performRecordingActions()
 {
    const int allowedBreakDuration {2};
+   const int lateStartTolerance {60};      // seconds
+
+   // read the configured limits before locking the VDR lists (no DB access while holding them)
+
+   long minCompletePct {98};
+   long minCompletePctVps {90};
+   long checkLateManualTimer {yes};
+
+   getParameter("epgd", "recCompleteMinPct", minCompletePct);
+   getParameter("epgd", "recCompleteMinPctVps", minCompletePctVps);
+   getParameter("epgd", "recCheckLateManualTimer", checkLateManualTimer);
 
    GET_TIMERS_READ(timers);           // get timers lock
    GET_RECORDINGS_READ(recordings);   // recordings lock
@@ -193,7 +204,11 @@ int cUpdate::performRecordingActions()
                int doneid = na;
                contentOfTag(ti, "doneid", doneid);
 
+               int autotimerid = na;
+               contentOfTag(ti, "autotimerid", autotimerid);
+
                recording = new cRunningRecording(ti, doneid);
+               recording->manual = autotimerid <= 0;
                runningRecordings.Add(recording);
                tell(1, "Info: Recording '%s' with doneid %d added to running list", action.name.c_str(), doneid);
             }
@@ -212,6 +227,7 @@ int cUpdate::performRecordingActions()
             double recFraction {100.0};
             long timerLengthSecs {0};
             bool complete {false};
+            bool startedLate {false};
 
             const cTimer* t = Timers->GetById(rr->id, rr->remote);
 
@@ -221,15 +237,26 @@ int cUpdate::performRecordingActions()
             tell(2,"Info: Valid timer for recording '%s' on Server '%s'", rr->file.c_str(), rr->remote);
             timerLengthSecs = rr->stopTime - rr->startTime;
 
+            // manual timer started after its start time (e.g. created while the event was already running)
+            //  -> if configured, check the length only against the time from the recording start on
+
+            if (!checkLateManualTimer && rr->manual && rr->recStart > rr->startTime + lateStartTolerance && rr->recStart < rr->stopTime)
+            {
+               startedLate = true;
+               timerLengthSecs = rr->stopTime - rr->recStart;
+               tell(1, "Info: Manual timer '%s' started %ld minutes late, checking recorded length from its start on",
+                    rr->file.c_str(), (rr->recStart - rr->startTime) / 60);
+            }
+
             if (pRecording && timerLengthSecs)
             {
                int recLen = RecLengthInSecs(pRecording);
                recFraction = double(recLen) * 100.0 / timerLengthSecs;
             }
 
-            // assure timer has reached it's end or at least 90% (vps) / 98% were recorded
+            // assure timer has reached it's end or at least the configured part (default 90% vps / 98%) was recorded
 
-            complete = recFraction >= (rr->vps ? 90 : 98);
+            complete = recFraction >= (rr->vps ? minCompletePctVps : minCompletePct);
 
             if (complete)
                tell(1, "Info: Finished (%d) '%s'; recorded %d%%; VPS %s", getTimerIdOf(rr->aux.c_str()),
@@ -246,7 +273,8 @@ int cUpdate::performRecordingActions()
             if (!rr->lastBreak || time(0) - rr->lastBreak > allowedBreakDuration || time(0) >= rr->stopTime)
             {
                char* infoTxt;
-               asprintf(&infoTxt, "Recording '%s' finished - %s complete (%d%%)", rr->file.c_str(), complete ? "" : "NOT", (int)round(recFraction));
+               asprintf(&infoTxt, "Recording '%s' finished - %s complete (%d%%%s)", rr->file.c_str(), complete ? "" : "NOT",
+                        (int)round(recFraction), startedLate ? ", started late" : "");
                tell(1, "Info: %s", infoTxt);
                rr->finished = yes;
                rr->failed = !complete;

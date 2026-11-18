@@ -20,7 +20,6 @@ cParameters::Parameter cParameters::parameters[] =
    // --------------------------------------------
    // epgd / epghttpd
 
-   { "epgd",     "manualTimer2Done",         ptBool,    "1",                        "^[01]$",               no,    yes },
    { "epgd",     "timerJobFailedHistory",    ptNum,     "10",                       "^[0-9]{1,3}$",         no,    yes },
 
    { "epgd",     "logoUpperCase",            ptBool,    "0",                        "^[01]$",               no,    yes },
@@ -46,6 +45,16 @@ cParameters::Parameter cParameters::parameters[] =
    // epg2vdr / scraper2vdr
 
    { "uuid",     "lastEventsUpdateAt",       ptNum,     NULL,                       "^[0-9]{1,20}$",        yes,   yes },
+
+   // epgd parameters used by the plugin too
+
+   { "epgd",     "manualTimer2Done",         ptBool,    "1",                        "^[01]$",               no,    yes },
+
+   // recording complete check (shown in the web front end with the epgd parameters)
+
+   { "epgd",     "recCompleteMinPct",        ptNum,     "98",                       "^([0-9]|[1-9][0-9]|100)$", no, yes },
+   { "epgd",     "recCompleteMinPctVps",     ptNum,     "90",                       "^([0-9]|[1-9][0-9]|100)$", no, yes },
+   { "epgd",     "recCheckLateManualTimer",  ptBool,    "1",                        "^[01]$",               no,    yes },
 
    // --------------------------------------------
    // webif

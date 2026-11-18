@@ -944,7 +944,31 @@ class cEpg2VdrEpgHandler : public cEpgHandler
 
       virtual bool HandledExternally(const cChannel* Channel)
       {
-         return getHandler()->HandledExternally(Channel);
+         if (getHandler()->HandledExternally(Channel))
+            return true;
+
+         // a channel managed by the database must never get the EIT events into the VDR schedule,
+         // otherwise VDR may assign timers to these events (different event id -> epgd rejects the timer)
+         //  -> even if the handler instance can't handle it right now (e.g. no db connection),
+         //     report 'handled externally', the instance drops the event in IsUpdate() then
+
+         tChannelID tmp = Channel->GetChannelID();
+
+         if (getExternalIdOfChannel(&tmp) != "")
+         {
+            static time_t lastWarnAt {0};
+
+            if (lastWarnAt < time(0) - 60)
+            {
+               lastWarnAt = time(0);
+               tell(0, "Handler: Warning: Channel '%s' not handled by the handler instance (db connected: %s), "
+                    "dropping its EIT events", (const char*)tmp.ToString(), getHandler()->dbConnected() ? "yes" : "no");
+            }
+
+            return true;
+         }
+
+         return false;
       }
 
       virtual bool BeginSegmentTransfer(const cChannel *Channel, bool dummy)

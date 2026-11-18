@@ -44,6 +44,7 @@ class cRunningRecording : public cListObject
          startTime = t->StartTime();
          stopTime = t->StopTime();
          file = notNull(t->File());
+         recStart = time(0);
          if (t->Event())
             vps = t->HasFlags(tfVps) && t->Event()->Vps();
       }
@@ -66,6 +67,8 @@ class cRunningRecording : public cListObject
       std::string file;
       time_t startTime {0};
       time_t stopTime {0};
+      time_t recStart {0};  // time the recording actually started
+      bool manual {false};  // timer not created by a search timer
       bool vps {false};
 };
 
@@ -179,6 +182,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       void Action(void);
       void processEvents();
       int isHandlerMaster();
+      int updateChannelMap();
       void updateVdrData();
       int updateRecFolderOption();
       int dbConnected(int force = no)
@@ -205,7 +209,7 @@ class cUpdate : public cThread, public cStatus, public cParameters
       int updateTimerTable();
       int performTimerJobs();
       int recordingChanged();
-      int updateTimerDone(int timerid, int doneid, char state);
+      int updateTimerDone(int timerid, int doneid, char state, const char* info = nullptr);
       int hasTimerChanged();
       int takeSwitchTimer();
       int checkSwitchTimer();
@@ -245,6 +249,9 @@ class cUpdate : public cThread, public cStatus, public cParameters
       int timerJobsUpdateTriggered {yes};
       int timerTableUpdateTriggered {yes};
       cStateKey timerStateKey;
+      cStateKey channelsStateKey;
+      int channelMapSynced {no};
+      time_t channelMapSyncAt {0};
       int manualTrigger {no};
       int recordingStateChangedTrigger {yes};
       int recordingFullReloadTrigger {no};
@@ -284,6 +291,8 @@ class cUpdate : public cThread, public cStatus, public cParameters
       cDbStatement* selectAllChannels {};
       cDbStatement* selectChannelById {};
       cDbStatement* markUnknownChannel {};
+      cDbStatement* selectChannelsOfMap {};
+      cDbStatement* updateChannelOfMap {};
       cDbStatement* selectComponentsOf {};
       cDbStatement* deleteTimer {};
       cDbStatement* selectMyTimer {};

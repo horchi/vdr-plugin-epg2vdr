@@ -6,6 +6,7 @@
  */
 
 #include <locale.h>
+#include <set>
 #include <unordered_set>
 #include <vector>
 
@@ -405,6 +406,33 @@ int cUpdate::initDb()
 
    status += markUnknownChannel->prepare();
 
+   // select distinct channelid, channelname, channelgroup
+   //   from channelmap;
+
+   selectChannelsOfMap = new cDbStatement(mapDb);
+
+   selectChannelsOfMap->build("select distinct ");
+   selectChannelsOfMap->bind("CHANNELID", cDBS::bndOut);
+   selectChannelsOfMap->bind("CHANNELNAME", cDBS::bndOut, ", ");
+   selectChannelsOfMap->bind("CHANNELGROUP", cDBS::bndOut, ", ");
+   selectChannelsOfMap->build(" from %s", mapDb->TableName());
+
+   status += selectChannelsOfMap->prepare();
+
+   // update channelmap
+   //   set channelname = ?, channelgroup = ?
+   //   where channelid = ?
+
+   updateChannelOfMap = new cDbStatement(mapDb);
+
+   updateChannelOfMap->build("update %s set ", mapDb->TableName());
+   updateChannelOfMap->bind("CHANNELNAME", cDBS::bndIn | cDBS::bndSet);
+   updateChannelOfMap->bind("CHANNELGROUP", cDBS::bndIn | cDBS::bndSet, ", ");
+   updateChannelOfMap->build(" where ");
+   updateChannelOfMap->bind("CHANNELID", cDBS::bndIn | cDBS::bndSet);
+
+   status += updateChannelOfMap->prepare();
+
    // select changed events
 
    selectUpdEvents = new cDbStatement(eventsDb);
@@ -767,6 +795,10 @@ int cUpdate::exitDb()
    delete selectAllChannels;         selectAllChannels = 0;
    delete selectChannelById;         selectChannelById = 0;
    delete markUnknownChannel;        markUnknownChannel = 0;
+   delete selectChannelsOfMap;       selectChannelsOfMap = 0;
+   delete updateChannelOfMap;        updateChannelOfMap = 0;
+
+   channelMapSynced = no;            // sync again after (re)connect
    delete selectComponentsOf;        selectComponentsOf = 0;
    delete selectMasterVdr;           selectMasterVdr = 0;
    delete deleteTimer;               deleteTimer = 0;
@@ -986,6 +1018,106 @@ int cUpdate::isHandlerMaster()
    }
 
    return handlerMaster;
+}
+
+//***************************************************************************
+// Update Channel Map
+//  - take channel name and group of the VDR channels to the channelmap
+//    only done by the master, the channels of the VDR are the reference
+//    (same channel logos as the OSD, the logos are looked up by name)
+//  - channels unknown at this VDR are not touched
+//***************************************************************************
+
+int cUpdate::updateChannelMap()
+{
+#if defined (APIVERSNUM) && (APIVERSNUM >= 20301)
+
+   struct VdrChannel
+   {
+      std::string name;
+      std::string group;
+   };
+
+   std::map<std::string,VdrChannel> vdrChannels;
+   std::set<std::string> changed;
+
+   // force read even if the channels are unchanged: first call, after a (re)connect and
+   //   every 5 minutes (rows added to the channelmap by epgd need the name too)
+
+   bool forced = !channelMapSynced || channelMapSyncAt + 5*tmeSecondsPerMinute < time(0);
+
+   if (forced)
+      channelsStateKey.Reset();
+
+   // copy the VDR channels, don't hold the lock during database access
+
+   const cChannels* channels = cChannels::GetChannelsRead(channelsStateKey);
+
+   if (!channels)
+      return done;                   // unchanged (or lock failed if forced -> retry with the next loop)
+
+   std::string group;
+
+   for (const cChannel* channel = channels->First(); channel; channel = channels->Next(channel))
+   {
+      if (channel->GroupSep())
+      {
+         // group name without decoration prefix like '->' of the channels.conf (':->HD+')
+
+         const char* p = notNull(channel->Name(), "");
+
+         while (*p && strchr("->=*~ ", *p))
+            p++;
+
+         group = p;
+      }
+      else if (!isEmpty(channel->Name()))
+         vdrChannels[(const char*)channel->GetChannelID().ToString()] = { channel->Name(), group };
+   }
+
+   channelsStateKey.Remove();
+
+   // compare with the channelmap (a channel may have rows of several sources)
+
+   mapDb->clear();
+
+   for (int f = selectChannelsOfMap->find(); f; f = selectChannelsOfMap->fetch())
+   {
+      auto it = vdrChannels.find(mapDb->getStrValue("CHANNELID"));
+
+      if (it == vdrChannels.end())
+         continue;
+
+      if (it->second.name != notNull(mapDb->getStrValue("CHANNELNAME"), "") ||
+          it->second.group != notNull(mapDb->getStrValue("CHANNELGROUP"), ""))
+         changed.insert(it->first);
+   }
+
+   selectChannelsOfMap->freeResult();
+
+   for (const auto& id : changed)
+   {
+      const VdrChannel& ch = vdrChannels[id];
+
+      tell(1, "Channelmap: Update '%s' to name '%s', group '%s'", id.c_str(), ch.name.c_str(), ch.group.c_str());
+
+      mapDb->clear();
+      mapDb->setValue("CHANNELID", id.c_str());
+      mapDb->setValue("CHANNELNAME", ch.name.c_str());
+      mapDb->setValue("CHANNELGROUP", ch.group.c_str());
+      updateChannelOfMap->execute();
+      updateChannelOfMap->freeResult();
+   }
+
+   channelMapSynced = yes;
+   channelMapSyncAt = time(0);
+
+   tell(changed.size() ? 0 : 2, "Channelmap: %zu of %zu VDR channels updated (name/group)",
+        changed.size(), vdrChannels.size());
+
+#endif
+
+   return done;
 }
 
 // // ***************************************************************************
@@ -1345,6 +1477,14 @@ void cUpdate::Action()
       // check handler role
 
       isHandlerMaster();
+
+      // the master (the one with the active EPG handler) takes
+      //   channel names and groups of the VDR to the channelmap
+
+      if (!handlerMaster)
+         channelMapSynced = no;
+      else if (dbConnected())
+         updateChannelMap();
 
       // if (Epg2VdrConfig.shareInWeb)
       {
