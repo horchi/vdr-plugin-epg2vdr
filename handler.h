@@ -431,6 +431,15 @@ class cEpgHandlerInstance
          else
             connection->rollback();
 
+         // a deadlock rolled back the transaction -> hash list doesn't match the db anymore
+
+         if (memListDirty)
+         {
+            tell(0, "Handler: Transaction aborted by a database deadlock, reloading hash list");
+            memListDirty = no;
+            updateMemList();
+         }
+
          if (Epg2VdrConfig.loglevel > 2)
             connection->showStat("handler");
 
@@ -645,7 +654,7 @@ class cEpgHandlerInstance
 
          compDb->clear();
          compDb->setBigintValue("EVENTID", eventsDb->getBigintValue("EVENTID"));
-         delCompOf->execute();
+         checkWrite(delCompOf->execute());
 
          if (event->Components())
          {
@@ -660,7 +669,7 @@ class cEpgHandlerInstance
                compDb->setValue("Type", p->type);
                compDb->setValue("Lang", p->language);
                compDb->setValue("Description", p->description ? p->description : "");
-               compDb->store();
+               checkWrite(compDb->store());
             }
          }
 
@@ -703,11 +712,11 @@ class cEpgHandlerInstance
                eventsDb->setCharValue("UpdFlg", event->StartTime() > mergesp ? Us::usInactive : Us::usActive);
             }
 
-            eventsDb->insert();
+            checkWrite(eventsDb->insert());
          }
          else
          {
-            eventsDb->update();
+            checkWrite(eventsDb->update());
          }
 
          if (!insert && oldStartTime)
@@ -787,12 +796,20 @@ class cEpgHandlerInstance
 
          // mark segment as deleted
 
-         updateDelFlg->execute();
+         checkWrite(updateDelFlg->execute());
 
          return true;
       }
 
    private:
+
+      void checkWrite(int status)
+      {
+         // on a deadlock (1213) the database rolls back the whole transaction
+
+         if (status != success && mysql_errno(connection->getMySql()) == 1213)
+            memListDirty = yes;
+      }
 
       std::string getExternalIdOfChannel(tChannelID* channelId)
       {
@@ -859,6 +876,7 @@ class cEpgHandlerInstance
       };
 
       std::map<std::string,MemMap> evtMemList;
+      int memListDirty {no};
       std::map<std::string,std::string> externIdMap;
       tChannelID channelId;
 

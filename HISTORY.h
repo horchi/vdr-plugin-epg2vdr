@@ -5,8 +5,8 @@
  *
  */
 
-#define _VERSION     "1.2.21"
-#define VERSION_DATE "18.11.2026"
+#define _VERSION     "1.2.22"
+#define VERSION_DATE "21.11.2026"
 
 #define DB_API 8
 
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2026-11-21: version 1.2.22 (horchi)
+   - bugfix: EPG handler: hash list inconsistent after a database deadlock, now reloaded
 
 2026-11-18: version 1.2.21 (horchi)
    - added: The master (active EPG handler) takes name and group of the VDR channels to the channelmap
