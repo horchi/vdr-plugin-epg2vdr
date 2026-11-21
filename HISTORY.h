@@ -5,7 +5,7 @@
  *
  */
 
-#define _VERSION     "1.2.22"
+#define _VERSION     "1.2.23"
 #define VERSION_DATE "21.11.2026"
 
 #define DB_API 8
@@ -18,6 +18,9 @@
 
 /*
  * ------------------------------------
+
+2026-11-21: version 1.2.23 (horchi)
+   - change: unused parameters of the old web interface removed
 
 2026-11-21: version 1.2.22 (horchi)
    - bugfix: EPG handler: hash list inconsistent after a database deadlock, now reloaded

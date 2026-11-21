@@ -77,8 +77,6 @@ cParameters::Parameter cParameters::parameters[] =
    { "@",        "namingModeSearchSerie",    ptNum,     "1",                        "^[0-5]$",              no,    yes },
    { "@",        "namingModeMovie",          ptNum,     "1",                        "^[0-5]$",              no,    yes },
    { "@",        "namingModeSearchMovie",    ptNum,     "1",                        "^[0-5]$",              no,    yes },
-   { "@",        "pickerFirstDay",           ptNum,     "1",                        "^[0-6]$",              no,    yes },
-   { "@",        "sendTCC",                  ptBool,    "1",                        "^[01]$",               no,    yes },
    { "@",        "constabelLoginPath",       ptAscii,   "",                         "^.{0,150}$",           no,    yes },
    { "@",        "mailReceiver",             ptAscii,   "",                         "^.{0,150}$",           no,    yes },
    { "@",        "osdTimerNotify",           ptBool,    "0",                        "^[01]$",               no,    yes },
